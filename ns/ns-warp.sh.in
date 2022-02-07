@@ -1,0 +1,202 @@
+#!/bin/sh
+
+# ---------------------------------------------------------------------------- #
+# NS-Warp - rc script                                                          #
+# ---------------------------------------------------------------------------- #
+
+# Copyright (c) 2023-2024 Mikhail Zakharov <zmey20000@yahoo.com>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# ---------------------------------------------------------------------------- #
+# Start/stop rc-script
+# Requires root priveleges to run
+# ---------------------------------------------------------------------------- #
+
+
+# -- CONFIGURATION VARIABLES ------------------------------------------------- #
+nswarp_prefix="/usr/local"
+nswarp_inifile="$nswarp_prefix/etc/ts-warp.ini"
+nswarp_logfile="$nswarp_prefix/var/log/ns-warp.log"
+nswarp_pidfile="$nswarp_prefix/var/run/ns-warp.pid"
+nswarp_user="nobody"
+nswarp_iaddr="127.0.0.1"
+nswarp_iport="35353"
+nswarp_saddr=""
+
+linux_firewall="nftables"       # Under Linux set nftables or iptables
+
+FORCE=0                         # Ignore status and start/stop ns-warp forcibly
+
+# ---------------------------------------------------------------------------- #
+_start() {
+    if [ $FORCE -eq 0 ]; then
+        _status
+        case $? in
+            0)
+                printf "ns-warp is already running: "
+                return 0
+                ;;
+            1)
+                ;;
+            2)
+                printf "ns-warp status unknown: requesting 'force stop'. "
+                FORCE=1
+                _stop
+                ;;
+        esac
+    fi
+
+    _check_root
+    nswarp_saddr=`awk '/nameserver/ {print $2; exit 0}' /etc/resolv.conf`
+    printf "Starting ns-warp: "
+    nswarp_options="-i $nswarp_iaddr:$nswarp_iport -s $nswarp_saddr -c $nswarp_inifile -l $nswarp_logfile -p $nswarp_pidfile -d -v 3"
+    echo $nswarp_options $* | xargs "$nswarp_prefix"/bin/ns-warp > /dev/null
+
+    case "$os" in
+        linux)
+            [ "$linux_firewall" = "nftables" ] && {     # Use nft if defined or iptables
+                nft add chain ip nat NS-WARP
+                nft add rule ip nat NS-WARP ip protocol udp dport 53 counter redirect to :$nswarp_iport
+                nft add rule ip nat OUTPUT ip protocol udp skuid != $nswarp_user counter jump NS-WARP
+            } || {
+                iptables -t nat -N NS-WARP
+                iptables -t nat -A NS-WARP -p udp --dport 53 -j REDIRECT --to-ports $nswarp_iport
+                iptables -t nat -A OUTPUT -p udp -m owner --uid-owner != $nswarp_user -j NS-WARP
+            }
+            ;;
+        openbsd)
+            pfctl -a ns-warp -f - << EOF
+pass in log on lo0 inet proto udp from any to any rdr-to $nswarp_iaddr port $nswarp_iport
+pass out on !lo0 inet proto udp from any to any port 53 route-to lo0 user != $nswarp_user
+EOF
+            ;;
+        darwin|freebsd)
+            pfctl -a ns-warp -f - << EOF
+rdr pass log on lo0 inet proto udp from any to any port 53 -> $nswarp_iaddr port $nswarp_iport
+pass out route-to lo0 inet proto udp from any to any port 53 user != $nswarp_user
+EOF
+            ;;
+        *)
+    esac
+}
+
+# ---------------------------------------------------------------------------- #
+_status() {
+    # Set $1 if status message is required
+    [ -s "$nswarp_pidfile" -a -r "$nswarp_pidfile" ] || {
+        [ "$1" ] && printf "ns-warp is not running: "
+        return 1
+    }
+
+    pgrep -F "$nswarp_pidfile" > /dev/null 2>&1
+    case $? in
+        0)
+           [ "$1" ] && printf "ns-warp is running PID: %s: " `cat "$nswarp_pidfile"`
+           return 0
+           ;;
+        1)
+           [ "$1" ] && printf "ns-warp is not running: "
+           return 1
+           ;;
+        *)
+           [ "$1" ] && printf "ns-warp is not found: "
+           return 2
+           ;;
+    esac
+}
+
+# ---------------------------------------------------------------------------- #
+_stop() {
+    _check_root
+    if [ $FORCE -eq 1 ]; then
+        printf "Stopping ns-warp with force: "
+        [ -f "$nswarp_pidfile" ] && rm "$nswarp_pidfile"
+        pkill ns-warp
+    else
+        _status
+        case $? in
+            0)
+                ;;
+            1)
+                printf "ns-warp is already stopped: "
+                return 0
+                ;;
+            2)
+                printf "ns-warp status unknown: requesting 'force stop': "
+                [ -f "$nswarp_pidfile" ] && rm "$nswarp_pidfile"
+                pkill ns-warp
+                ;;
+        esac
+
+        printf "Stopping ns-warp: "
+        [ -f "$nswarp_pidfile" ] && {
+            cat "$nswarp_pidfile" | xargs kill -TERM || pkill ns-warp
+        }
+        while [ -s "$nswarp_pidfile" ] ; do sleep 1; done
+
+        [ "$os" = "linux" ] || printf "\n" | pfctl -a ns-warp -f -
+    fi
+}
+
+# ---------------------------------------------------------------------------- #
+_restart() {
+    _check_root
+    printf "Restarting ns-warp: "
+    _stop
+    _start $*
+}
+
+# ---------------------------------------------------------------------------- #
+_check_root() {
+    [ `id -u` -ne 0 ] && {
+        printf "Fatal: You must be root to proceed\n"
+        exit 1
+    }
+}
+
+# ---------------------------------------------------------------------------- #
+_usage() {
+    printf "Usage:\n\tns-warp.sh start|stop|restart [options]\n"
+    printf "\tns-warp.sh status\n"
+    exit 1
+}
+
+
+# ---------------------------------------------------------------------------- #
+[ $# -eq 0 ] && _usage
+
+echo $* | grep -q '\-f' && FORCE=1
+os=`uname -s | tr '[:upper:]' '[:lower:]'`
+
+case "$1" in
+    [sS][tT][aA][rR][tT])           shift; _start $*    ;;
+    [sS][tT][aA][tT][uU][sS])       _status 1           ;;
+    [sS][tT][oO][pP])               _stop               ;;
+    [rR][eE][lL][oO][aA][dD])       _reload             ;;
+    [rR][eE][sS][tT][aA][rR][tT])   shift; _restart $*  ;;
+    *) printf "Unknown command: %s\n" "$1"; _usage      ;;
+esac
+
+printf "done\n"
+exit 0

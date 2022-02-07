@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# ---------------------------------------------------------------------------- #
+# TS-Warp - NFTABLES special configuration for Linux example                   #
+# ---------------------------------------------------------------------------- #
+
+nft add chain ip nat TSWARP
+
+# Exclude TSWARP servers
+nft add rule ip nat TSWARP ip daddr 10.0.12.1 counter return
+nft add rule ip nat TSWARP ip daddr 192.168.1.237 counter return
+nft add rule ip nat TSWARP ip daddr 123.45.1.11 counter return
+
+# Destination network/address definitions
+nft add rule ip nat TSWARP ip protocol tcp ip daddr 10.0.0.0/16 counter redirect to :10800
+nft add rule ip nat TSWARP ip protocol tcp ip daddr 192.168.1.0/24 counter redirect to :10800
+nft add rule ip nat TSWARP ip protocol tcp ip daddr 192.168.3.0/24 counter redirect to :10800
+nft add rule ip nat TSWARP ip protocol tcp ip daddr 123.45.123.0/24 counter redirect to :10800
+nft add rule ip nat TSWARP ip protocol tcp ip daddr 123.45.234.96/24 counter redirect to :10800
+
+nft add rule ip nat OUTPUT ip protocol tcp skuid %USER% counter jump TSWARP
