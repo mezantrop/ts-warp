@@ -41,8 +41,8 @@ start() {
     status || {
         check_root
         printf "Starting ts-warp\n"
-        sudo /sbin/pfctl -f "$PREFIX"/etc/ts-warp_pf.conf > /dev/null
-        sudo "$PREFIX"/bin/ts-warp -d > /dev/null
+        /sbin/pfctl -f "$PREFIX"/etc/ts-warp_pf.conf > /dev/null
+        "$PREFIX"/bin/ts-warp -d > /dev/null
     }
 }
 
@@ -60,7 +60,7 @@ stop() {
     status && {
         check_root
         printf "Stopping ts-warp\n"
-        cat "$PID_FILE" | xargs sudo kill -TERM
+        cat "$PID_FILE" | xargs kill -TERM
     }
 }
 
@@ -71,7 +71,7 @@ reload() {
     printf "Fatal: reload is not implemented yet; Use restart\n" && exit
 
     printf "Reload ts-warp\n"
-    sudo cat "$PID_FILE" | xargs kill -HUP
+    cat "$PID_FILE" | xargs kill -HUP
 }
 
 restart() {
@@ -82,18 +82,8 @@ restart() {
 }
 
 check_root() {
-    [ `id -u` -ne 0 ] && {
-
-        which sudo > /dev/null || {
-            printf "Fatal: sudo not found\n" && exit 1; 
-        }
-
-        sudo -l /sbin/pfctl > /dev/null || {
-            printf "Fatal: not allowed to run pfctl as root\n" && exit 1;
-        }
-        sudo -l "$PREFIX"/bin/ts-warp > /dev/null || {
-            printf "Fatal: not allowed to run ts-warp as root\n" && exit 1;
-        }
+    [ `id -u` -ne 0 ] && { 
+        printf "Fatal: You must be root to proceed\n"; exit 1; 
     }
 }
 

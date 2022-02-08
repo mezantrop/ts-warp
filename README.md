@@ -10,9 +10,8 @@
 a SOCKS server
 
 - Support platforms:
-  - [x] macOS
-  - [ ] OpenBSD, FreeBSD with PF
-  - [x] Linux optionally
+  - [x] macOS, FreeBSD with PF, OpenBSD (not tested)
+  - [x] Linux
 
 - [x] IPv6 stack support
 - [x] Maintain simple configuraion structure as INI-file
@@ -37,7 +36,7 @@ Automatic installation script is still to be done, you have to place and edit fi
 - `$ cp ts-warp.sh /usr/local/etc`
 - Create `/usr/local/etc/ts-warp.ini` file using [ts-warp.ini](examples/ts-warp.ini) as an example
   
-- *On macOS*:
+- *On macOS and \*BSD*:
   - Create `/usr/local/etc/ts-warp_pf.conf` using [ts-warp_pf.conf](examples/ts-warp_pf.conf) as an example
   - Enable packet redirection and start ts-warp daemon: `$ sudo /usr/local/etc/ts-warp.sh start`
 
@@ -48,7 +47,7 @@ Automatic installation script is still to be done, you have to place and edit fi
 
 ### Usage
 
-*On macOS*:
+*On macOS and \*BSD*:
 
 - Enable packet redirection and start ts-warp daemon: `$ sudo /usr/local/etc/ts-warp.sh start`
 
