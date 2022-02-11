@@ -29,13 +29,13 @@ CC = cc
 all:	ts-warp ts-pass
 
 ts-warp:
-	${CC} -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c 
+	${CC} -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c pidfile.c
 
 ts-pass:
 	${CC} -o ts-pass ts-pass.c xedec.c utils.c
 
 debug:
-	${CC} -g -o0 -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c
+	${CC} -g -o0 -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c pidfile.c
 	${CC} -g -o0 -o ts-pass ts-pass.c xedec.c utils.cs
 
 clean:

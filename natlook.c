@@ -43,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "natlook.h"
 #include "utils.h"
 
+extern char *pfile_name;
+
 /* -------------------------------------------------------------------------- */
 struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
     struct sockaddr daddr;
@@ -52,7 +54,7 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
 
     if ((pfd = open(PF_DEV, O_RDWR)) == -1) {
         printl(LOG_CRIT, "Error openin PF device: [%s]", PF_DEV);
-        exit(1);
+        mexit(1, pfile_name);
     }
 
 	memset(&pfnl, 0, sizeof(struct pfioc_natlook));
@@ -121,7 +123,7 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
             printl(LOG_CRIT,
                 "Unsupported Address family in nat_lookup() request: [%d]",
                 pfnl.af);
-            exit(1);
+            mexit(1, pfile_name);
     }
 
     if (ioctl(pfd, DIOCNATLOOK, &pfnl) == -1) {
@@ -130,11 +132,11 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
             pfnl.direction = PF_IN;
             if (ioctl(pfd, DIOCNATLOOK, &pfnl) != 0) {
                 printl(LOG_CRIT, "Failed to query PF NAT about PF_IN packets");
-                exit(1);
+                mexit(1, pfile_name);
             }
         } else {
             printl(LOG_CRIT, "Failed to query PF NAT ");
-            exit(1);
+            mexit(1, pfile_name);
         }
     }
 
@@ -177,7 +179,7 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
             printl(LOG_CRIT,
                 "Unsupported Address family in nat_lookup() response: [%d]",
                 pfnl.af);
-            exit(1);
+            mexit(1, pfile_name);
     }
 
     return daddr;

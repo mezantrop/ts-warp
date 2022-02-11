@@ -41,8 +41,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include <signal.h>
+
 #include "utils.h"
 #include "socks.h"
+#include "pidfile.h"
 
 /* -------------------------------------------------------------------------- */
 void usage(int ecode) {
@@ -58,59 +61,6 @@ Options:\n\
 \t-h\t\tThis message\n\n");
 
     exit(ecode);
-}
-
-/* -------------------------------------------------------------------------- */
-char *rd_pidfile(char *file_name) {
-    FILE *pfile;
-    static char pid[9];                 /* Could PID be of long long type? */
-
-    if ((pfile = fopen(file_name, "r")))
-        if (fgets(pid, sizeof pid, pfile)) {
-            printl(LOG_VERB, "Daemon running, pid: [%s]", pid);
-            fclose(pfile);
-            return pid;
-        }
-    printl(LOG_VERB, "Daemon is not running");
-    if (pfile) fclose(pfile);
-    return NULL;
-}
-
-/* -------------------------------------------------------------------------- */
-pid_t wr_pidfile(char *file_name) {
-    FILE *pfile;
-    pid_t pid;
-
-    if ((pfile = fopen(file_name, "w"))) {
-        pid = getpid();
-        printl(LOG_INFO, "PID file: [%s], PID: [%d]", file_name, pid);
-        if (fprintf(pfile, "%d\n", pid) == -1) {
-            printl(LOG_CRIT, "Unable to write the PID file: [%s]", file_name);
-            exit(1);
-        }
-    } else {
-        printl(LOG_CRIT, "Unable to open the PID file: [%s]", file_name);
-        exit(1);
-    }
-    fclose(pfile);
-    return pid;
-}
-
-/* -------------------------------------------------------------------------- */
-pid_t mk_pidfile(char *file_name) {
-    /* Create a file and write PID there */
-
-    if (rd_pidfile(file_name)) {
-        printl(LOG_CRIT, "Unable to start. Daemon is already running!");
-        exit(1);
-    }
-    return wr_pidfile(file_name);
-}
-
-/* -------------------------------------------------------------------------- */
-int rm_pidfile(char *file_name) {
-    /* Just a wrapper for unlink() */
-    return unlink(file_name);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -568,3 +518,17 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
     if (free_mem) free(hints);
     return res->ai_addr;
 }
+
+/* -------------------------------------------------------------------------- */
+void mexit(int status, char *pid_file) {
+    /* Exit program */
+    kill(0, SIGINT);
+    if (pid_file) {
+        unlink(pid_file);
+        printl(LOG_VERB, "PID file removed");
+    }
+    printl(LOG_VERB, "Clients requested to exit");
+    printl(LOG_INFO, "Program finished");
+    exit(status);
+}
+

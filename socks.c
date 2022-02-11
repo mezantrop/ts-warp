@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "socks.h"
 #include "utils.h"
 
+extern char *pfile_name;
+
 /* -------------------------------------------------------------------------- */
 int connect_desnation(struct sockaddr dest) {
     /* Establish TCP connetion with a det address */
@@ -48,7 +50,7 @@ int connect_desnation(struct sockaddr dest) {
 
     if ((sock = socket(dest.sa_family, SOCK_STREAM, 0)) < 0) {
         printl(LOG_CRIT, "Error creating a socket for the destination address");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     printl(LOG_INFO, "Socket to connect with destination address created");
@@ -60,7 +62,7 @@ int connect_desnation(struct sockaddr dest) {
     if ((connect(sock, &dest, dest.sa_len)) < 0) {
 #endif
         printl(LOG_CRIT, "Unable to connect with destination address");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     return sock;
@@ -80,7 +82,7 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
 
     if (auth_method == AUTH_METHOD_NOACCEPT) {
         printl(LOG_CRIT, "socks5_hello(): auth_method must not be AUTH_METHOD_NOACCEPT");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     /* Fill into auth-methods */
@@ -98,19 +100,19 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
     /* Send 'hello' request */
     if (send(socket, &req, am + sizeof req.ver + sizeof req.nauth, 0) == -1) {
         printl(LOG_CRIT, "Unable to send 'hello' request to the SOCKS server");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     /* Receive 'hello' response from SOCKS server */
     if ((recv(socket, &rep, sizeof rep, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive 'hello' reply from the SOCKS server");
-        exit(1);
+        mexit(1, pfile_name);
     }
     
     /* Veryfy Socks version */
     if (rep.ver != PROXY_PROTO_SOCKS_V5) {
         printl(LOG_CRIT, "Server speaks unsupported protocol: v[%d]", rep.ver);
-        exit(1);
+        mexit(1, pfile_name);
     }
     
     printl(LOG_VERB, "SOCKS server accepted auth-method: [%d]", rep.cauth);
@@ -136,13 +138,13 @@ int socks5_auth(int socket, char *user, char *password) {
 
     if (send(socket, buf, 2 + idlen + 1 + pwlen, 0) == -1) {
         printl(LOG_CRIT, "Unable to send an auth request to the SOCKS server");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     memset(buf, 0, sizeof buf);
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the SOCKS server");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     rep = (s5_reply_auth *)buf;
@@ -178,7 +180,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
         if (send(socket, req, sizeof(s5_request_ipv4), 0) == -1) {
             printl(LOG_CRIT, "Unable to send a request to the SOCKS server");
-            exit(1);
+            mexit(1, pfile_name);
         }
 
         printl(LOG_VERB, "IPv4 SOCKS5 request sent");
@@ -193,14 +195,14 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
         if (send(socket, req, 4 + sizeof(s5_request_ipv6), 0) == -1) {
             printl(LOG_CRIT, "Unable to send a request to the SOCKS server");
-            exit(1);
+            mexit(1, pfile_name);
         }
 
         printl(LOG_VERB, "IPv6 SOCKS5 request sent");
     } else {
         printl(LOG_CRIT, "Unsupported address types: [%d] is in the request",
             daddr->sa_family);
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     printl(LOG_VERB, "Expecting SOCKS server reply");
@@ -209,7 +211,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
     memset(buf, 0, sizeof buf);
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the SOCKS server");
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     rep = (s5_reply_short *)buf;
@@ -219,7 +221,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
     if (rep->ver != PROXY_PROTO_SOCKS_V5) {
         printl(LOG_CRIT, "Server speaks unsupported protocol version: [%d]", 
             rep->ver);
-        exit(1);
+        mexit(1, pfile_name);
     }
     
     printl(LOG_VERB, "SOCKS server reply status: %d", rep->status);

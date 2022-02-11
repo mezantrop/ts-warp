@@ -52,6 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "utils.h"
 #include "socks.h"
 #include "natlook.h"
+#include "pidfile.h"
 
 /* -------------------------------------------------------------------------- */
 uint8_t loglevel = LOG_LEVEL_DEFAULT;
@@ -62,6 +63,7 @@ char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                 /* Active clients number */
 pid_t pid, mpid;                            /* Current and main daemon PID */
+int isock, ssock;                           /* Sockets for in/out connections */
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) {
@@ -90,15 +92,14 @@ int main(int argc, char* argv[]) {
     ini_section *ini_root;
 
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
-    int isock, ssock;                       /* Sockets for in- out- sockets */
     ini_section *s_ini;                     /* Section of INI file with the 
                                             current SOCKS server definition */
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
 
     struct sockaddr caddr;                  /* Client address */
-    int csock;                              /* Clien socket */
     socklen_t caddrlen, daddrlen;           /* Client & its dest address len */
     struct sockaddr daddr;                  /* Client destination address */
+    int csock;                              /* Socket for client connections */
 
     fd_set rfd;
     struct timeval tv;
@@ -139,7 +140,7 @@ int main(int argc, char* argv[]) {
         lfile_name = LOG_FILE_NAME;
         if (!(lfile = fopen(lfile_name, "a"))) {
             printl(LOG_CRIT, "Unable to open the default log: [%s]", lfile_name);
-            exit(1);
+            mexit(1, NULL);
         }
     }
     printl(LOG_VERB, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
@@ -155,16 +156,16 @@ int main(int argc, char* argv[]) {
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
-            exit(1);
+            mexit(1, NULL);
         }
         if (pid > 0) exit(0);
         if (setsid() < 0) {
             printl(LOG_CRIT, "Daemonizing failed. Fatal setsid()");
-            exit(1);
+            mexit(1, NULL);
         }
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 2-nd fork() failed");
-            exit(1);
+            mexit(1, NULL);
         }
         if (pid > 0) exit(0);
 
@@ -180,7 +181,7 @@ int main(int argc, char* argv[]) {
     if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
         printl(LOG_CRIT, "Error resolving our address [%s]: %s", 
             iaddr, gai_strerror(ret));
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     printl(LOG_INFO, "Our address [%s] succesfully resolved to [%s]",
@@ -194,7 +195,7 @@ int main(int argc, char* argv[]) {
         ires->ai_protocol)) == -1) {
             printl(LOG_CRIT,
                 "Error creating a socket for incoming connections");
-            exit(1);
+            mexit(1, pfile_name);
     }
     printl(LOG_INFO, "Our socket for incoming connections created");
     
@@ -202,7 +203,7 @@ int main(int argc, char* argv[]) {
     if (bind(isock, ires->ai_addr, ires->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding the socket for incoming connections");
         close(isock);
-        exit(1);
+        mexit(1, pfile_name);
     }
     printl(LOG_INFO, "The socket for incoming connections succesfully bound");
 
@@ -210,7 +211,7 @@ int main(int argc, char* argv[]) {
     if (listen(isock, SOMAXCONN) == -1) {
         printl(LOG_CRIT, "Error listening the socket for incoming connections");
         close(isock);
-        exit(1);
+        mexit(1, pfile_name);
     }
     printl(LOG_INFO, "Listening for incoming connections");
 
@@ -234,7 +235,7 @@ int main(int argc, char* argv[]) {
         
         if ((pid = fork()) == -1) {
             printl(LOG_INFO, "Failed fork() to serve a client request");
-            exit(1);
+            mexit(1, pfile_name);
         }
         if (pid > 0) {                    /* Main (parent process) */
             setpgid(pid, mpid);
@@ -251,13 +252,13 @@ int main(int argc, char* argv[]) {
             /* Get the client original destination from NAT ----------------- */
 #if defined(linux)
             /* On Linux && IPTABLES: */
-	        daddrlen = sizeof daddr;
+            daddrlen = sizeof daddr;
             memset(&daddr, 0, daddrlen); 
             daddr.sa_family = caddr.sa_family;
             if (getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen) != 0) {
-	            printl(LOG_CRIT, "Could not determine client real destination");
-		        exit(1);
-	        }
+                printl(LOG_CRIT, "Could not determine client real destination");
+                mexit(1, pfile_name);
+            }
 #else
             /* On *BSD with PF: */
             daddr = nat_lookup((struct sockaddr *)&caddr, ires->ai_addr);
@@ -282,14 +283,21 @@ int main(int argc, char* argv[]) {
                     /* Connect the first member of the chain */
                     ssock = connect_desnation(s_ini->proxy_chain->chain_member->socks_server);
                     while (sc) {
-                        switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, 
-                        AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
-                            case AUTH_METHOD_NOAUTH:    /* No authentication required */
+                        switch (auth_method = socks5_hello(ssock,
+                                AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
+                                AUTH_METHOD_NOACCEPT)) {
+                            case AUTH_METHOD_NOAUTH:
+                                /* No authentication required */
                                 break;
-                            case AUTH_METHOD_UNAME:     /* Perform user/password auth */
-                                if (socks5_auth(ssock, sc->chain_member->socks_user, sc->chain_member->socks_password)) {
-                                    printl(LOG_CRIT, "SOCKS rejected user: [%s]", sc->chain_member->socks_user);
-                                    exit(1);
+                            case AUTH_METHOD_UNAME:
+                                /* Perform user/password auth */
+                                if (socks5_auth(ssock,
+                                                sc->chain_member->socks_user, 
+                                                sc->chain_member->socks_password)) {
+                                    printl(LOG_CRIT,
+                                            "SOCKS rejected user: [%s]",
+                                            sc->chain_member->socks_user);
+                                    mexit(1, pfile_name);
                                 }
                                 break;
                             case AUTH_METHOD_GSSAPI:
@@ -299,14 +307,16 @@ int main(int argc, char* argv[]) {
                             case AUTH_METHOD_NDS:
                             case AUTH_METHOD_MAF:
                             case AUTH_METHOD_JPB:
-                                printl(LOG_CRIT, "SOCKS server accepted unsupported auth-method: [%d]",
-                                    auth_method);
-                                exit(1);
+                                printl(LOG_CRIT,
+                                        "SOCKS server accepted unsupported auth-method: [%d]",
+                                        auth_method);
+                                mexit(1, pfile_name);
 
                             case AUTH_METHOD_NOACCEPT:
                             default:
-                                printl(LOG_CRIT, "No auth methods were accepted by SOCKS server");
-                                exit(1);
+                                printl(LOG_CRIT,
+                                        "No auth methods were accepted by SOCKS server");
+                                mexit(1, pfile_name);
                         }
 
                         printl(LOG_INFO, "Initiate SOCKS protocol: request");
@@ -318,7 +328,7 @@ int main(int argc, char* argv[]) {
                                 SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &sc->next->chain_member->socks_server) > 0) {
                                     printl(LOG_CRIT, "SOCKS server returned an error");
-                                    exit(1);
+                                    mexit(1, pfile_name);
                             }
                         } else {
                             /* We are at the end of the chain, so connect with the section server */
@@ -326,7 +336,7 @@ int main(int argc, char* argv[]) {
                                 s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &s_ini->socks_server) > 0) {
                                     printl(LOG_CRIT, "SOCKS server returned an error");
-                                    exit(1);
+                                    mexit(1, pfile_name);
                             }
                         }
 
@@ -348,7 +358,7 @@ int main(int argc, char* argv[]) {
                         case AUTH_METHOD_UNAME:     /* Perform user/password auth */
                             if (socks5_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
                                 printl(LOG_CRIT, "SOCKS rejected user: [%s]", s_ini->socks_user);
-                                exit(1);
+                                mexit(1, pfile_name);
                             }
                             break;
                         case AUTH_METHOD_GSSAPI:
@@ -360,12 +370,12 @@ int main(int argc, char* argv[]) {
                         case AUTH_METHOD_JPB:
                             printl(LOG_CRIT, "SOCKS server accepted unsupported auth-method: [%d]",
                                 auth_method);
-                            exit(1);
+                            mexit(1, pfile_name);
 
                         case AUTH_METHOD_NOACCEPT:
                         default:
                             printl(LOG_CRIT, "No auth methods were accepted by SOCKS server");
-                            exit(1);
+                            mexit(1, pfile_name);
                     }
 
                     printl(LOG_INFO, "Initiate SOCKS protocol: request");
@@ -374,7 +384,7 @@ int main(int argc, char* argv[]) {
                         daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                         &daddr) > 0) {                    
                             printl(LOG_CRIT, "SOCKS server returned an error");
-                            exit(1);
+                            mexit(1, pfile_name);
                     }
                 }
             }
@@ -454,7 +464,7 @@ int main(int argc, char* argv[]) {
             printl(LOG_INFO, "Finishing operations");
             close(csock);
             close(ssock);
-            exit(0);
+            mexit(0, pfile_name);
         }
 
     }
@@ -474,17 +484,14 @@ void trap_signal(int sig) {
         case SIGINT:                            /* Exit processes */
         case SIGQUIT:
         case SIGTERM:
-            if (getpid() == mpid) {             /* Main daemon */
-                kill(0, SIGINT);
-                rm_pidfile(pfile_name);
-                printl(LOG_VERB, "PID file removed");
-                printl(LOG_VERB, "Clients requested to exit");
-                printl(LOG_INFO, "Deamon exited");
-            } else                              /* Client process */
+           if (getpid() == mpid) {             /* Main daemon */
+                close(isock);
+                close(ssock);
+                mexit(0, pfile_name);
+            } else {                             /* Client process */
                 printl(LOG_INFO, "Client exited");
-
-            exit(0);
-    
+                exit(0);
+            }
         case SIGCHLD:
             /* Never use printf() in SIGCHLD processor as it causes SIGILL */
             while (wait3(&status, WNOHANG, 0) > 0) cn--;
@@ -495,3 +502,4 @@ void trap_signal(int sig) {
             break;
 	}
 }
+

@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* Program name and version */
 #define PROG_NAME       "TS-Warp"
 #define PROG_NAME_SHORT "TSW"
-#define PROG_VERSION    "002"                           /* Current version */
+#define PROG_VERSION    "001"
 #define PROG_NAME_FULL  PROG_NAME " " PROG_VERSION
 #define PROG_NAME_CODE  PROG_NAME_SHORT PROG_VERSION
 
@@ -152,10 +152,6 @@ extern int pid;
 
 /* -- Function prototypes --------------------------------------------------- */
 void usage(int ecode);
-char *rd_pidfile(char *file_name);
-pid_t wr_pidfile(char *file_name);
-pid_t mk_pidfile(char *file_name);
-int rm_pidfile(char *file_name);
 void printl(int level, char *fmt, ...);
 long toint(char *str);
 ini_section *read_ini(char *ifile_name);
@@ -169,3 +165,5 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
 char *init_xcrypt(int xkey_len);
 char *xencrypt(char *xkey, char *prefix, char *text);
 char *xdecrypt(char *hex_hash, char *prefix);
+void mexit(int status, char *pid_file);
+
