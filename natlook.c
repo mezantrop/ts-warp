@@ -76,7 +76,7 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
             pfnl.dport = SIN4_PORT(*iaddr);
             #endif
 
-            inet_ntop(AF_INET, &SIN4_ADDR(caddr), dstr_addr, INET_ADDRSTRLEN);
+            inet_ntop(AF_INET, &SIN4_ADDR(*caddr), dstr_addr, INET_ADDRSTRLEN);
             #if defined(__APPLE__)
             printl(LOG_VERB,"saddr: %s %d", dstr_addr, pfnl.sxport.port);
             #else
@@ -104,13 +104,13 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
             pfnl.dport = SIN6_PORT(*iaddr);
             #endif
 
-            inet_ntop(AF_INET6, &SIN6_ADDR(caddr), dstr_addr, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &SIN6_ADDR(*caddr), dstr_addr, INET6_ADDRSTRLEN);
             #if defined(__APPLE__)
             printl(LOG_VERB,"saddr: %s %d", dstr_addr, pfnl.sxport.port);
             #else
             printl(LOG_VERB,"saddr: %s %d", dstr_addr, pfnl.sport);
             #endif
-            inet_ntop(AF_INET6, &SIN6_ADDR(iaddr), dstr_addr, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &SIN6_ADDR(*iaddr), dstr_addr, INET6_ADDRSTRLEN);
             #if defined(__APPLE__)
             printl(LOG_VERB,"daddr: %s %d", dstr_addr, pfnl.dxport.port);
             #else

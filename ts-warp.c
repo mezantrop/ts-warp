@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     while (1) {
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
-        /* TODO: Implement csock as an array or list to prevent hanging sockets */
+    /* TODO: Drop incomming connections correctly for succesful bind() */
         if ((csock = accept(isock, &caddr, &caddrlen)) < 0) {
             printl(LOG_CRIT, "Error accepting incoming connection");
             return 1;
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
             }
 #else
             /* On *BSD with PF: */
-            daddr = nat_lookup((struct sockaddr *)&caddr, ires->ai_addr);
+            daddr = nat_lookup(&caddr, ires->ai_addr);
 #endif
             /* Find SOCKS server to serve the daddr (dest. address) in INI file */
             if (!(s_ini = ini_look_server(ini_root, daddr))) {
@@ -457,7 +457,9 @@ int main(int argc, char* argv[]) {
                 }
             }
             printl(LOG_VERB, "End connection-forward loop");
-            printl(LOG_INFO, "Finishing operations");
+            shutdown(csock, SHUT_RDWR);
+            shutdown(ssock, SHUT_RDWR);
+            printl(LOG_INFO, "Client finishing operations");
             close(csock);
             close(ssock);
             exit(0);
@@ -481,9 +483,12 @@ void trap_signal(int sig) {
         case SIGQUIT:
         case SIGTERM:
            if (getpid() == mpid) {             /* Main daemon */
+                shutdown(isock, SHUT_RDWR);
                 close(isock);
                 mexit(0, pfile_name);
             } else {                             /* Client process */
+                shutdown(csock, SHUT_RDWR);
+                shutdown(ssock, SHUT_RDWR);
                 close(ssock);
                 close(csock);
                 printl(LOG_INFO, "Client exited");

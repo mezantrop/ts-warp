@@ -43,6 +43,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include <signal.h>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include "utils.h"
 #include "socks.h"
 #include "pidfile.h"
@@ -523,12 +528,13 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
 void mexit(int status, char *pid_file) {
     /* Exit program */
     kill(0, SIGINT);
+    printl(LOG_VERB, "Clients requested to exit");
+    while (wait3(&status, WNOHANG, 0) > 0) ;
+    printl(LOG_INFO, "Program finished");
     if (pid_file) {
         unlink(pid_file);
         printl(LOG_VERB, "PID file removed");
     }
-    printl(LOG_VERB, "Clients requested to exit");
-    printl(LOG_INFO, "Program finished");
     exit(status);
 }
 
