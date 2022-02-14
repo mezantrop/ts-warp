@@ -63,12 +63,11 @@ char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                 /* Active clients number */
 pid_t pid, mpid;                            /* Current and main daemon PID */
-int isock, ssock;                           /* Sockets for in/out connections */
+int isock, ssock, csock;                    /* Sockets for in/out/clients */
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char* argv[]) {
-/* 
-    ts-warp [-I IP] [-i port] [-l file.conf] [-v 0..4] [-d] [-c file.ini] [-h]
+int main(int argc, char* argv[]) { 
+/*  ts-warp [-I IP] [-i port] [-l file.conf] [-v 0..4] [-d] [-c file.ini] [-h]
 
         -I IP           Incoming local IP address and ...
         -i port         ... port number we listen to and accept connections
@@ -80,26 +79,22 @@ int main(int argc, char* argv[]) {
 
         -c file.ini     Configuration filename
         
-        -h              This message
-*/
+        -h              This message */
 
     int flg;                                /* Command-line options flag */
     struct addrinfo* laddr_info = NULL;
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
-    char *iport = LISTEN_PORT;              /* a port to accept clients */
+    char *iport = LISTEN_PORT;              /* ...a port to accept clients */
     int d_flg = 0;                          /* Daemon mode */
 
-    ini_section *ini_root;
-
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
-    ini_section *s_ini;                     /* Section of INI file with the 
-                                            current SOCKS server definition */
+    ini_section *ini_root, *s_ini;          /* Pointers to the root and current
+                                               sections of the INI file */
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
 
     struct sockaddr caddr;                  /* Client address */
     socklen_t caddrlen, daddrlen;           /* Client & its dest address len */
     struct sockaddr daddr;                  /* Client destination address */
-    int csock;                              /* Socket for client connections */
 
     fd_set rfd;
     struct timeval tv;
@@ -201,7 +196,7 @@ int main(int argc, char* argv[]) {
     
     /* -- Bind incoming connections socket ---------------------------------- */
     if (bind(isock, ires->ai_addr, ires->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding the socket for incoming connections");
+        printl(LOG_CRIT, "Error binding socket for the incoming connections");
         close(isock);
         mexit(1, pfile_name);
     }
@@ -219,6 +214,7 @@ int main(int argc, char* argv[]) {
     while (1) {
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
+        /* TODO: Implement csock as an array or list to prevent hanging sockets */
         if ((csock = accept(isock, &caddr, &caddrlen)) < 0) {
             printl(LOG_CRIT, "Error accepting incoming connection");
             return 1;
@@ -257,7 +253,7 @@ int main(int argc, char* argv[]) {
             daddr.sa_family = caddr.sa_family;
             if (getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen) != 0) {
                 printl(LOG_CRIT, "Could not determine client real destination");
-                mexit(1, pfile_name);
+                exit(1);
             }
 #else
             /* On *BSD with PF: */
@@ -297,7 +293,7 @@ int main(int argc, char* argv[]) {
                                     printl(LOG_CRIT,
                                             "SOCKS rejected user: [%s]",
                                             sc->chain_member->socks_user);
-                                    mexit(1, pfile_name);
+                                    exit(1);
                                 }
                                 break;
                             case AUTH_METHOD_GSSAPI:
@@ -310,13 +306,13 @@ int main(int argc, char* argv[]) {
                                 printl(LOG_CRIT,
                                         "SOCKS server accepted unsupported auth-method: [%d]",
                                         auth_method);
-                                mexit(1, pfile_name);
+                                exit(1);
 
                             case AUTH_METHOD_NOACCEPT:
                             default:
                                 printl(LOG_CRIT,
                                         "No auth methods were accepted by SOCKS server");
-                                mexit(1, pfile_name);
+                                exit(1);
                         }
 
                         printl(LOG_INFO, "Initiate SOCKS protocol: request");
@@ -328,7 +324,7 @@ int main(int argc, char* argv[]) {
                                 SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &sc->next->chain_member->socks_server) > 0) {
                                     printl(LOG_CRIT, "SOCKS server returned an error");
-                                    mexit(1, pfile_name);
+                                    exit(1);
                             }
                         } else {
                             /* We are at the end of the chain, so connect with the section server */
@@ -336,7 +332,7 @@ int main(int argc, char* argv[]) {
                                 s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &s_ini->socks_server) > 0) {
                                     printl(LOG_CRIT, "SOCKS server returned an error");
-                                    mexit(1, pfile_name);
+                                    exit(1);
                             }
                         }
 
@@ -358,7 +354,7 @@ int main(int argc, char* argv[]) {
                         case AUTH_METHOD_UNAME:     /* Perform user/password auth */
                             if (socks5_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
                                 printl(LOG_CRIT, "SOCKS rejected user: [%s]", s_ini->socks_user);
-                                mexit(1, pfile_name);
+                                exit(1);
                             }
                             break;
                         case AUTH_METHOD_GSSAPI:
@@ -370,12 +366,12 @@ int main(int argc, char* argv[]) {
                         case AUTH_METHOD_JPB:
                             printl(LOG_CRIT, "SOCKS server accepted unsupported auth-method: [%d]",
                                 auth_method);
-                            mexit(1, pfile_name);
+                            exit(1);
 
                         case AUTH_METHOD_NOACCEPT:
                         default:
                             printl(LOG_CRIT, "No auth methods were accepted by SOCKS server");
-                            mexit(1, pfile_name);
+                            exit(1);
                     }
 
                     printl(LOG_INFO, "Initiate SOCKS protocol: request");
@@ -384,7 +380,7 @@ int main(int argc, char* argv[]) {
                         daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                         &daddr) > 0) {                    
                             printl(LOG_CRIT, "SOCKS server returned an error");
-                            mexit(1, pfile_name);
+                            exit(1);
                     }
                 }
             }
@@ -464,7 +460,7 @@ int main(int argc, char* argv[]) {
             printl(LOG_INFO, "Finishing operations");
             close(csock);
             close(ssock);
-            mexit(0, pfile_name);
+            exit(0);
         }
 
     }
@@ -486,9 +482,10 @@ void trap_signal(int sig) {
         case SIGTERM:
            if (getpid() == mpid) {             /* Main daemon */
                 close(isock);
-                close(ssock);
                 mexit(0, pfile_name);
             } else {                             /* Client process */
+                close(ssock);
+                close(csock);
                 printl(LOG_INFO, "Client exited");
                 exit(0);
             }
