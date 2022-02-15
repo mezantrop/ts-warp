@@ -195,6 +195,12 @@ int main(int argc, char* argv[]) {
     printl(LOG_INFO, "Our socket for incoming connections created");
     
     /* -- Bind incoming connections socket ---------------------------------- */
+    int raddr = 1;
+    if (setsockopt(isock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(raddr))) {
+        printl(LOG_CRIT, "Error setting incomming socket to be reusable");
+        close(isock);
+        mexit(1, pfile_name);
+    }
     if (bind(isock, ires->ai_addr, ires->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding socket for the incoming connections");
         close(isock);
@@ -214,7 +220,6 @@ int main(int argc, char* argv[]) {
     while (1) {
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
-    /* TODO: Drop incomming connections correctly for succesful bind() */
         if ((csock = accept(isock, &caddr, &caddrlen)) < 0) {
             printl(LOG_CRIT, "Error accepting incoming connection");
             return 1;
@@ -418,7 +423,7 @@ int main(int argc, char* argv[]) {
                             break;
                         }
                         while ((snd = send(ssock, buf, rec, 0)) == 0) {
-                            printl(LOG_CRIT, "Zero bytes transmitted client -> server");
+                            printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
                             nanosleep(&ts, NULL);
                             break;
                         }
@@ -427,9 +432,9 @@ int main(int argc, char* argv[]) {
                             break;
                         }
                         if (rec != snd)
-                            printl(LOG_CRIT, "[%d/%d] bytes transmitted client -> server", rec, snd);
+                            printl(LOG_CRIT, "C:[%d] -> S:[%d] bytes", rec, snd);
                         else
-                            printl(LOG_VERB, "[%d/%d] bytes transmitted client -> server", rec, snd);
+                            printl(LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
                     } else {
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
@@ -442,7 +447,7 @@ int main(int argc, char* argv[]) {
                             break;
                         }
                         while ((snd = send(csock, buf, rec, 0)) == 0) {
-                            printl(LOG_CRIT, "Zero bytes transmitted server -> client");
+                            printl(LOG_CRIT, "S:[0] -> C:[0] bytes");
                             nanosleep(&ts, NULL);
                         }
                         if (snd == -1) {
@@ -450,9 +455,9 @@ int main(int argc, char* argv[]) {
                             break;
                         }
                         if (rec != snd)
-                            printl(LOG_CRIT, "[%d/%d] bytes transmitted server -> client", rec, snd);
+                            printl(LOG_CRIT, "S:[%d] -> C:[%d] bytes", rec, snd);
                         else
-                            printl(LOG_VERB, "[%d/%d] bytes transmitted server -> client", rec, snd);
+                            printl(LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                     }
                 }
             }
@@ -474,34 +479,33 @@ int main(int argc, char* argv[]) {
 void trap_signal(int sig) {
     /* Signal handler */
 
-    int	status;                                 /* Client's process status */
+    int	status;                                     /* Client process status */
 
 	switch(sig) {
-        case SIGHUP:                            /* TODO: Re-read INI-file */
-            break;
-        case SIGINT:                            /* Exit processes */
-        case SIGQUIT:
-        case SIGTERM:
-           if (getpid() == mpid) {             /* Main daemon */
-                shutdown(isock, SHUT_RDWR);
-                close(isock);
-                mexit(0, pfile_name);
-            } else {                             /* Client process */
-                shutdown(csock, SHUT_RDWR);
-                shutdown(ssock, SHUT_RDWR);
-                close(ssock);
-                close(csock);
-                printl(LOG_INFO, "Client exited");
-                exit(0);
-            }
-        case SIGCHLD:
-            /* Never use printf() in SIGCHLD processor as it causes SIGILL */
-            while (wait3(&status, WNOHANG, 0) > 0) cn--;
-            break;
+            case SIGHUP:                            /* TODO: Re-read INI-file */
+                break;
+            case SIGINT:                            /* Exit processes */
+            case SIGQUIT:
+            case SIGTERM:
+                if (getpid() == mpid) {             /* Main daemon */
+                    shutdown(isock, SHUT_RDWR);
+                    close(isock);
+                    mexit(0, pfile_name);
+                } else {                            /* Client process */
+                    shutdown(csock, SHUT_RDWR);
+                    shutdown(ssock, SHUT_RDWR);
+                    close(ssock);
+                    close(csock);
+                    printl(LOG_INFO, "Client exited");
+                    exit(0);
+                }
+            case SIGCHLD:
+                /* Never use printf() in SIGCHLD processor, it causes SIGILL */
+                while (wait3(&status, WNOHANG, 0) > 0) cn--;
+                break;
 
-        default:
-            printl(LOG_INFO, "Got unhandled signal: %d", sig);
-            break;
+            default:
+                printl(LOG_INFO, "Got unhandled signal: %d", sig);
+                break;
 	}
 }
-

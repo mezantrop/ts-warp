@@ -527,7 +527,8 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
 /* -------------------------------------------------------------------------- */
 void mexit(int status, char *pid_file) {
     /* Exit program */
-    kill(0, SIGINT);
+
+    kill(0, SIGTERM);
     printl(LOG_VERB, "Clients requested to exit");
     while (wait3(&status, WNOHANG, 0) > 0) ;
     printl(LOG_INFO, "Program finished");
