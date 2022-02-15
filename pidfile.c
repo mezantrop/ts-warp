@@ -51,8 +51,9 @@ char *rd_pidfile(char *file_name) {
 /* -------------------------------------------------------------------------- */
 pid_t wr_pidfile(char *file_name) {
     FILE *pfile;
-    pid_t pid;
-     if ((pfile = fopen(file_name, "w"))) {
+    pid_t pid = 0;
+     
+    if ((pfile = fopen(file_name, "w"))) {
         pid = getpid();
         printl(LOG_INFO, "PID file: [%s], PID: [%d]", file_name, pid);
         if (fprintf(pfile, "%d\n", pid) == -1) {
@@ -63,6 +64,7 @@ pid_t wr_pidfile(char *file_name) {
         printl(LOG_CRIT, "Unable to open the PID file: [%s]", file_name);
         mexit(1, pfile_name);
     }
+
     fclose(pfile);
     return pid;
 }

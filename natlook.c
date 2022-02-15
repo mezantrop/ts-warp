@@ -57,11 +57,12 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
         mexit(1, pfile_name);
     }
 
-	memset(&pfnl, 0, sizeof(struct pfioc_natlook));
-	pfnl.direction = PF_OUT;
-	pfnl.af = caddr->sa_family;
-	pfnl.proto = IPPROTO_TCP;
+    memset(&pfnl, 0, sizeof(struct pfioc_natlook));
+    pfnl.direction = PF_OUT;
+    pfnl.af = caddr->sa_family;
+    pfnl.proto = IPPROTO_TCP;
     
+    memset(&daddr, 0, sizeof daddr);
     switch (pfnl.af) {
         case AF_INET:
             #if defined(__APPLE__)

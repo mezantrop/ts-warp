@@ -23,20 +23,29 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 CC = cc
+CFLAGS = -Wall
+WARP_OBJS = natlook.o pidfile.o socks.o ts-warp.o utils.o xedec.o
+PASS_OBJS = ts-pass.o utils.c xedec.o 
 
 all:	ts-warp ts-pass
 
-ts-warp:
-	${CC} -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c pidfile.c
+ts-warp: $(WARP_OBJS)
+	$(CC) -o $@ $(WARP_OBJS)
 
-ts-pass:
-	${CC} -o ts-pass ts-pass.c xedec.c utils.c
+ts-pass: $(PASS_OBJS)
+	$(CC) -o $@ $(PASS_OBJS)
 
-debug:
-	${CC} -g -o0 -o ts-warp ts-warp.c natlook.c socks.c xedec.c utils.c pidfile.c
-	${CC} -g -o0 -o ts-pass ts-pass.c xedec.c utils.cs
+dbg:
+CFLAGS+=-o0
+
+debug: dbg all
 
 clean:
-	rm -rf ts-warp ts-pass *.dSYM
+	rm -rf ts-warp ts-pass *.o *.dSYM
+
+natlook.o: natlook.h
+pidfile.o: pidfile.h
+socks.o: socks.h
+ts-warp.o: ts-warp.h
+utils.o: utils.h

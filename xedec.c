@@ -61,7 +61,7 @@ char *xencrypt(char *xkey, char *prefix, char *text) {
     /* 0xHASH: klen|xkey|pref|text */
 
     char *int_hash = NULL, *hex_hash = NULL, *s = NULL, *d = NULL;
-    int xkey_len = 0, xkeyfld = 1, hash_len = 0, b = 0;
+    int xkey_len = 0, hash_len = 0, b = 0;
 
     if (!xkey || !prefix || !text) return NULL;
 

@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
         -h              This message */
 
     int flg;                                /* Command-line options flag */
-    struct addrinfo* laddr_info = NULL;
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
     char *iport = LISTEN_PORT;              /* ...a port to accept clients */
     int d_flg = 0;                          /* Daemon mode */
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
 
     struct sockaddr caddr;                  /* Client address */
-    socklen_t caddrlen, daddrlen;           /* Client & its dest address len */
+    socklen_t caddrlen;                     /* Client address len */
     struct sockaddr daddr;                  /* Client destination address */
 
     fd_set rfd;
@@ -253,7 +252,7 @@ int main(int argc, char* argv[]) {
             /* Get the client original destination from NAT ----------------- */
 #if defined(linux)
             /* On Linux && IPTABLES: */
-            daddrlen = sizeof daddr;
+            socklen_t daddrlen = sizeof daddr;  /* Client dest address len */
             memset(&daddr, 0, daddrlen); 
             daddr.sa_family = caddr.sa_family;
             if (getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen) != 0) {
