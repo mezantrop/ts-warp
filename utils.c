@@ -471,9 +471,9 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
 
 /* -------------------------------------------------------------------------- */
 char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
-    /* inet_ntop() wrapper */
+    /* inet_ntop() wrapper. If str_add is NULL, memory is auto-allocated,
+     don't forget to free it after usage! */
 
-    /* Don't forget to free() in this case */
     if (!str_addr) str_addr = (char *)malloc(INET6_ADDRSTRLEN + 1);
 
     memset(str_addr, 0, INET6_ADDRSTRLEN + 1);

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     struct timeval tv;
     struct timespec ts;
 
-    char buf[BUF_SIZE];                     /* Multipurpose purpose buffer */
+    char buf[BUF_SIZE];                     /* Multipurpose buffer */
     int ret;                                /* Various function return codes */
     int rec, snd;                           /* received/sent bytes */
 
@@ -225,12 +225,7 @@ int main(int argc, char* argv[]) {
         }
 
         printl(LOG_INFO, "Serving client #: %d", cn++);
-
-        /* TODO: rewrite as inet2str(): */
-        char str_addr[255];
-        inet_ntop(AF_INET, &SIN4_ADDR(caddr), str_addr, INET_ADDRSTRLEN);
-        printl(LOG_VERB, "Client IP address: [%0s]", str_addr);
-
+        printl(LOG_VERB, "Client IP address: [%0s]", inet2str(&caddr, buf));
         printl(LOG_INFO, "Incoming connection accepted");
         
         if ((pid = fork()) == -1) {
@@ -397,7 +392,7 @@ int main(int argc, char* argv[]) {
                 FD_SET(csock, &rfd);
                 FD_SET(ssock, &rfd);
 
-                /* TODO: Is it ppossible to use the only timeval or timespec? */
+                /* TODO: Is it possible to use the only timeval or timespec? */
                 ts.tv_sec = 0;
                 ts.tv_nsec = 100000;
                 tv.tv_sec = 0;
