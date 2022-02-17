@@ -218,12 +218,17 @@ ini_section *read_ini(char *ifile_name) {
                     c_targ = (struct ini_target *)malloc(sizeof(struct ini_target));
 
                     c_targ->target_type = target_type;
-
+                    /* Default values */
+                    memset(&c_targ->ip1, 0, sizeof(struct sockaddr));
+                    memset(&c_targ->ip2, 0, sizeof(struct sockaddr));
+                    SIN4_FAMILY(c_targ->ip1) = AF_INET;
+                    SIN4_FAMILY(c_targ->ip2) = AF_INET; 
+ 
                     if (target_type == INI_TARGET_DOMAIN)
                         c_targ->name = strdup(entry.val1);          /* Domain */
                     else {
                         c_targ->name = NULL;
-                        c_targ->ip1 = *(str2inet(entry.val1, entry.mod1, 
+                        c_targ->ip1 = *(str2inet(entry.val1, entry.mod1,
                             &res, NULL));
                         if (entry.val2)
                             c_targ->ip2 = *(str2inet(entry.val2, entry.mod2, 
@@ -231,11 +236,22 @@ ini_section *read_ini(char *ifile_name) {
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
-                    SIN4_PORT(c_targ->ip1) = entry.mod1 ? 
-                        htons((int)strtol(entry.mod1, (char **)NULL, 10)) : 0;
-                    SIN4_PORT(c_targ->ip2) = entry.mod2 ?
-                        htons((int)strtol(entry.mod2, (char **)NULL, 10)) : 0xFFFF;
-
+                    if (c_targ->ip1.sa_family == AF_INET) { 
+                        SIN4_PORT(c_targ->ip1) = entry.mod1 ?
+                            htons((int)strtol(entry.mod1, (char **)NULL, 10)) :
+                            0;
+                        SIN4_PORT(c_targ->ip2) = entry.mod2 ?
+                            htons((int)strtol(entry.mod2, (char **)NULL, 10)) :
+                            0xFFFF;
+                    } else if (c_targ->ip1.sa_family == AF_INET6) {
+                        SIN6_PORT(c_targ->ip1) = entry.mod1 ? 
+                            htons((int)strtol(entry.mod1, (char **)NULL, 10)) :
+                            0;
+                        SIN6_PORT(c_targ->ip2) = entry.mod2 ?
+                            htons((int)strtol(entry.mod2, (char **)NULL, 10)) :
+                            0xFFFF;
+                    } 
+                    
                     c_targ->next = NULL;
 
                     if (!c_sect->target_entry) 
@@ -281,7 +297,8 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                         printl(LOG_VERB, "Linking chain section: %s", 
                             st->chain_member->section_name); 
                     } else
-                        printl(LOG_VERB, "Chain section: [%s] linked from: [%s] does not really exist", 
+                        printl(LOG_VERB,
+                            "Chain section: [%s] linked from: [%s] does not really exist", 
                             chain_section, s->section_name);
                 }
             }
@@ -312,20 +329,19 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
 
 /* -------------------------------------------------------------------------- */
 int show_ini(struct ini_section *ini) {
-    /* Debug only function to print out parsed INI-file (NB: IPv4 only!)
-    TODO: Remove in release??? */
+    /* Debug only function to print parsed INI-file. TODO: Remove in release? */
     
     struct ini_section *s;
     struct socks_chain *c;
     struct ini_target *t;
-    char ip1[4 * sizeof "123"], ip2[4 * sizeof "123"];
+    char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
 
     s = ini;
     while (s) {
         /* Display section */
         printl(LOG_VERB,            /* TODO: obfuscate password output! */
             "LIST: Section: %s; Server: %s:%d; Version: %d; User/Password: %s/%s",
-            s->section_name, inet_ntoa(SIN4_ADDR(s->socks_server)), 
+            s->section_name, inet2str(&s->socks_server, ip1), 
             ntohs(SIN4_PORT(s->socks_server)), s->socks_version, s->socks_user,
             s->socks_password);
             /* Display Socks chain */
@@ -341,13 +357,14 @@ int show_ini(struct ini_section *ini) {
         /* Display target entries */
         t = s->target_entry;
         while (t) {
-            strncpy(ip1, inet_ntoa(SIN4_ADDR(t->ip1)), sizeof ip1);
-            strncpy(ip2, inet_ntoa(SIN4_ADDR(t->ip2)), sizeof ip2);
-
             printl(LOG_VERB, 
                 "LIST IP1: %s; IP2: %s; Port1: %d; Port2: %d; Name: %s; Type: %d",
-                    ip1, ip2, ntohs(SIN4_PORT(t->ip1)), ntohs(SIN4_PORT(t->ip2)),
-                    t->name?t->name:"", t->target_type);
+                inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
+                t->ip1.sa_family == AF_INET ?
+                    ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
+                t->ip1.sa_family == AF_INET ?
+                    ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
+                t->name?t->name:"", t->target_type);
             t = t->next;
         }
         s = s->next;
