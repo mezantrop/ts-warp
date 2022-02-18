@@ -72,8 +72,6 @@ Options:\n\
 void printl(int level, char *fmt, ...) {
     /* Print to log */
 
-    /* TODO: Write PID of the process */
-
     time_t timestamp;
     struct tm *tstamp;
     va_list ap;
@@ -174,9 +172,10 @@ ini_section *read_ini(char *ifile_name) {
                 continue;
             }
 
-            /* TODO: hide password hash! */
             printl(LOG_VERB, "LN: %d V: %s v1: %s v2: %s m1: %s m2: %s",
-                ln, entry.var, entry.val1, entry.val2, entry.mod1, entry.mod2);
+                ln, entry.var, entry.val1, entry.val2,
+                !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD) ? "********" : 
+                entry.mod1, entry.mod2);
 
             /* Parse socks_* entries */
             /* TODO: Check for duplicate variables and reject them */
@@ -339,11 +338,11 @@ int show_ini(struct ini_section *ini) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(LOG_VERB,            /* TODO: obfuscate password output! */
+        printl(LOG_VERB,
             "LIST: Section: %s; Server: %s:%d; Version: %d; User/Password: %s/%s",
             s->section_name, inet2str(&s->socks_server, ip1), 
-            ntohs(SIN4_PORT(s->socks_server)), s->socks_version, s->socks_user,
-            s->socks_password);
+            ntohs(SIN4_PORT(s->socks_server)), s->socks_version,
+            s->socks_user,  s->socks_password ? "********" : "(null)");
             /* Display Socks chain */
             if (s->proxy_chain) {
                 printl(LOG_VERB, "Socks Chain:");
