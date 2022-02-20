@@ -70,12 +70,17 @@ pid_t wr_pidfile(char *file_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-pid_t mk_pidfile(char *file_name) {
+pid_t mk_pidfile(char *file_name, int f_flg) {
     /* Create a file and write PID there */
-    if (rd_pidfile(file_name)) {
-        printl(LOG_CRIT, "Unable to start. Daemon is already running!");
-        mexit(1, pfile_name);
-    }
+
+    if (f_flg)
+        printl(LOG_WARN, "Force start!");
+    else
+        if (rd_pidfile(file_name)) {
+            printl(LOG_CRIT, "Unable to start. Daemon is already running!");
+            mexit(1, pfile_name);
+        }
+
     return wr_pidfile(file_name);
 }
 

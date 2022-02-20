@@ -60,8 +60,9 @@ Options:\n\
 \t-I IP\t\tIncoming local IP address and ...\n\
 \t-i port\t\t... a port number to accept connections on\n\n\
 \t-l file.log\tLog filename\n\
-\t-v 0..4\t\tLog verbosity level: 0 - off, default 2\n\
-\t-d\t\tBecome a daemon\n\n\
+\t-v 0..4\t\tLog verbosity level: 0 - off, default 2\n\n\
+\t-d\t\tDaemon mode\n\
+\t-f\t\tForce start\n\n\
 \t-c file.ini\tConfiguration file\n\n\
 \t-h\t\tThis message\n\n");
 

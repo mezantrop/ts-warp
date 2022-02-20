@@ -70,7 +70,7 @@ ini_section *ini_root;                      /* Root section of the INI-file */
  
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
-/*  ts-warp [-I IP] [-i port] [-l file.conf] [-v 0..4] [-d] [-c file.ini] [-h]
+/* ts-warp [-I IP] [-i port] [-l file.log] [-v 0..4] [-d] [-f] [-c file.ini] [-h]
 
         -I IP           Incoming local IP address and ...
         -i port         ... port number we listen to and accept connections
@@ -78,7 +78,8 @@ int main(int argc, char* argv[]) {
         -l file.log     Log filename
         -v 0..4         Log verbosity level: 0 - off, default 2
 
-        -d              Become a daemon
+        -d              Daemon mode
+        -f              Force start
 
         -c file.ini     Configuration filename
         
@@ -88,6 +89,7 @@ int main(int argc, char* argv[]) {
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
     char *iport = LISTEN_PORT;              /* ...a port to accept clients */
     int d_flg = 0;                          /* Daemon mode */
+    int f_flg = 0;                          /* Force start */
 
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
     ini_section *s_ini;                     /* Current section of the INI-file */
@@ -106,7 +108,7 @@ int main(int argc, char* argv[]) {
     int rec, snd;                           /* received/sent bytes */
 
 
-    while ((flg = getopt(argc, argv, "I:i:l:v:dc:h")) != -1)
+    while ((flg = getopt(argc, argv, "I:i:l:v:dfc:h")) != -1)
 		switch(flg) {
             case 'I':                               /* Our IP/name */
                 if (optarg) iaddr = optarg; break;
@@ -118,6 +120,8 @@ int main(int argc, char* argv[]) {
                 if (optarg) loglevel = (uint8_t)toint(optarg); break;
             case 'd':                               /* Daemon mode */
                 d_flg = 1; break;
+            case 'f':                               /* Force start */
+                f_flg = 1; break;
             case 'c':                               /* Configuration INI-file */
                 if (optarg) ifile_name = optarg; break;
                 break;
@@ -166,7 +170,7 @@ int main(int argc, char* argv[]) {
         if (pid > 0) exit(0);
 
         printl(LOG_INFO, "Daemon started");
-        mpid = mk_pidfile(pfile_name);
+        mpid = mk_pidfile(pfile_name, f_flg);
     }
 
     /* -- Try validating our address for incoming connections --------------- */
