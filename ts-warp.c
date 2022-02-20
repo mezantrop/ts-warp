@@ -1,6 +1,8 @@
-/* TS-Warp - Transparent SOCKS protocol Wrapper
+/* -------------------------------------------------------------------------- */ 
+/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
+/* -------------------------------------------------------------------------- */ 
 
-Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+/* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -64,7 +66,8 @@ char *pfile_name = PID_FILE_NAME;
 int cn = 1;                                 /* Active clients number */
 pid_t pid, mpid;                            /* Current and main daemon PID */
 int isock, ssock, csock;                    /* Sockets for in/out/clients */
-
+ini_section *ini_root;                      /* Root section of the INI-file */
+ 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
 /*  ts-warp [-I IP] [-i port] [-l file.conf] [-v 0..4] [-d] [-c file.ini] [-h]
@@ -87,8 +90,7 @@ int main(int argc, char* argv[]) {
     int d_flg = 0;                          /* Daemon mode */
 
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
-    ini_section *ini_root, *s_ini;          /* Pointers to the root and current
-                                               sections of the INI file */
+    ini_section *s_ini;                     /* Current section of the INI-file */
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
 
     struct sockaddr caddr;                  /* Client address */
@@ -475,8 +477,11 @@ void trap_signal(int sig) {
 
     int	status;                                     /* Client process status */
 
-	switch(sig) {
-            case SIGHUP:                            /* TODO: Re-read INI-file */
+	switch (sig) {
+            case SIGHUP:
+                ini_root = delete_ini(ini_root);
+                ini_root = read_ini(ifile_name);
+                show_ini(ini_root);
                 break;
             case SIGINT:                            /* Exit processes */
             case SIGQUIT:

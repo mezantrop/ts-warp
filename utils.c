@@ -97,18 +97,20 @@ void printl(int level, char *fmt, ...) {
 long toint(char *str) {
     /* strtol() wrapper */
 
-	int	in;
+    int	in;
 
-	in = strtol(str, (char **)NULL, 10);
+    in = strtol(str, (char **)NULL, 10);
     if (in == 0 && errno == EINVAL) {
         printl(LOG_CRIT, "Conversion error from string to integer: %s", str);
-		usage(1);
+	usage(1);
     }
-	return in;
+    return in;
 }
 
 /* -------------------------------------------------------------------------- */
 ini_section *read_ini(char *ifile_name) {
+    /*Read and parse INI-file */
+
     FILE *fini;
     char buffer[BUF_SIZE], section[STR_SIZE];
     char *s = NULL, *d = NULL, *x = NULL;   /* String manipulation pointers */
@@ -149,7 +151,9 @@ ini_section *read_ini(char *ifile_name) {
 
             if (!ini_root) ini_root = c_sect; else l_sect->next = c_sect;
             l_sect = c_sect;      /* lsect always points to the last section */
-        } else {                                          /* Section entries */
+        } else {
+            /* Entries within sections */
+            
             /* Remove whitespaces */
             s = d = buffer; do while(isspace(*s)) s++; while((*d++ = *s++));
 
@@ -282,7 +286,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
     while (c) {
         if (c->txt_section) {
             if ((s = getsection(ini, c->txt_section))) {
-                printl(LOG_VERB, "Section: [%s] has a chain link: %s", 
+                printl(LOG_VERB, "Section: [%s] has a chain link: [%s]", 
                     c->txt_section, c->txt_chain);
 
                 sc = s->proxy_chain; 
@@ -293,7 +297,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                         st->chain_member = sts;
                         st->next = NULL;
                         if (sc) sc->next = st; else s->proxy_chain = st;
-                        printl(LOG_VERB, "Linking chain section: %s", 
+                        printl(LOG_VERB, "Linking chain section: [%s]", 
                             st->chain_member->section_name); 
                     } else
                         printl(LOG_VERB,
@@ -317,17 +321,17 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
     s = ini;
     while (s) {
         if (!strcmp(s->section_name, name)) {
-            printl(LOG_VERB, "Section [%s] found!", name);        
+            printl(LOG_VERB, "Section: [%s] found!", name);        
             return s;
         }
         s = s->next;
     }
-    printl(LOG_VERB, "Section [%s] not found!", name);
+    printl(LOG_VERB, "Section: [%s] not found!", name);
     return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
-int show_ini(struct ini_section *ini) {
+void show_ini(struct ini_section *ini) {
     /* Debug only function to print parsed INI-file. TODO: Remove in release? */
     
     struct ini_section *s;
@@ -335,41 +339,93 @@ int show_ini(struct ini_section *ini) {
     struct ini_target *t;
     char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
 
+    printl(LOG_VERB, "Show INI-Configuration");
+
     s = ini;
     while (s) {
         /* Display section */
         printl(LOG_VERB,
-            "LIST: Section: %s; Server: %s:%d; Version: %d; User/Password: %s/%s",
+            "SHOW Section: [%s] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
             s->section_name, inet2str(&s->socks_server, ip1), 
             ntohs(SIN4_PORT(s->socks_server)), s->socks_version,
             s->socks_user,  s->socks_password ? "********" : "(null)");
-            /* Display Socks chain */
-            if (s->proxy_chain) {
-                printl(LOG_VERB, "Socks Chain:");
-                c = s->proxy_chain;
-                while (c) {
-                    printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
-                    c = c->next;
-                }
-                printl(LOG_VERB, "-> [%s]", s->section_name);
+
+        /* Display SOCKS chain */
+        if (s->proxy_chain) {
+            printl(LOG_VERB, "Socks Chain:");
+            c = s->proxy_chain;
+            while (c) {
+                printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
+                c = c->next;
             }
+            printl(LOG_VERB, "-> [%s]", s->section_name);
+        }
+
         /* Display target entries */
         t = s->target_entry;
         while (t) {
             printl(LOG_VERB, 
-                "LIST IP1: %s; IP2: %s; Port1: %d; Port2: %d; Name: %s; Type: %d",
+                "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2:[%d] Name: [%s] Type: [%d]",
                 inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
                 t->ip1.sa_family == AF_INET ?
                     ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
                 t->ip1.sa_family == AF_INET ?
                     ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
-                t->name?t->name:"", t->target_type);
+                t->name ? t->name : "", t->target_type);
             t = t->next;
         }
         s = s->next;
     }
+}
 
-    return 0;
+/* -------------------------------------------------------------------------- */
+struct ini_section *delete_ini(struct ini_section *ini) {
+    /* Clean INI-data */
+
+    struct ini_section *s;
+    struct socks_chain *c, *cc;
+    struct ini_target *t, *tt;
+    char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
+
+    printl(LOG_VERB, "Delete INI-configuration");
+    
+    while (ini) {
+        printl(LOG_VERB, "DELETE Section: [%s]", ini->section_name);
+        
+        /* Delete socks chain */
+        if (ini->proxy_chain) {
+            printl(LOG_VERB, "DELETE SOCKS Chain:");
+            c = ini->proxy_chain;
+            while (c) {
+                printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
+                cc = c->next;
+                free(c);
+                c = cc;
+            }
+        } else 
+            printl(LOG_VERB, "No SOCKS Chain detected");
+        
+        /* Delete target entries */
+        t = ini->target_entry;
+        while (t) {
+            printl(LOG_VERB, 
+                "DELETE IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
+                 inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
+                 t->ip1.sa_family == AF_INET ?
+                     ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
+                 t->ip1.sa_family == AF_INET ?
+                     ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
+                 t->name ? t->name : "", t->target_type);
+            tt = t->next;
+            free(t);
+            t = tt;
+        }
+
+        s = ini->next;
+        free(ini);
+        ini = s;
+    }
+    return (ini); 
 }
 
 /* -------------------------------------------------------------------------- */
@@ -383,7 +439,9 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     int hostlen = 0;
 
 #if defined(linux)
-    int ipaddrlen = ip.sa_family == AF_INET ? sizeof((struct sockaddr_in *)&ip) : sizeof((struct sockaddr_in6*)&ip);
+    int ipaddrlen = ip.sa_family == AF_INET ? 
+        sizeof((struct sockaddr_in *)&ip) :
+        sizeof((struct sockaddr_in6*)&ip);
     if (getnameinfo(&ip, ipaddrlen, host, sizeof host, 0, 0, 0))
 #else
     if (getnameinfo(&ip, ip.sa_len, host, sizeof host, 0, 0, 0))

@@ -68,8 +68,6 @@ reload() {
     # Re-read configuration file on HUP signal
     # TODO: Implement the signal in ts-warp daemon
     check_root
-    printf "Fatal: reload is not implemented yet; Use restart\n" && exit
-
     printf "Reload ts-warp\n"
     cat "$PID_FILE" | xargs kill -HUP
 }

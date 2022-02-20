@@ -42,7 +42,7 @@ CFLAGS+=-o0
 debug: dbg all
 
 clean:
-	rm -rf ts-warp ts-pass *.o *.dSYM
+	rm -rf ts-warp ts-pass *.o *.dSYM *.core
 
 natlook.o: natlook.h
 pidfile.o: pidfile.h
