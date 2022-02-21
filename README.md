@@ -17,7 +17,7 @@ a SOCKS server
 - [x] Maintain simple configuraion structure as INI-file
 - [x] Support basic SOCKS authentication methods
 - [x] Password encoding (obfuscation) in configuration files
-- [ ] SOCKS proxy chains
+- [x] SOCKS proxy chains
 - [x] Daemon mode
 - [ ] Front-end UI
 - [ ] Installation script
@@ -30,32 +30,32 @@ If required, debug binary can also be compiled: `$ make debug`
 
 ### Installation
 
-Automatic installation script is still to be done, you have to place and edit files yourself:
+Automatic installation script (`make install`) is still to be done, you have to place and edit files yourself:
 
 - `$ cp ts-warp /usr/local/bin`
 - `$ cp ts-warp.sh /usr/local/etc`
-- Create `/usr/local/etc/ts-warp.ini` file using [ts-warp.ini](examples/ts-warp.ini) as an example
+- Create `/usr/local/etc/ts-warp.ini` file using [ts-warp.ini](examples/ts-warp.ini) as a template
   
 - *On macOS and \*BSD*:
   - Create `/usr/local/etc/ts-warp_pf.conf` using [ts-warp_pf.conf](examples/ts-warp_pf.conf) as an example
-  - Enable packet redirection and start ts-warp daemon: `$ sudo /usr/local/etc/ts-warp.sh start`
+  - Enable packet redirection and start ts-warp daemon as root: `# /usr/local/etc/ts-warp.sh start`
 
 - *On Linux*:
-  - Create `/usr/local/etc/ts-warp_iptables.sh` using [ts-warp_iptables.sh](examples/ts-warp_iptables.sh) as an example
+  - Create `/usr/local/etc/ts-warp_iptables.sh` using [ts-warp_iptables.sh](examples/ts-warp_iptables.sh)
   - Enable packet redirection: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
-  - Start ts-warp daemon: `$ ts-warp -d`
+  - Start ts-warp daemon: `$ sudo ts-warp -d`
 
 ### Usage
 
 *On macOS and \*BSD*:
 
-- Enable packet redirection and start ts-warp daemon: `$ sudo /usr/local/etc/ts-warp.sh start`
+- Enable packet redirection and start ts-warp daemon: `# /usr/local/etc/ts-warp.sh start`
 
 *On Linux*:
 
-- Set packet redirection to localhost port 10800: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
-- Start ts-warp daemon: `$ ts-warp -d`
+- Set packet redirection: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
+- Start ts-warp daemon: `$ sudo ts-warp -d`
 
 ### Contacts
 
-Do not hesitate to email me: Mikhail Zakharov <zmey20000@yahoo.com>
+You are very welcome to email me: Mikhail Zakharov <zmey20000@yahoo.com>
