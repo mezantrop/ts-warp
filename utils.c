@@ -126,7 +126,7 @@ ini_section *read_ini(char *ifile_name) {
 
     if (!(fini = fopen(ifile_name, "r"))) {
         printl(LOG_CRIT, "Error opening INI-file: %s", ifile_name);
-        exit(1);
+        mexit(1, pfile_name);
     }
 
     while (fgets(buffer, sizeof buffer, fini) != NULL) {
@@ -143,6 +143,7 @@ ini_section *read_ini(char *ifile_name) {
             /* Current section to use */
             c_sect = (struct ini_section *)malloc(sizeof(struct ini_section));
             c_sect->section_name = strndup(section, sizeof section);
+            memset(&c_sect->socks_server, 0, sizeof(struct sockaddr));
             c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
             c_sect->socks_user = NULL;
             c_sect->socks_password = NULL;
@@ -183,30 +184,44 @@ ini_section *read_ini(char *ifile_name) {
                 entry.mod1, entry.mod2);
 
             /* Parse socks_* entries */
-            /* TODO: Check for duplicate variables and reject them */
-            if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER))
+            if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
+                chk_inivar(&c_sect->socks_server, INI_ENTRY_SOCKS_SERVER);
                 c_sect->socks_server = *(str2inet(entry.val1, entry.mod1 ? 
                     entry.mod1 : "1080", &res, NULL));
-            else if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_VERSION))
-                c_sect->socks_version = toint(entry.val);
-            else if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER))
-                c_sect->socks_user = strdup(entry.val);
-            else if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
-                chain_temp = (struct chain_list *)malloc(sizeof(struct chain_list));
-                chain_temp->txt_section = strdup(c_sect->section_name);
-                chain_temp->txt_chain = strdup(entry.val);
-                chain_temp->next = NULL;
-                if (chain_this) chain_this->next = chain_temp; 
-                else { chain_root = chain_temp; chain_this = chain_root; }
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_VERSION)) {
+                    chk_inivar(&c_sect->socks_version, INI_ENTRY_SOCKS_VERSION);
+                    c_sect->socks_version = toint(entry.val);
+            } else 
+                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
+                    if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER))
+                        free(c_sect->socks_user);
+                    c_sect->socks_user = strdup(entry.val);
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
+                    chain_temp = (struct chain_list *)malloc(sizeof(struct chain_list));
+                    chain_temp->txt_section = strdup(c_sect->section_name);
+                    chain_temp->txt_chain = strdup(entry.val);
+                    chain_temp->next = NULL;
+                    if (chain_this) chain_this->next = chain_temp; 
+                    else { chain_root = chain_temp; chain_this = chain_root; }
 
-            } else if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
-                if (!strcasecmp(entry.val1, XEDEC_PLAIN))
-                    c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
-                else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
-                    x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01);
-                    c_sect->socks_password = strdup(x);
-                    free(x);
-                }
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
+                    if (chk_inivar(&c_sect->socks_password, INI_ENTRY_SOCKS_PASSWORD))
+                            free(c_sect->socks_password);
+
+                        if (!strcasecmp(entry.val1, XEDEC_PLAIN))
+                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
+                        else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
+                            x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01);
+                            c_sect->socks_password = strdup(x);
+                            free(x);
+                        } else {
+                            printl(LOG_CRIT, "Malformed INI-file entry: [%s]",
+                                INI_ENTRY_SOCKS_PASSWORD);
+                            mexit(1, pfile_name);
+                        }
             } else {
                 target_type = INI_TARGET_NOTSET;
                 /* Parse target_* entries: var=val1[:mod1[-mod2]]/val2 */
@@ -567,7 +582,7 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
         default:
             printl(LOG_CRIT, "Unrecognized address family: %d", 
                 ai_addr->sa_family);
-            exit(1);
+            mexit(1, pfile_name);
     }
     return str_addr;
 }
@@ -590,7 +605,7 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
     if ((ret = getaddrinfo(str_addr, str_port, hints, &res)) > 0) {
         printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]",
             str_addr, str_port, gai_strerror(ret));
-        exit(1);
+        mexit(1, pfile_name);
     }
         
     if (free_mem) free(hints);
@@ -611,3 +626,18 @@ void mexit(int status, char *pid_file) {
     }
     exit(status);
 }
+
+/* -------------------------------------------------------------------------- */
+int chk_inivar(void *v, char *vi) {
+    /* Check if an INI-file variable already has a value in memory. Here:
+        *v      a variable in memory, 
+        *vi     a variable name in the INI-file (just for logging) */
+
+    if (*(int *)v) {
+        printl(LOG_WARN, "Updating already defined [%s] variable", vi);
+        return 1;
+    }
+
+    return 0;
+}
+

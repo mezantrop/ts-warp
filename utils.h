@@ -149,6 +149,7 @@ typedef struct chain_list {     /* Chains as they defind in the INI */
 extern uint8_t loglevel;
 extern FILE *lfile;
 extern int pid;
+extern char *pfile_name;
 
 /* -- Function prototypes --------------------------------------------------- */
 void usage(int ecode);
@@ -167,4 +168,4 @@ char *init_xcrypt(int xkey_len);
 char *xencrypt(char *xkey, char *prefix, char *text);
 char *xdecrypt(char *hex_hash, char *prefix);
 void mexit(int status, char *pid_file);
-
+int chk_inivar(void *v, char *vi);

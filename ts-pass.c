@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 FILE *lfile = NULL;
 uint8_t loglevel = LOG_LEVEL_DEFAULT;
 pid_t pid;
+char *pfile_name;
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) {
