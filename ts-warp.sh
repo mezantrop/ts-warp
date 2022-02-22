@@ -1,6 +1,8 @@
 #!/bin/sh
 
+# ------------------------------------------------------------------------------
 # TS-Warp - Transparent SOCKS protocol Wrapper
+# ------------------------------------------------------------------------------
 #
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 #
@@ -28,27 +30,30 @@
 
 # ------------------------------------------------------------------------------
 # Start/stop rc-script
-# Requires sudo or root priveleges to run
+# Requires root priveleges to run
 # ------------------------------------------------------------------------------
 
 
 # -- CONFIGURATION VARIABLES ---------------------------------------------------
-PREFIX="/usr/local"
-PID_FILE="/var/run/ts-warp.pid"
+tswarp_prefix="/usr/local"
+tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
+tswarp_logfile="/var/log/ts-warp.log"
+tswarp_pidfile="/var/run/ts-warp.pid"
+tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -d -f -v 2"
 
 # ------------------------------------------------------------------------------
 start() {
     status || {
         check_root
         printf "Starting ts-warp\n"
-        /sbin/pfctl -f "$PREFIX"/etc/ts-warp_pf.conf > /dev/null
-        "$PREFIX"/bin/ts-warp -d > /dev/null
+        /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
+        echo $tswarp_options | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
     }
 }
 
 status() {
-    [ -f "$PID_FILE" -a -r "$PID_FILE" ] && {
-        printf "ts-warp is running PID: %s\n" `cat "$PID_FILE"`;
+    [ -f "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
+        printf "ts-warp is running PID: %s\n" `cat "$tswarp_pidfile"`;
         return 0;
     } || {
         printf "ts-warp is not running\n";
@@ -60,16 +65,15 @@ stop() {
     status && {
         check_root
         printf "Stopping ts-warp\n"
-        cat "$PID_FILE" | xargs kill -TERM
+        cat "$tswarp_pidfile" | xargs kill -TERM
     }
 }
 
 reload() {
     # Re-read configuration file on HUP signal
-    # TODO: Implement the signal in ts-warp daemon
     check_root
     printf "Reload ts-warp\n"
-    cat "$PID_FILE" | xargs kill -HUP
+    cat "$tswarp_pidfile" | xargs kill -HUP
 }
 
 restart() {
@@ -98,5 +102,4 @@ case "$1" in
     *) printf "Unknown command\n"; exit 1;  ;;
 esac
 
-printf "Done\n"
 exit 0

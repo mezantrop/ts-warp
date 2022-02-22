@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         }
         if (pid > 0) exit(0);
 
-        printl(LOG_INFO, "Daemon started");
+        printl(LOG_CRIT, "Daemon started");
         mpid = mk_pidfile(pfile_name, f_flg);
     }
 
@@ -461,10 +461,9 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
-            printl(LOG_VERB, "End connection-forward loop");
             shutdown(csock, SHUT_RDWR);
             shutdown(ssock, SHUT_RDWR);
-            printl(LOG_INFO, "Client finishing operations");
+            printl(LOG_INFO, "Client finished operations");
             close(csock);
             close(ssock);
             exit(0);

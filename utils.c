@@ -602,12 +602,12 @@ void mexit(int status, char *pid_file) {
     /* Exit program */
 
     kill(0, SIGTERM);
-    printl(LOG_VERB, "Clients requested to exit");
+    printl(LOG_WARN, "Clients requested to exit");
     while (wait3(&status, WNOHANG, 0) > 0) ;
-    printl(LOG_INFO, "Program finished");
+    printl(LOG_CRIT, "Program finished");
     if (pid_file) {
         unlink(pid_file);
-        printl(LOG_VERB, "PID file removed");
+        printl(LOG_WARN, "PID file removed");
     }
     exit(status);
 }
