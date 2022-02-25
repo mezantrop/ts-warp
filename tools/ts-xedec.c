@@ -32,11 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <sys/uio.h>
 #include <unistd.h>
 
-#include "utils.h"
-
-FILE *lfile = NULL;
-uint8_t loglevel = LOG_LEVEL_DEFAULT;
-pid_t pid;                                  /* Current PID */
+#include "xedec.h"
 
 /* -------------------------------------------------------------------------- */
 void rsc_usage() {
@@ -60,7 +56,7 @@ int main(int argc, char* argv[]) {
     if (!strncmp("-e", argv[1], 2)) {
         xkey = init_xcrypt(XEDEC_XKEY_LEN);
         if (!(result = xencrypt(xkey, pref, argv[2]))) {
-            printl(LOG_CRIT, "Error encrypting data!\n");
+            printf("Error encrypting data!\n");
             exit(1);
         }
         printf("%s\n", result);
@@ -68,7 +64,7 @@ int main(int argc, char* argv[]) {
     }
     else if (!strncmp("-d", argv[1], 2)) {
         if (!(result = xdecrypt(argv[2], pref))) {
-            printl(LOG_CRIT, "Error decrypting data!\n");
+            printf("Error decrypting data!\n");
             exit(1);
         }
         printf("%s\n", result);

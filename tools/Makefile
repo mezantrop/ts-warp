@@ -1,5 +1,7 @@
+# ------------------------------------------------------------------------------
 # TS-Warp - Transparent SOCKS protocol Wrapper
-#
+# ------------------------------------------------------------------------------
+
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,11 +26,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# ------------------------------------------------------------------------------
 CC = cc
-CPPFLAGS = -I ../
+CFLAGS = -Wall -I ../
+OBJECTS = ts-xedec.o
 
-all:
-	${CC} $(CPPFLAGS) -o ts-xedec ts-xedec.c ../xedec.c ../utils.c
+all: ts-xedec
+
+ts-xedec: $(OBJECTS)
+	$(CC) -o $@ $(OBJECTS) ../xedec.c 
 
 clean:
-	rm -rf ts-xedec
+	rm -rf ts-xedec *.o
+

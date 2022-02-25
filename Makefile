@@ -1,5 +1,7 @@
+# ------------------------------------------------------------------------------
 # TS-Warp - Transparent SOCKS protocol Wrapper
-#
+# ------------------------------------------------------------------------------
+
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,10 +25,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+# ------------------------------------------------------------------------------
 CC = cc
-CFLAGS = -Wall
-WARP_OBJS = natlook.o pidfile.o socks.o ts-warp.o utils.o xedec.o
-PASS_OBJS = ts-pass.o utils.c xedec.o 
+CFLAGS += -Wall
+WARP_OBJS = inifile.o natlook.o pidfile.o socks.o ts-warp.o utils.o xedec.o
+PASS_OBJS = ts-pass.o xedec.o 
 
 all:	ts-warp ts-pass
 
@@ -36,14 +40,10 @@ ts-warp: $(WARP_OBJS)
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
-dbg:
-CFLAGS+=-o0
-
-debug: dbg all
-
 clean:
 	rm -rf ts-warp ts-pass *.o *.dSYM *.core
 
+inifile.o: inifile.h
 natlook.o: natlook.h
 pidfile.o: pidfile.h
 socks.o: socks.h

@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 # TS-Warp - Transparent SOCKS protocol Wrapper
 # ------------------------------------------------------------------------------
-#
+
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without

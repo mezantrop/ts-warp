@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /*
 Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
@@ -27,39 +27,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* -- Password hash generation tool ----------------------------------------- */
-
-/* TODO: Read password from stdin with echo off to hide plaintext password */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
-
-#include "xedec.h"
 
 /* -------------------------------------------------------------------------- */
-int main(int argc, char* argv[]) {
-    char *xkey = NULL;
-    char *pref = XEDEC_TSW01;
-    char *result = NULL;
+#define XEDEC_XKEY_LEN  8
+#define XEDEC_PLAIN     "PLAIN"
+#define XEDEC_TSW01     "TSW01"
 
-    if (argc != 2) {
-        printf("Usage:\n\tpass_encode Password2Encode\n\n");
-        exit(1);
-    }
+#define URANDOM     "/dev/urandom"
 
-    xkey = init_xcrypt(XEDEC_XKEY_LEN);
-    if (!(result = xencrypt(xkey, pref, argv[1]))) {
-        printf("Error encrypting the password!\n");
-        exit(1);
-    }
-    printf("%s\n", result);
-    
-    free(xkey);
-    free(result);
-    exit(0);
-}
+/* -------------------------------------------------------------------------- */
+char *init_xcrypt(int xkey_len);
+char *xencrypt(char *xkey, char *prefix, char *text);
+char *xdecrypt(char *hex_hash, char *prefix);
