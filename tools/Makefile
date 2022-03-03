@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# TS-Warp - Transparent SOCKS protocol Wrapper
+# Password encoder/decoder for TS-Warp
 # ------------------------------------------------------------------------------
 
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
@@ -38,4 +38,3 @@ ts-xedec: $(OBJECTS)
 
 clean:
 	rm -rf ts-xedec *.o
-

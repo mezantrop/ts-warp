@@ -2,8 +2,7 @@
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
 /* -------------------------------------------------------------------------- */ 
 
-/*
-Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+/* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -24,8 +23,7 @@ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* -- Main program file ----------------------------------------------------- */
@@ -104,7 +102,6 @@ int main(int argc, char* argv[]) {
 
     fd_set rfd;
     struct timeval tv;
-    struct timespec ts;
 
     char buf[BUF_SIZE];                     /* Multipurpose buffer */
     int ret;                                /* Various function return codes */
@@ -112,21 +109,27 @@ int main(int argc, char* argv[]) {
 
 
     while ((flg = getopt(argc, argv, "I:i:l:v:dfc:h")) != -1)
-		switch(flg) {
+        switch(flg) {
             case 'I':                               /* Our IP/name */
-                if (optarg) iaddr = optarg; break;
+                if (optarg) iaddr = optarg;
+                break;
             case 'i':                               /* Our port */
-                if (optarg) iport = optarg; break;  /* TODO: Set constraints */
+                if (optarg) iport = optarg;         /* TODO: Set constraints */
+                break; 
             case 'l':                               /* Logfile */
-                if (optarg) lfile_name = optarg; break;
+                if (optarg) lfile_name = optarg;
+                break;
             case 'v':                               /* Log verbosity */
-                if (optarg) loglevel = (uint8_t)toint(optarg); break;
+                if (optarg) loglevel = (uint8_t)toint(optarg);
+                break;
             case 'd':                               /* Daemon mode */
-                d_flg = 1; break;
+                d_flg = 1;
+                break;
             case 'f':                               /* Force start */
-                f_flg = 1; break;
+                f_flg = 1;
+                break;
             case 'c':                               /* Configuration INI-file */
-                if (optarg) ifile_name = optarg; break;
+                if (optarg) ifile_name = optarg;
                 break;
             case 'h':                               /* Help */
             default:
@@ -401,9 +404,6 @@ int main(int argc, char* argv[]) {
                 FD_SET(csock, &rfd);
                 FD_SET(ssock, &rfd);
 
-                /* TODO: Is it possible to use the only timeval or timespec? */
-                ts.tv_sec = 0;
-                ts.tv_nsec = 100000;
                 tv.tv_sec = 0;
                 tv.tv_usec = 100000;
                 ret = select(ssock > csock ? ssock + 1: csock + 1, &rfd, 0, 0, &tv);
@@ -427,7 +427,7 @@ int main(int argc, char* argv[]) {
                         }
                         while ((snd = send(ssock, buf, rec, 0)) == 0) {
                             printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
-                            nanosleep(&ts, NULL);
+                            usleep(tv.tv_usec / 1000);
                             break;
                         }
                         if (snd == -1) {
@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
                         }
                         while ((snd = send(csock, buf, rec, 0)) == 0) {
                             printl(LOG_CRIT, "S:[0] -> C:[0] bytes");
-                            nanosleep(&ts, NULL);
+                            usleep(tv.tv_usec / 1000);
                         }
                         if (snd == -1) {
                             printl(LOG_CRIT, "Error sending data to SOCKS server");
