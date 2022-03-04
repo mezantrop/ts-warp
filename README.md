@@ -59,3 +59,5 @@ Automatic installation script (`make install`) is still to be done, you have to 
 ### Contacts
 
 You are very welcome to email me: Mikhail Zakharov <zmey20000@yahoo.com>
+
+Many thanks to [contributors](CONTRIBUTORS.md) of the project

@@ -130,11 +130,11 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
     switch (pfnl.af) {
         case AF_INET:
             #if defined(__APPLE__)
-            SIN4_ADDR(daddr) = pfnl.rdaddr.v4addr;
-            SIN4_PORT(daddr) = pfnl.rdxport.port;
+                SIN4_ADDR(daddr) = pfnl.rdaddr.v4addr;
+                SIN4_PORT(daddr) = pfnl.rdxport.port;
             #else
-            SIN4_ADDR(daddr) = pfnl.rdaddr.v4;
-            SIN4_PORT(daddr) = pfnl.rdport;
+                SIN4_ADDR(daddr) = pfnl.rdaddr.v4;
+                SIN4_PORT(daddr) = pfnl.rdport;
             #endif
             SIN4_FAMILY(daddr) = pfnl.af;
             SIN4_LENGTH(daddr) = sizeof(struct sockaddr_in);
@@ -142,11 +142,11 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
         
         case AF_INET6:
             #if defined(__APPLE__)
-            SIN6_ADDR(daddr) = pfnl.rdaddr.v6addr;
-            SIN6_PORT(daddr) = pfnl.rdxport.port;
+                SIN6_ADDR(daddr) = pfnl.rdaddr.v6addr;
+                SIN6_PORT(daddr) = pfnl.rdxport.port;
             #else
-            SIN6_ADDR(daddr) = pfnl.rdaddr.v6;
-            SIN6_PORT(daddr) = pfnl.rdport;
+                SIN6_ADDR(daddr) = pfnl.rdaddr.v6;
+                SIN6_PORT(daddr) = pfnl.rdport;
             #endif
             SIN6_FAMILY(daddr) = pfnl.af;
             SIN6_LENGTH(daddr) = sizeof(struct sockaddr_in6);
@@ -158,10 +158,14 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
                 pfnl.af);
             mexit(1, pfile_name);
     }
+    #if defined(__APPLE__)
+        printl(LOG_VERB, "Real destination address: [%s:%d]",
+            inet2str(&daddr, dstr_addr), ntohs(pfnl.rdxport.port));
+    #else
+        printl(LOG_VERB, "Real destination address: [%s:%d]",
+            inet2str(&daddr, dstr_addr), ntohs(pfnl.rdport));
+    #endif
 
-    printl(LOG_VERB, "Real destination address: [%s:%d]",
-        inet2str(&daddr, dstr_addr), ntohs(pfnl.rdport));
- 
     return daddr;
 }
 
