@@ -4,6 +4,8 @@
 
 **Warning!** Early stage of development, don't expect everything to work properly
 
+See the [Changelog](CHANGELOG.md)
+
 ### Goals and TODO list
 
 - [x] Create a transparent firewall-based redirector of TCP/IP connections to

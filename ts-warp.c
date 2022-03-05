@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
         }
         if (pid > 0) exit(0);
 
-        printl(LOG_CRIT, "Daemon started");
+        printl(LOG_CRIT, "%s-%s daemon started", PROG_NAME, PROG_VERSION);
         mpid = mk_pidfile(pfile_name, f_flg);
     }
 

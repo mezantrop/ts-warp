@@ -57,6 +57,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 void usage(int ecode) {
     printf("Usage:\n\
 \tts-warp [-I IP] [-i port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]\n\n\
+Version:\n\
+\t%s-%s\n\n\
 Options:\n\
 \t-I IP\t\tIncoming local IP address and ...\n\
 \t-i port\t\t... a port number to accept connections on\n\n\
@@ -65,7 +67,7 @@ Options:\n\
 \t-d\t\tDaemon mode\n\
 \t-f\t\tForce start\n\n\
 \t-c file.ini\tConfiguration file\n\n\
-\t-h\t\tThis message\n\n");
+\t-h\t\tThis message\n\n", PROG_NAME, PROG_VERSION);
 
     exit(ecode);
 }
