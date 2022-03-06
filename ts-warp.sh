@@ -43,49 +43,60 @@ tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -d -f -v 2"
 
 # ------------------------------------------------------------------------------
 start() {
-    status || {
+    status && {
+        printf "ts-warp is already running: "
+    } || {
         check_root
-        printf "Starting ts-warp\n"
+        printf "Starting ts-warp: "
         /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
         echo $tswarp_options | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
     }
 }
 
 status() {
+    # Set $1 if status message is required
+
     [ -f "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
-        printf "ts-warp is running PID: %s\n" `cat "$tswarp_pidfile"`;
-        return 0;
+        [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
+        return 0
     } || {
-        printf "ts-warp is not running\n";
-        return 1;
+        [ "$1" ] && printf "ts-warp is not running: "
+        return 1
     }
 }
 
 stop() {
     status && {
         check_root
-        printf "Stopping ts-warp\n"
+        printf "Stopping ts-warp: "
         cat "$tswarp_pidfile" | xargs kill -TERM
-    }
+    } || 
+        printf "ts-warp is already stopped: "
 }
 
 reload() {
     # Re-read configuration file on HUP signal
-    check_root
-    printf "Reload ts-warp\n"
-    cat "$tswarp_pidfile" | xargs kill -HUP
+    status && {
+        check_root
+        printf "Reloading ts-warp: "
+        cat "$tswarp_pidfile" | xargs kill -HUP
+    } || {
+        printf "Unable to reload: ts-warp is not running\n"
+        exit 1
+    }
 }
 
 restart() {
     check_root
-    printf "Restarting ts-warp\n"
+    printf "Restarting ts-warp: "
     stop
     start
 }
 
 check_root() {
     [ `id -u` -ne 0 ] && { 
-        printf "Fatal: You must be root to proceed\n"; exit 1; 
+        printf "Fatal: You must be root to proceed\n"
+        exit 1 
     }
 }
 
@@ -95,11 +106,12 @@ check_root() {
 
 case "$1" in
     [sS][tT][aA][rR][tT])           start   ;;
-    [sS][tT][aA][tT][uU][sS])       status  ;;
+    [sS][tT][aA][tT][uU][sS])       status 1 ;;
     [sS][tT][oO][pP])               stop    ;;
     [rR][eE][lL][oO][aA][dD])       reload  ;;
     [rR][eE][sS][tT][aA][rR][tT])   restart ;;
     *) printf "Unknown command\n"; exit 1;  ;;
 esac
 
+printf "done\n"
 exit 0
