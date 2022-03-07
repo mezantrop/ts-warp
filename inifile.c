@@ -101,7 +101,7 @@ ini_section *read_ini(char *ifile_name) {
             entry.mod1 = strsep(&s, ":-");      /* mod1 optional */
             entry.mod2 = strsep(&s, ":-");      /* mod2 optional */
 
-            if (!entry.val1) {
+            if (!entry.val1 || !entry.val1[0]) {
                 printl(LOG_VERB, "LN: %d INVALID", ln);
                 continue;
             }
@@ -217,7 +217,6 @@ ini_section *read_ini(char *ifile_name) {
     }
     
     create_chains(ini_root, chain_root);
-    /* TODO: Delete the chain_list referred by chain_root */
 
     fclose(fini);
     return ini_root;
@@ -227,7 +226,7 @@ ini_section *read_ini(char *ifile_name) {
 int create_chains(struct ini_section *ini, struct chain_list *chain) {
     struct ini_section *s, *sts;
     struct socks_chain *sc, *st;
-    struct chain_list *c;
+    struct chain_list *c, *cc;
     char *chain_section, *p;
     
     c = chain;
@@ -254,7 +253,9 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                 }
             }
         }
+        cc = c;
         c = c->next;
+        free(cc);               /* Delete processed element from the list */
     }
 
     return 0;

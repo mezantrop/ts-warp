@@ -58,6 +58,8 @@ Automatic installation script (`make install`) is still to be done, you have to 
 - Set packet redirection: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
 - Start ts-warp daemon: `$ sudo ts-warp -d`
 
+Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
+
 ### Contacts
 
 You are very welcome to email me: Mikhail Zakharov <zmey20000@yahoo.com>

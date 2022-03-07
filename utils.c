@@ -132,9 +132,9 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
                     str_addr, INET6_ADDRSTRLEN);
 
         default:
-            printl(LOG_CRIT, "Unrecognized address family: %d", 
+            printl(LOG_WARN, "Unrecognized address family: %d", 
                 ai_addr->sa_family);
-            mexit(1, pfile_name);
+            return NULL;
     }
     return str_addr;
 }
