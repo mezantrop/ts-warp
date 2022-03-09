@@ -50,7 +50,7 @@ ini_section *read_ini(char *ifile_name) {
     chain_list *chain_root = NULL, *chain_this = NULL, *chain_temp = NULL;
     int target_type = INI_TARGET_NOTSET;
     struct addrinfo res;
-    int ln = 1;
+    int ln = 0;
 
 
     if (!(fini = fopen(ifile_name, "r"))) {
@@ -88,7 +88,11 @@ ini_section *read_ini(char *ifile_name) {
             s = d = buffer; do while(isspace(*s)) s++; while((*d++ = *s++));
 
             if (!*buffer) continue;             /* Skip an empty line */
-
+            if (strchr(buffer, '=') == NULL) {  /* Skip variables without vals */
+                printl(LOG_VERB,
+                    "LN: %d IGNORED: The variable must be assigned a value", ln);
+                continue;
+            }
             s = buffer;
             /* Get entry fields or NULLs */
             entry.var = strsep(&s, "=");        /* var */
@@ -102,7 +106,8 @@ ini_section *read_ini(char *ifile_name) {
             entry.mod2 = strsep(&s, ":-");      /* mod2 optional */
 
             if (!entry.val1 || !entry.val1[0]) {
-                printl(LOG_VERB, "LN: %d INVALID", ln);
+                printl(LOG_VERB,
+                    "LN: %d IGNORED: The variable must be assigned a value", ln);
                 continue;
             }
 
