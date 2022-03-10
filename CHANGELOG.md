@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `-I IP:Port` replaces `-I IP -i Port`; minor optimizations
   * INI-file parser to ignore variables without values
   * Fixed processed empty/nonexisting `socks_server` values in the INI file
   * Remove processed `chain_list` elements in `create_chains()`
