@@ -71,20 +71,24 @@ ini_section *ini_root;                      /* Root section of the INI-file */
  
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
-/* ts-warp [-I IP] [-i port] [-l file.log] [-v 0..4] [-d] [-f] [-c file.ini] [-h]
+    /* Usage:
+            ts-warp [-I IP:Port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]
 
-        -I IP           Incoming local IP address and ...
-        -i port         ... port number we listen to and accept connections
+    Version:
+            TS-Warp-X.Y.Z
 
-        -l file.log     Log filename
-        -v 0..4         Log verbosity level: 0 - off, default 2
+    Options:
+            -I IP:Port      Incoming local IP address and ...
 
-        -d              Daemon mode
-        -f              Force start
+            -l file.log     Log filename
+            -v 0..4         Log verbosity level: 0 - off, default 2
 
-        -c file.ini     Configuration filename
-        
-        -h              This message */
+            -d              Daemon mode
+            -f              Force start
+
+            -c file.ini     Configuration file
+
+            -h              This message */
 
     int flg;                                /* Command-line options flag */
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
@@ -108,29 +112,22 @@ int main(int argc, char* argv[]) {
     int rec, snd;                           /* received/sent bytes */
 
 
-    while ((flg = getopt(argc, argv, "I:i:l:v:dfc:h")) != -1)
+    while ((flg = getopt(argc, argv, "I:l:v:dfc:h")) != -1)
         switch(flg) {
             case 'I':                               /* Our IP/name */
-                if (optarg) iaddr = optarg;
+                iaddr = strsep(&optarg, ":");       /* IP:PORT */
+                if (optarg) iport = optarg;
                 break;
-            case 'i':                               /* Our port */
-                if (optarg) iport = optarg;         /* TODO: Set constraints */
-                break; 
             case 'l':                               /* Logfile */
-                if (optarg) lfile_name = optarg;
-                break;
+                lfile_name = optarg; break;
             case 'v':                               /* Log verbosity */
-                if (optarg) loglevel = (uint8_t)toint(optarg);
-                break;
+                loglevel = (uint8_t)toint(optarg); break;
             case 'd':                               /* Daemon mode */
-                d_flg = 1;
-                break;
+                d_flg = 1; break;
             case 'f':                               /* Force start */
-                f_flg = 1;
-                break;
+                f_flg = 1; break;
             case 'c':                               /* Configuration INI-file */
-                if (optarg) ifile_name = optarg;
-                break;
+                ifile_name = optarg; break;
             case 'h':                               /* Help */
             default:
                 (void)usage(0);
@@ -410,9 +407,7 @@ int main(int argc, char* argv[]) {
 
                 if (ret < 0) break;
                 if (ret == 0) continue;
-                if (ret > 0) {                
-                    printl(LOG_VERB, "A socket wants to send");
-    
+                if (ret > 0) {    
                     memset(buf, 0, BUF_SIZE);
                     if (FD_ISSET(csock, &rfd)) {
                         /* Client writes */

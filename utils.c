@@ -56,12 +56,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* -------------------------------------------------------------------------- */
 void usage(int ecode) {
     printf("Usage:\n\
-\tts-warp [-I IP] [-i port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]\n\n\
+\tts-warp [-I IP:Port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]\n\n\
 Version:\n\
 \t%s-%s\n\n\
 Options:\n\
-\t-I IP\t\tIncoming local IP address and ...\n\
-\t-i port\t\t... a port number to accept connections on\n\n\
+\t-I IP:Port\tIncoming local IP address and ...\n\n\
 \t-l file.log\tLog filename\n\
 \t-v 0..4\t\tLog verbosity level: 0 - off, default 2\n\n\
 \t-d\t\tDaemon mode\n\

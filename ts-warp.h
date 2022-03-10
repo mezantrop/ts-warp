@@ -31,4 +31,3 @@ void trap_signal(int sig);
 #define INI_FILE_NAME   "/usr/local/etc/ts-warp.ini"
 #define LOG_FILE_NAME   "/var/log/ts-warp.log"
 #define PID_FILE_NAME   "/var/run/ts-warp.pid"
-
