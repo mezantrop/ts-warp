@@ -427,7 +427,7 @@ int main(int argc, char* argv[]) {
                         }
                         while ((snd = send(ssock, buf, rec, 0)) == 0) {
                             printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
-                            usleep(tv.tv_usec / 1000);
+                            usleep(100);           /* 0.1 ms */
                             break;
                         }
                         if (snd == -1) {
@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
                         }
                         while ((snd = send(csock, buf, rec, 0)) == 0) {
                             printl(LOG_CRIT, "S:[0] -> C:[0] bytes");
-                            usleep(tv.tv_usec / 1000);
+                            usleep(100);
                         }
                         if (snd == -1) {
                             printl(LOG_CRIT, "Error sending data to SOCKS server");
