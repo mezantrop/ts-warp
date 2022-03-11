@@ -32,16 +32,16 @@ a SOCKS-proxy server
 - Edit `<PREFIX>/etc/ts-warp.ini` file to suite your needs
   
 - *On macOS and \*BSD*:
-  - Edit `<PREFIX>/etc/ts-warp_pf.conf`
+  - Edit to configure packet filter `<PREFIX>/etc/ts-warp_pf.conf`
 
 - *On Linux*:
-  - Edit `<PREFIX>/etc/ts-warp_iptables.sh`
+  - Edit to configure firewall `<PREFIX>/etc/ts-warp_iptables.sh`
 
 ### Usage
 
 *On macOS and \*BSD*:
 
-- Start, control or get status of ts-warp using: `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
+- Start, control or get status of ts-warp: `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
 
 *On Linux*:
 
