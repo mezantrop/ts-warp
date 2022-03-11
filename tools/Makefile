@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Password encoder/decoder for TS-Warp
+# TS-Warp - Transparent SOCKS protocol Wrapper
 # ------------------------------------------------------------------------------
 
 # Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
@@ -27,14 +27,21 @@
 
 
 # ------------------------------------------------------------------------------
+PREFIX ?= /usr/local
+
 CC = cc
 CFLAGS = -Wall -I ../
 OBJECTS = ts-xedec.o
+
 
 all: ts-xedec
 
 ts-xedec: $(OBJECTS)
 	$(CC) -o $@ $(OBJECTS) ../xedec.c 
+
+install: ts-xedec
+	install -d $(PREFIX)/bin/
+	install -m 755 ts-xedec $(PREFIX)/bin/
 
 clean:
 	rm -rf ts-xedec *.o

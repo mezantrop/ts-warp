@@ -9,7 +9,7 @@ See the [Changelog](CHANGELOG.md)
 ### Goals and TODO list
 
 - [x] Create a transparent firewall-based redirector of TCP/IP connections to
-a SOCKS server
+a SOCKS-proxy server
 
 - Support platforms:
   - [x] macOS, FreeBSD with PF, OpenBSD (not tested)
@@ -22,7 +22,8 @@ a SOCKS server
 - [x] SOCKS proxy chains
 - [x] Daemon mode
 - [ ] Front-end UI
-- [ ] Installation script
+- [x] Installation script
+- [ ] Documentation
 
 ### Compilation
 
@@ -32,31 +33,28 @@ If required, debug binary can also be compiled: `$ make debug`
 
 ### Installation
 
-Automatic installation script (`make install`) is still to be done, you have to place and edit files yourself:
+- `make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
 
-- `$ cp ts-warp /usr/local/bin`
-- `$ cp ts-warp.sh /usr/local/etc`
-- Create `/usr/local/etc/ts-warp.ini` file using [ts-warp.ini](examples/ts-warp.ini) as a template
+- Edit `<PREFIX>/etc/ts-warp.ini` file to suite your needs
   
 - *On macOS and \*BSD*:
-  - Create `/usr/local/etc/ts-warp_pf.conf` using [ts-warp_pf.conf](examples/ts-warp_pf.conf) as an example
-  - Enable packet redirection and start ts-warp daemon as root: `# /usr/local/etc/ts-warp.sh start`
+  - Edit `<PREFIX>/etc/ts-warp_pf.conf`
 
 - *On Linux*:
-  - Create `/usr/local/etc/ts-warp_iptables.sh` using [ts-warp_iptables.sh](examples/ts-warp_iptables.sh)
-  - Enable packet redirection: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
-  - Start ts-warp daemon: `$ sudo ts-warp -d`
+  - Edit `<PREFIX>/etc/ts-warp_iptables.sh`
 
 ### Usage
 
 *On macOS and \*BSD*:
 
-- Enable packet redirection and start ts-warp daemon: `# /usr/local/etc/ts-warp.sh start`
+- Start, control or get status of ts-warp using: `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
 
 *On Linux*:
 
-- Set packet redirection: `$ sudo /usr/local/etc/ts-warp_iptables.sh`
-- Start ts-warp daemon: `$ sudo ts-warp -d`
+- Enable packet redirection: `$ sudo <PREFIX>/etc/ts-warp_iptables.sh`
+- Start ts-warp daemon: `$ sudo <PREFIX>/bin/ts-warp -d`
+
+ts-warp understands `SIGHUP` signal as command to reload configuration and `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 

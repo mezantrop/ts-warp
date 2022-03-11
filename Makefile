@@ -27,10 +27,13 @@
 
 
 # ------------------------------------------------------------------------------
+PREFIX ?= /usr/local
+
 CC = cc
-CFLAGS += -Wall
+CFLAGS += -Wall -DPREFIX='"$(PREFIX)"'
 WARP_OBJS = inifile.o natlook.o pidfile.o socks.o ts-warp.o utils.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o 
+
 
 all:	ts-warp ts-pass
 
@@ -40,8 +43,21 @@ ts-warp: $(WARP_OBJS)
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
+install: ts-warp ts-pass
+	install -d $(PREFIX)/bin/
+	install -m 755 ts-warp $(PREFIX)/bin/
+	install -m 755 ts-pass $(PREFIX)/bin/
+	install -d $(PREFIX)/etc/
+	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
+	install -m 755 ts-warp.sh $(PREFIX)/etc/
+	install -m 640 ./examples/ts-warp.ini $(PREFIX)/etc/
+	install -m 644 ./examples/ts-warp_pf.conf $(PREFIX)/etc/
+	install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/
+	install -d $(PREFIX)/var/log/
+	install -d $(PREFIX)/var/run/
+
 clean:
-	rm -rf ts-warp ts-pass *.o *.dSYM *.core
+	rm -rf ts-warp ts-warp.sh ts-pass *.o *.dSYM *.core
 
 inifile.o: inifile.h
 natlook.o: natlook.h

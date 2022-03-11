@@ -37,8 +37,8 @@
 # -- CONFIGURATION VARIABLES ---------------------------------------------------
 tswarp_prefix="/usr/local"
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
-tswarp_logfile="/var/log/ts-warp.log"
-tswarp_pidfile="/var/run/ts-warp.pid"
+tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
+tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -d -f -v 2"
 
 # ------------------------------------------------------------------------------

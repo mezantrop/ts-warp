@@ -26,8 +26,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-void trap_signal(int sig);
+/* -------------------------------------------------------------------------- */
+#if !defined (PREFIX)
+#define PREFIX "/usr/local"
+#endif
 
-#define INI_FILE_NAME   "/usr/local/etc/ts-warp.ini"
-#define LOG_FILE_NAME   "/var/log/ts-warp.log"
-#define PID_FILE_NAME   "/var/run/ts-warp.pid"
+#define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
+#define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
+#define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
+
+/* -- Function prototypes --------------------------------------------------- */
+void trap_signal(int sig);
