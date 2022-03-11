@@ -32,21 +32,23 @@ a SOCKS-proxy server
 - Edit `<PREFIX>/etc/ts-warp.ini` file to suite your needs
   
 - *On macOS and \*BSD*:
-  - Edit to configure packet filter `<PREFIX>/etc/ts-warp_pf.conf`
+  - Edit `<PREFIX>/etc/ts-warp_pf.conf` to configure packet filter
 
 - *On Linux*:
-  - Edit to configure firewall `<PREFIX>/etc/ts-warp_iptables.sh`
+  - Edit `<PREFIX>/etc/ts-warp_iptables.sh` to configure firewall
 
 ### Usage
 
 *On macOS and \*BSD*:
 
-- Start, control or get status of ts-warp: `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
+- Under root privileges start, control or get status of ts-warp: `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
 
 *On Linux*:
 
-- Enable packet redirection: `$ sudo <PREFIX>/etc/ts-warp_iptables.sh`
-- Start ts-warp daemon: `$ sudo <PREFIX>/bin/ts-warp -d`
+Using root privileges:
+
+- Enable packet redirection: `# <PREFIX>/etc/ts-warp_iptables.sh`
+- Start ts-warp daemon: `# <PREFIX>/bin/ts-warp -d`
 
 ts-warp understands `SIGHUP` signal as command to reload configuration and `SIGINT` to stop the daemon.
 
