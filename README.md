@@ -25,12 +25,6 @@ a SOCKS-proxy server
 - [x] Installation script
 - [ ] Documentation
 
-### Compilation
-
-Regular version: `$ make`
-
-If required, debug binary can also be compiled: `$ make debug`
-
 ### Installation
 
 - `make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
