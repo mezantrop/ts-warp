@@ -42,6 +42,7 @@ a SOCKS-proxy server
 **On macOS and \*BSD**:
 
 Under root privileges start, control or get status of ts-warp:
+
 `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
 
 **On Linux**:
