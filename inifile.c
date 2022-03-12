@@ -392,14 +392,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     char host[HOST_NAME_MAX];
     int hostlen = 0;
 
-#if defined(linux)
-    int ipaddrlen = ip.sa_family == AF_INET ? 
-        sizeof((struct sockaddr_in *)&ip) :
-        sizeof((struct sockaddr_in6*)&ip);
-    if (getnameinfo(&ip, ipaddrlen, host, sizeof host, 0, 0, 0))
-#else
-    if (getnameinfo(&ip, ip.sa_len, host, sizeof host, 0, 0, 0))
-#endif
+    if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, 0))
         printl(LOG_WARN, "Error resolving host: [%s]", inet2str(&ip, buf1));
     
     hostlen = strnlen(host, HOST_NAME_MAX);

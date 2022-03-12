@@ -29,13 +29,13 @@ a SOCKS-proxy server
 
 - `make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
 
-- Edit `<PREFIX>/etc/ts-warp.ini` file to suite your needs
+- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
   
 - **On macOS and \*BSD**:
-  - Edit `<PREFIX>/etc/ts-warp_pf.conf` to configure packet filter
+  - Create `<PREFIX>/etc/ts-warp_pf.conf` based on `<PREFIX>/etc/ts-warp_pf.conf.sample` to configure packet filter
 
 - **On Linux**:
-  - Edit `<PREFIX>/etc/ts-warp_iptables.sh` to configure firewall
+  - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
 
 ### Usage
 

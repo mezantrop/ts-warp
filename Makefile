@@ -50,9 +50,9 @@ install: ts-warp ts-pass
 	install -d $(PREFIX)/etc/
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
 	install -m 755 ts-warp.sh $(PREFIX)/etc/
-	install -m 640 ./examples/ts-warp.ini $(PREFIX)/etc/
-	install -m 644 ./examples/ts-warp_pf.conf $(PREFIX)/etc/
-	install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/
+	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
+	install -m 644 ./examples/ts-warp_pf.conf $(PREFIX)/etc/ts-warp_pf.conf.sample
+	install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
 

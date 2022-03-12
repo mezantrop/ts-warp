@@ -1,5 +1,10 @@
 # CHANGELOG
 
+* Current
+  * getnameinfo() fix to work correctly on Linux
+  * To prevent сonfiguration files and scripts from being overwritten,
+    `make install` copies them into `<PREFIX>/etc` with `.sample` postfix
+
 * 2022.03.11    v1.0.1
   * make install
   * `-I IP:Port` replaces `-I IP -i Port`; minor optimizations
@@ -8,5 +13,6 @@
   * Remove processed `chain_list` elements in `create_chains()`
   * Better messaging in `ts-warp.sh` start/stop script
   * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska <alka96@protonmail.com> for testing
+
 * 2022.03.05    v1.0.0
   * Starting point to track versions
