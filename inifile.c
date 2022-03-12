@@ -389,13 +389,20 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     struct ini_section *s;
     struct ini_target *t;
     char *buf1 = NULL, *buf2 = NULL, *buf3 = NULL, *buf4 = NULL;
-    char host[HOST_NAME_MAX];
-    int hostlen = 0;
+    char host[HOST_NAME_MAX], *domain = NULL;
+    int hostlen = 0, domainlen = 0;
 
     if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, 0))
         printl(LOG_WARN, "Error resolving host: [%s]", inet2str(&ip, buf1));
-    
     hostlen = strnlen(host, HOST_NAME_MAX);
+ 
+    if ((domain = strchr(host, '.'))) {
+        domain++;
+        domainlen = strnlen(domain, HOST_NAME_MAX);
+    }
+    
+    printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]",
+        inet2str(&ip, buf1), host, domain);
 
     s = ini;
     while (s) {
@@ -405,7 +412,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
             switch(t->target_type) {
                 case INI_TARGET_HOST:
                     if ((ip.sa_family == AF_INET && 
-                        S4_ADDR(ip) == S4_ADDR(t->ip1) && 
+                        S4_ADDR(ip) == S4_ADDR(t->ip1) &&
                         SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
                         (ip.sa_family == AF_INET6 && 
                         S6_ADDR(ip) == S6_ADDR(t->ip1) && 
@@ -418,12 +425,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                     break;
 
                 case INI_TARGET_DOMAIN:
-#if defined(linux)
-                    /* TODO: Write a custom strnstr() for linux */
-                    if ((hostlen && strstr(t->name, host) && 
-#else
-                    if ((hostlen && strnstr(t->name, host, strnlen(t->name, HOST_NAME_MAX)) && 
-#endif
+                    if ((domainlen && strcasestr(t->name, domain) && 
                         (ip.sa_family == AF_INET && 
                             SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2))) || 
                         (ip.sa_family == AF_INET6 && 

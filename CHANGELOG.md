@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * Support for domain and hostnames in target definitions of `ts-warp.ini`
   * getnameinfo() fix to work correctly on Linux
   * To prevent сonfiguration files and scripts from being overwritten,
     `make install` copies them into `<PREFIX>/etc` with `.sample` postfix
