@@ -56,17 +56,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* -------------------------------------------------------------------------- */
 void usage(int ecode) {
     printf("Usage:\n\
-\tts-warp [-I IP:Port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]\n\n\
+    ts-warp -I IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
 Version:\n\
-\t%s-%s\n\n\
-Options:\n\
-\t-I IP:Port\tIncoming local IP address and ...\n\n\
-\t-l file.log\tLog filename\n\
-\t-v 0..4\t\tLog verbosity level: 0 - off, default 2\n\n\
-\t-d\t\tDaemon mode\n\
-\t-f\t\tForce start\n\n\
-\t-c file.ini\tConfiguration file\n\n\
-\t-h\t\tThis message\n\n", PROG_NAME, PROG_VERSION);
+    %s-%s\n\n\
+All parameters are optional:\n\
+    -I IP:Port\t    Incoming local IP address and port\n\
+    -c file.ini\t    Configuration file\n\
+    \n\
+    -l file.log\t    Log filename\n\
+    -v 0..4\t    Log verbosity level: 0 - off, default 2\n\
+    \n\
+    -d\t\t    Daemon mode\n\
+    -p file.pid\t    PID filename\n\
+    -f\t\t    Force start\n\
+    \n\
+    -h\t\t    This message\n\
+    \n", PROG_NAME, PROG_VERSION);
 
     exit(ecode);
 }

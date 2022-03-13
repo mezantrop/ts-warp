@@ -72,23 +72,23 @@ ini_section *ini_root;                      /* Root section of the INI-file */
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
     /* Usage:
-            ts-warp [-I IP:Port] [-l file.log] [-v 0-4] [-d] [-c file.ini] [-h]
+        ts-warp -I IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h
 
     Version:
-            TS-Warp-X.Y.Z
+        TS-Warp-X.Y.Z
 
-    Options:
-            -I IP:Port      Incoming local IP address and ...
+    All parameters are optional:
+        -I IP:Port      Incoming local IP address and port
+        -c file.ini     Configuration file
 
-            -l file.log     Log filename
-            -v 0..4         Log verbosity level: 0 - off, default 2
+        -l file.log     Log filename
+        -v 0..4         Log verbosity level: 0 - off, default 2
 
-            -d              Daemon mode
-            -f              Force start
+        -d              Daemon mode
+        -p file.pid     PID filename
+        -f              Force start
 
-            -c file.ini     Configuration file
-
-            -h              This message */
+        -h              This message */
 
     int flg;                                /* Command-line options flag */
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
@@ -112,22 +112,24 @@ int main(int argc, char* argv[]) {
     int rec, snd;                           /* received/sent bytes */
 
 
-    while ((flg = getopt(argc, argv, "I:l:v:dfc:h")) != -1)
+    while ((flg = getopt(argc, argv, "I:c:l:v:dp:fh")) != -1)
         switch(flg) {
             case 'I':                               /* Our IP/name */
                 iaddr = strsep(&optarg, ":");       /* IP:PORT */
                 if (optarg) iport = optarg;
                 break;
+            case 'c':                               /* Configuration INI-file */
+                ifile_name = optarg; break;
             case 'l':                               /* Logfile */
                 lfile_name = optarg; break;
             case 'v':                               /* Log verbosity */
                 loglevel = (uint8_t)toint(optarg); break;
             case 'd':                               /* Daemon mode */
                 d_flg = 1; break;
+            case 'p':
+                pfile_name = optarg; break;         /* PID-file */
             case 'f':                               /* Force start */
                 f_flg = 1; break;
-            case 'c':                               /* Configuration INI-file */
-                ifile_name = optarg; break;
             case 'h':                               /* Help */
             default:
                 (void)usage(0);

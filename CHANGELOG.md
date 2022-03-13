@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * PID-file option added to CLI parameters
   * Support for domain and hostnames in target definitions of `ts-warp.ini`
   * getnameinfo() fix to work correctly on Linux
   * To prevent сonfiguration files and scripts from being overwritten,

@@ -39,7 +39,7 @@ tswarp_prefix="/usr/local"
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
 tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
-tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -d -f -v 2"
+tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -f -v 2"
 
 # ------------------------------------------------------------------------------
 start() {

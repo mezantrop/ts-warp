@@ -33,6 +33,7 @@ CC = cc
 CFLAGS = -Wall -I ../
 OBJECTS = ts-xedec.o
 
+.PHONY:	all clean
 
 all: ts-xedec
 

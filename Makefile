@@ -34,6 +34,7 @@ CFLAGS += -Wall -DPREFIX='"$(PREFIX)"'
 WARP_OBJS = inifile.o natlook.o pidfile.o socks.o ts-warp.o utils.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o 
 
+.PHONY:	all clean
 
 all:	ts-warp ts-pass
 
