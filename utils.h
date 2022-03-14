@@ -63,7 +63,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define     SIN4_PORT(sa)   ((struct sockaddr_in *)&sa)->sin_port
 #define     SIN4_FAMILY(sa) ((struct sockaddr_in *)&sa)->sin_family
 #if !defined(linux)
-#define     SIN4_LENGTH(sa) ((struct sockaddr_in *)&sa)->sin_len
+    #define     SIN4_LENGTH(sa) ((struct sockaddr_in *)&sa)->sin_len
 #endif
 #define     S4_ADDR(sa)     ((struct sockaddr_in *)&sa)->sin_addr.s_addr
 /* sockaddr to sockaddr_in6 */
@@ -71,13 +71,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define     SIN6_PORT(sa)   ((struct sockaddr_in6 *)&sa)->sin6_port
 #define     SIN6_FAMILY(sa) ((struct sockaddr_in6 *)&sa)->sin6_family
 #if !defined(linux)
-#define     SIN6_LENGTH(sa) ((struct sockaddr_in6 *)&sa)->sin6_len
+    #define     SIN6_LENGTH(sa) ((struct sockaddr_in6 *)&sa)->sin6_len
 #endif
 
 #if defined(linux)
-#define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr8
+    #define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr8
 #else
-#define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr8
+    #define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr8
 #endif
 
 #ifndef HOST_NAME_MAX

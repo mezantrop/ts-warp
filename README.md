@@ -13,7 +13,7 @@ a SOCKS-proxy server
 
 - Support platforms:
   - [x] macOS, FreeBSD with PF, OpenBSD (not tested)
-  - [x] Linux
+  - [x] Linux with Iptables
 
 - [x] IPv6 stack support
 - [x] Maintain simple configuraion structure as INI-file

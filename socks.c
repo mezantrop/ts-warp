@@ -57,12 +57,7 @@ int connect_desnation(struct sockaddr dest) {
 
     printl(LOG_INFO, "Socket to connect with destination address created");
 
-#if defined(linux)
-    int dest_len = sizeof dest;
-    if ((connect(sock, &dest, dest_len)) < 0) {
-#else
-    if ((connect(sock, &dest, dest.sa_len)) < 0) {
-#endif
+    if ((connect(sock, &dest, sizeof dest)) < 0) {
         printl(LOG_CRIT, "Unable to connect with destination address");
         mexit(1, pfile_name);
     }
