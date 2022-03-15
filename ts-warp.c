@@ -72,13 +72,13 @@ ini_section *ini_root;                      /* Root section of the INI-file */
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
     /* Usage:
-        ts-warp -I IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h
+        ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h
 
     Version:
         TS-Warp-X.Y.Z
 
     All parameters are optional:
-        -I IP:Port      Incoming local IP address and port
+        -i IP:Port      Incoming local IP address and port
         -c file.ini     Configuration file
 
         -l file.log     Log filename
@@ -112,9 +112,9 @@ int main(int argc, char* argv[]) {
     int rec, snd;                           /* received/sent bytes */
 
 
-    while ((flg = getopt(argc, argv, "I:c:l:v:dp:fh")) != -1)
+    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fh")) != -1)
         switch(flg) {
-            case 'I':                               /* Our IP/name */
+            case 'i':                               /* Our IP/name */
                 iaddr = strsep(&optarg, ":");       /* IP:PORT */
                 if (optarg) iport = optarg;
                 break;
