@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* Current
+* 2022.03.15    v1.0.2
+  * -i option replaces -I in CLI arguments
+  * Full Linux with iptable code integration
   * PID-file option added to CLI parameters
   * Support for domain and hostnames in target definitions of `ts-warp.ini`
   * getnameinfo() fix to work correctly on Linux

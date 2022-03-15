@@ -56,11 +56,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* -------------------------------------------------------------------------- */
 void usage(int ecode) {
     printf("Usage:\n\
-    ts-warp -I IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
+    ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
 Version:\n\
     %s-%s\n\n\
 All parameters are optional:\n\
-    -I IP:Port\t    Incoming local IP address and port\n\
+    -i IP:Port\t    Incoming local IP address and port\n\
     -c file.ini\t    Configuration file\n\
     \n\
     -l file.log\t    Log filename\n\
