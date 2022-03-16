@@ -27,6 +27,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* -- INI-file processing --------------------------------------------------- */
+#if defined(linux)
+#define _GNU_SOURCE 
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -390,12 +394,11 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     struct ini_target *t;
     char *buf1 = NULL, *buf2 = NULL, *buf3 = NULL, *buf4 = NULL;
     char host[HOST_NAME_MAX], *domain = NULL;
-    int hostlen = 0, domainlen = 0;
+    int domainlen = 0;
 
     if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, 0))
         printl(LOG_WARN, "Error resolving host: [%s]", inet2str(&ip, buf1));
-    hostlen = strnlen(host, HOST_NAME_MAX);
- 
+    
     if ((domain = strchr(host, '.'))) {
         domain++;
         domainlen = strnlen(domain, HOST_NAME_MAX);

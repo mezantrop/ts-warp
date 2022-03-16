@@ -261,14 +261,19 @@ int main(int argc, char* argv[]) {
             socklen_t daddrlen = sizeof daddr;  /* Client dest address len */
             memset(&daddr, 0, daddrlen); 
             daddr.sa_family = caddr.sa_family;
-            if (getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen) != 0) {
-                printl(LOG_CRIT, "Could not determine client real destination");
-                exit(1);
-            }
+            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
 #else
             /* On *BSD with PF: */
-            daddr = nat_lookup(&caddr, ires->ai_addr);
+            ret = nat_lookup(&caddr, ires->ai_addr, &daddr);
 #endif
+            if (ret != 0) {
+                printl(LOG_CRIT, 
+                    "Rejecting the client: failed to determine the real destination");
+                shutdown(csock, SHUT_RDWR);
+                close(csock);
+                exit(1);
+            }
+
             /* Find SOCKS server to serve the daddr (dest. address) in INI file */
             if (!(s_ini = ini_look_server(ini_root, daddr))) {
                 /*  Direct connection with the destination address bypassing SOCKS */
@@ -350,7 +355,7 @@ int main(int argc, char* argv[]) {
                     }
                 } else {
                     /* Only a single SOCKS server: no chain */
-                    printl(LOG_INFO, "Connecting the SOCKS server");
+                    printl(LOG_INFO, "Connecting the SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
 
                     ssock = connect_desnation(s_ini->socks_server);
 

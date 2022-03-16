@@ -48,8 +48,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 extern char *pfile_name;
 
 /* -------------------------------------------------------------------------- */
-struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
-    struct sockaddr daddr;
+int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,
+    struct sockaddr *daddr) {
+    
     struct pfioc_natlook pfnl;
     int pfd;
     char dstr_addr[INET6_ADDRSTRLEN];
@@ -64,7 +65,7 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
     pfnl.af = caddr->sa_family;
     pfnl.proto = IPPROTO_TCP;
     
-    memset(&daddr, 0, sizeof daddr);
+    memset(daddr, 0, sizeof *daddr);
     switch (pfnl.af) {
         case AF_INET:
             #if defined(__APPLE__)
@@ -115,41 +116,41 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
  
     if (ioctl(pfd, DIOCNATLOOK, &pfnl) == -1) {
         if (errno == ENOENT) {
-            printl(LOG_CRIT, "Failed to query PF NAT about PF_OUT packets");
+            printl(LOG_WARN, "Failed to query PF NAT about PF_OUT packets");
             pfnl.direction = PF_IN;
             if (ioctl(pfd, DIOCNATLOOK, &pfnl) != 0) {
-                printl(LOG_CRIT, "Failed to query PF NAT about PF_IN packets");
-                mexit(1, pfile_name);
+                printl(LOG_WARN, "Failed to query PF NAT about PF_IN packets");
+                return 1;
             }
         } else {
-            printl(LOG_CRIT, "Failed to query PF NAT ");
-            mexit(1, pfile_name);
+            printl(LOG_WARN, "Failed to query PF NAT ");
+            return 1;
         }
     }
 
     switch (pfnl.af) {
         case AF_INET:
             #if defined(__APPLE__)
-                SIN4_ADDR(daddr) = pfnl.rdaddr.v4addr;
-                SIN4_PORT(daddr) = pfnl.rdxport.port;
+                SIN4_ADDR(*daddr) = pfnl.rdaddr.v4addr;
+                SIN4_PORT(*daddr) = pfnl.rdxport.port;
             #else
-                SIN4_ADDR(daddr) = pfnl.rdaddr.v4;
-                SIN4_PORT(daddr) = pfnl.rdport;
+                SIN4_ADDR(*daddr) = pfnl.rdaddr.v4;
+                SIN4_PORT(*daddr) = pfnl.rdport;
             #endif
-            SIN4_FAMILY(daddr) = pfnl.af;
-            SIN4_LENGTH(daddr) = sizeof(struct sockaddr_in);
+            SIN4_FAMILY(*daddr) = pfnl.af;
+            SIN4_LENGTH(*daddr) = sizeof(struct sockaddr_in);
             break;
         
         case AF_INET6:
             #if defined(__APPLE__)
-                SIN6_ADDR(daddr) = pfnl.rdaddr.v6addr;
-                SIN6_PORT(daddr) = pfnl.rdxport.port;
+                SIN6_ADDR(*daddr) = pfnl.rdaddr.v6addr;
+                SIN6_PORT(*daddr) = pfnl.rdxport.port;
             #else
-                SIN6_ADDR(daddr) = pfnl.rdaddr.v6;
-                SIN6_PORT(daddr) = pfnl.rdport;
+                SIN6_ADDR(*daddr) = pfnl.rdaddr.v6;
+                SIN6_PORT(*daddr) = pfnl.rdport;
             #endif
-            SIN6_FAMILY(daddr) = pfnl.af;
-            SIN6_LENGTH(daddr) = sizeof(struct sockaddr_in6);
+            SIN6_FAMILY(*daddr) = pfnl.af;
+            SIN6_LENGTH(*daddr) = sizeof(struct sockaddr_in6);
             break;
 
         default:
@@ -160,13 +161,13 @@ struct sockaddr nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr) {
     }
     #if defined(__APPLE__)
         printl(LOG_VERB, "Real destination address: [%s:%d]",
-            inet2str(&daddr, dstr_addr), ntohs(pfnl.rdxport.port));
+            inet2str(daddr, dstr_addr), ntohs(pfnl.rdxport.port));
     #else
         printl(LOG_VERB, "Real destination address: [%s:%d]",
-            inet2str(&daddr, dstr_addr), ntohs(pfnl.rdport));
+            inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
     #endif
 
-    return daddr;
+    return 0;
 }
 
 #endif  /* #if !defined(linux) */
