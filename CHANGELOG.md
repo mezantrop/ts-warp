@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* Current
+  * Documentation/examples update
+
 * 2022.03.15    v1.0.2
   * -i option replaces -I in CLI arguments
   * Full Linux with iptable code integration

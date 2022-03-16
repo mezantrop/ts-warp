@@ -33,6 +33,7 @@ a SOCKS-proxy server
   
 - **On macOS and \*BSD**:
   - Create `<PREFIX>/etc/ts-warp_pf.conf` based on `<PREFIX>/etc/ts-warp_pf.conf.sample` to configure packet filter
+  - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID- LOG- and INI- files location
 
 - **On Linux**:
   - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall

@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -------------------------------------------------------------------------- */
+/* -- INI-file processing --------------------------------------------------- */
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -80,6 +80,7 @@ typedef struct chain_list {     /* Chains as they defind in the INI */
     struct chain_list *next;
 } chain_list;
 
+/* INI-file entries */
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"
 #define INI_ENTRY_SOCKS_CHAIN       "socks_chain"
 #define INI_ENTRY_SOCKS_PORT        "socks_port"
