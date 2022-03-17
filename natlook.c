@@ -99,7 +99,7 @@ int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,
             printl(LOG_CRIT,
                 "Unsupported Address family in nat_lookup() request: [%d]",
                 pfnl.af);
-            mexit(1, pfile_name);
+            return 1;
     }
 
     #if defined(__APPLE__)
@@ -157,7 +157,7 @@ int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,
             printl(LOG_CRIT,
                 "Unsupported Address family in nat_lookup() response: [%d]",
                 pfnl.af);
-            mexit(1, pfile_name);
+            return 1;
     }
     #if defined(__APPLE__)
         printl(LOG_VERB, "Real destination address: [%s:%d]",

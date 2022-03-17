@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         lfile_name = LOG_FILE_NAME;
         if (!(lfile = fopen(lfile_name, "a"))) {
             printl(LOG_CRIT, "Unable to open the default log: [%s]", lfile_name);
-            mexit(1, NULL);
+            exit(1);
         }
     }
     printl(LOG_VERB, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
@@ -161,16 +161,16 @@ int main(int argc, char* argv[]) {
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
-            mexit(1, NULL);
+            exit(1);
         }
         if (pid > 0) exit(0);
         if (setsid() < 0) {
             printl(LOG_CRIT, "Daemonizing failed. Fatal setsid()");
-            mexit(1, NULL);
+            exit(1);
         }
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 2-nd fork() failed");
-            mexit(1, NULL);
+            exit(1);
         }
         if (pid > 0) exit(0);
 
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
             ret = nat_lookup(&caddr, ires->ai_addr, &daddr);
 #endif
             if (ret != 0) {
-                printl(LOG_CRIT, 
+                printl(LOG_WARN, 
                     "Rejecting the client: failed to determine the real destination");
                 shutdown(csock, SHUT_RDWR);
                 close(csock);
@@ -280,7 +280,12 @@ int main(int argc, char* argv[]) {
                 printl(LOG_WARN, "No suitable SOCKS server was found in INI-file");
                 printl(LOG_INFO, "Making direct connection with destination address");
 
-                ssock = connect_desnation(daddr);
+                if ((ssock = connect_desnation(daddr)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                        inet2str(&daddr, buf));
+                    close(csock);
+                    exit(1);
+                }
 
                 printl(LOG_INFO, "Succesfully connected with desination address");
             } else {
@@ -292,7 +297,13 @@ int main(int argc, char* argv[]) {
                     struct socks_chain *sc = s_ini->proxy_chain;
 
                     /* Connect the first member of the chain */
-                    ssock = connect_desnation(s_ini->proxy_chain->chain_member->socks_server);
+                    if ((ssock = connect_desnation(s_ini->proxy_chain->chain_member->socks_server)) == -1) {
+                        printl(LOG_WARN,
+                            "Unable to connect with destination: [%s]",
+                            inet2str(&daddr, buf));
+                        close(csock);
+                        exit(1);
+                    }
                     while (sc) {
                         switch (auth_method = socks5_hello(ssock,
                                 AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
@@ -303,11 +314,12 @@ int main(int argc, char* argv[]) {
                             case AUTH_METHOD_UNAME:
                                 /* Perform user/password auth */
                                 if (socks5_auth(ssock,
-                                                sc->chain_member->socks_user, 
-                                                sc->chain_member->socks_password)) {
-                                    printl(LOG_CRIT,
-                                            "SOCKS rejected user: [%s]",
-                                            sc->chain_member->socks_user);
+                                        sc->chain_member->socks_user, 
+                                        sc->chain_member->socks_password)) {
+                                    printl(LOG_WARN,
+                                        "SOCKS rejected user: [%s]",
+                                        sc->chain_member->socks_user);
+                                    close(csock);
                                     exit(1);
                                 }
                                 break;
@@ -319,14 +331,15 @@ int main(int argc, char* argv[]) {
                             case AUTH_METHOD_MAF:
                             case AUTH_METHOD_JPB:
                                 printl(LOG_CRIT,
-                                        "SOCKS server accepted unsupported auth-method: [%d]",
-                                        auth_method);
+                                    "SOCKS server accepted unsupported auth-method: [%d]",
+                                    auth_method);
+                                close(csock);
                                 exit(1);
-
                             case AUTH_METHOD_NOACCEPT:
                             default:
-                                printl(LOG_CRIT,
+                                printl(LOG_WARN,
                                         "No auth methods were accepted by SOCKS server");
+                                close(csock);
                                 exit(1);
                         }
 
@@ -338,7 +351,8 @@ int main(int argc, char* argv[]) {
                                 sc->next->chain_member->socks_server.sa_family == AF_INET ? 
                                 SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &sc->next->chain_member->socks_server) > 0) {
-                                    printl(LOG_CRIT, "SOCKS server returned an error");
+                                    printl(LOG_WARN, "SOCKS server returned an error");
+                                    close(csock);
                                     exit(1);
                             }
                         } else {
@@ -346,7 +360,8 @@ int main(int argc, char* argv[]) {
                             if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
                                 s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                                 &s_ini->socks_server) > 0) {
-                                    printl(LOG_CRIT, "SOCKS server returned an error");
+                                    printl(LOG_WARN, "SOCKS server returned an error");
+                                    close(csock);
                                     exit(1);
                             }
                         }
@@ -357,7 +372,12 @@ int main(int argc, char* argv[]) {
                     /* Only a single SOCKS server: no chain */
                     printl(LOG_INFO, "Connecting the SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
 
-                    ssock = connect_desnation(s_ini->socks_server);
+                    if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
+                        printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                            inet2str(&daddr, buf));
+                        close(csock);
+                        exit(1);
+                    }
 
                     printl(LOG_INFO, "Succesfully connected with SOCKS server");
                     printl(LOG_INFO, "Initiate SOCKS protocol: hello");
@@ -368,7 +388,8 @@ int main(int argc, char* argv[]) {
                             break;
                         case AUTH_METHOD_UNAME:     /* Perform user/password auth */
                             if (socks5_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
-                                printl(LOG_CRIT, "SOCKS rejected user: [%s]", s_ini->socks_user);
+                                printl(LOG_WARN, "SOCKS rejected user: [%s]", s_ini->socks_user);
+                                close(csock);
                                 exit(1);
                             }
                             break;
@@ -379,13 +400,14 @@ int main(int argc, char* argv[]) {
                         case AUTH_METHOD_NDS:
                         case AUTH_METHOD_MAF:
                         case AUTH_METHOD_JPB:
-                            printl(LOG_CRIT, "SOCKS server accepted unsupported auth-method: [%d]",
+                            printl(LOG_WARN, "SOCKS server accepted unsupported auth-method: [%d]",
                                 auth_method);
+                            close(csock);
                             exit(1);
-
                         case AUTH_METHOD_NOACCEPT:
                         default:
-                            printl(LOG_CRIT, "No auth methods were accepted by SOCKS server");
+                            printl(LOG_WARN, "No auth methods were accepted by SOCKS server");
+                            close(csock);
                             exit(1);
                     }
 
@@ -395,6 +417,7 @@ int main(int argc, char* argv[]) {
                         daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
                         &daddr) > 0) {                    
                             printl(LOG_CRIT, "SOCKS server returned an error");
+                            close(csock);
                             exit(1);
                     }
                 }

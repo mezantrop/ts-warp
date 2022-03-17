@@ -52,14 +52,14 @@ int connect_desnation(struct sockaddr dest) {
 
     if ((sock = socket(dest.sa_family, SOCK_STREAM, 0)) < 0) {
         printl(LOG_CRIT, "Error creating a socket for the destination address");
-        mexit(1, pfile_name);
+        return sock;
     }
 
     printl(LOG_INFO, "Socket to connect with destination address created");
 
     if ((connect(sock, &dest, sizeof dest)) < 0) {
         printl(LOG_CRIT, "Unable to connect with destination address");
-        mexit(1, pfile_name);
+        return -1;
     }
 
     return sock;
@@ -79,7 +79,7 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
 
     if (auth_method == AUTH_METHOD_NOACCEPT) {
         printl(LOG_CRIT, "socks5_hello(): auth_method must not be AUTH_METHOD_NOACCEPT");
-        mexit(1, pfile_name);
+        return AUTH_METHOD_NOACCEPT;
     }
 
     /* Fill into auth-methods */
@@ -97,19 +97,19 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
     /* Send 'hello' request */
     if (send(socket, &req, am + sizeof req.ver + sizeof req.nauth, 0) == -1) {
         printl(LOG_CRIT, "Unable to send 'hello' request to the SOCKS server");
-        mexit(1, pfile_name);
+        return AUTH_METHOD_NOACCEPT;
     }
 
     /* Receive 'hello' response from SOCKS server */
     if ((recv(socket, &rep, sizeof rep, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive 'hello' reply from the SOCKS server");
-        mexit(1, pfile_name);
+        return AUTH_METHOD_NOACCEPT;
     }
     
     /* Veryfy Socks version */
     if (rep.ver != PROXY_PROTO_SOCKS_V5) {
         printl(LOG_CRIT, "Server speaks unsupported protocol: v[%d]", rep.ver);
-        mexit(1, pfile_name);
+        return AUTH_METHOD_NOACCEPT;
     }
     
     printl(LOG_VERB, "SOCKS server accepted auth-method: [%d]", rep.cauth);

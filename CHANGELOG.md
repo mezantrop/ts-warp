@@ -1,7 +1,8 @@
 # CHANGELOG
 
 * Current
-  * Reject clients with no real-destination address
+  * Stay calm and don't exit() daemon on the most of client issues
+  * Reject clients with no real-destination addresses
   * Documentation/examples update
 
 * 2022.03.15    v1.0.2
