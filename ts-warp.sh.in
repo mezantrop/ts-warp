@@ -70,6 +70,7 @@ stop() {
         check_root
         printf "Stopping ts-warp: "
         cat "$tswarp_pidfile" | xargs kill -TERM
+        while [ -f "$tswarp_pidfile" ] ; do sleep 1; done
     } || 
         printf "ts-warp is already stopped: "
 }

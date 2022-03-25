@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `ts-warp.sh`: stop() waits until the PID-file is removed
   * Stay calm and don't exit() daemon on the most of client issues
   * Reject clients with no real-destination addresses
   * Documentation/examples update
