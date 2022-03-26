@@ -59,7 +59,7 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 Experimental GUI front-end can be started from the distribution `gui` directory: `# python3 gui-warp.py`
 
-![gui-warp.py](gui\gui-warp_py.png)
+![gui-warp.py](gui/gui-warp_py.png)
 
 ### Contacts
 
