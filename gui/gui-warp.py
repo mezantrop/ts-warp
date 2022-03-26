@@ -41,8 +41,11 @@ import gui_conf
 class App:
     def __init__(self, root,
                  runcmd='/usr/local/etc/ts-warp.sh',
+                 inifile='/usr/local/etc/ts-warp.ini',
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
+
+        ini_data = None
 
         root.title("TS-WARP GUI v0.1")
         width = 800
@@ -72,24 +75,53 @@ class App:
 
         # Display config/log pane
         tabControl = ttk.Notebook(root)
-        # tab_ini = ttk.Frame(tabControl)
+        tab_ini = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
-        # tabControl.add(tab_ini, text='Configuration')
+        tabControl.add(tab_ini, text='Configuration')
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
         # Tab INI/Config
-        # tab_ini.columnconfigure(0, weight=1)
-        # tab_ini.rowconfigure(0, weight=1)
+        tab_ini.columnconfigure(0, weight=1)
+        tab_ini.rowconfigure(0, weight=1)
 
-        # ini_txt = tk.Text(tab_ini)
-        # ini_txt.grid(column=0, row=0, sticky=tk.NSEW)
+        ini_cnv = tk.Canvas(tab_ini)
+        ini_cnv.grid(column=0, row=0, sticky=tk.NSEW)
 
-        # scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
-        # scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
-        # scroll_ini.config(command=ini_txt.yview)
-        # ini_txt.config(yscrollcommand=scroll_ini.set)
+        scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
+        scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
+        scroll_ini.config(command=ini_cnv.yview)
+        ini_cnv.config(yscrollcommand=scroll_ini.set)
+
+        ini_frm = tk.Frame(ini_cnv)
+        ini_cnv.create_window((0, 0), window=ini_frm, anchor='nw')
+
+        ini_frm.columnconfigure(0, weight=1)
+
+        ini_f = open(inifile)
+        ini_data = ini_f.readlines()
+
+        ini_wgts = []
+        n = 0
+        for ln in ini_data:
+            ln = ln.split('#', 1)[0]
+            ln = ln.split(';', 1)[0]
+            ln = ln.rstrip()
+            ini_frm.rowconfigure(n, weight=1)
+            n += 1
+
+            if '[' and ']' in ln:
+                ini_section = tk.Entry(ini_frm, width=100)
+                ini_section.insert(tk.END, ln)
+                ini_section.grid(column=0, row=n, sticky=tk.NSEW)
+                ini_wgts.append(ini_section)
+
+            if '=' in ln:
+                ini_variable = tk.Entry(ini_frm, width=100)
+                ini_variable.insert(tk.END, ln)
+                ini_variable.grid(column=0, row=n, sticky=tk.NSEW)
+                ini_wgts.append(ini_variable)
 
         # Tab Log
         tab_log.columnconfigure(0, weight=1)
@@ -152,6 +184,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = App(root,
               runcmd=gui_conf.runcmd,
+              inifile=gui_conf.inifile,
               logfile=gui_conf.logfile,
               pidfile=gui_conf.pidfile)
     root.mainloop()
