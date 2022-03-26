@@ -2,10 +2,10 @@
 
 """
 --------------------------------------------------------------------------------
-TS-Warp - Transparent SOCKS protocol Wrapper GUI frontend
+GUI frontend for TS-Warp - Transparent SOCKS protocol Wrapper
 --------------------------------------------------------------------------------
 
-Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+Copyright (c) 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,21 +29,24 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+# TODO: Create INI-configuration editor
+
 import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
 
+import gui_conf
+
 
 class App:
-    def __init__(self, root, startcmd, 
+    def __init__(self, root,
+                 runcmd='/usr/local/etc/ts-warp.sh',
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
         root.title("TS-WARP GUI v0.1")
         width = 800
         height = 560
-#        screenwidth = root.winfo_screenwidth()
-#        screenheight = root.winfo_screenheight()
         root.geometry(f'{width}x{height}')
         root.resizable(width=True, height=True)
 
@@ -61,31 +64,32 @@ class App:
 
         btn_run = tk.Button(lfrm_top, width=2, height=1, text='▶')
         btn_run.grid(row=0, column=0, sticky=tk.W, padx=2)
-        # btn_run['command'] = self.start
+        btn_run['command'] = lambda: self.startstop(btn_run, runcmd)
 
         btn_rld = tk.Button(lfrm_top, width=2, height=1, text='⟳')
         btn_rld.grid(row=0, column=1, sticky=tk.W, padx=2)
+        btn_rld['command'] = lambda: subprocess.run([runcmd, 'reload'])
 
         # Display config/log pane
         tabControl = ttk.Notebook(root)
-        tab_ini = ttk.Frame(tabControl)
+        # tab_ini = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
-        tabControl.add(tab_ini, text='Configuration')
+        # tabControl.add(tab_ini, text='Configuration')
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
         # Tab INI/Config
-        tab_ini.columnconfigure(0, weight=1)
-        tab_ini.rowconfigure(0, weight=1)
+        # tab_ini.columnconfigure(0, weight=1)
+        # tab_ini.rowconfigure(0, weight=1)
 
-        ini_txt = tk.Text(tab_ini)
-        ini_txt.grid(column=0, row=0, sticky=tk.NSEW)
+        # ini_txt = tk.Text(tab_ini)
+        # ini_txt.grid(column=0, row=0, sticky=tk.NSEW)
 
-        scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
-        scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
-        scroll_ini.config(command=ini_txt.yview)
-        ini_txt.config(yscrollcommand=scroll_ini.set)
+        # scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
+        # scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
+        # scroll_ini.config(command=ini_txt.yview)
+        # ini_txt.config(yscrollcommand=scroll_ini.set)
 
         # Tab Log
         tab_log.columnconfigure(0, weight=1)
@@ -108,7 +112,7 @@ class App:
 
         lbl_stat = tk.Label(lfrm_bottom, text='■ running', fg='green')
         lbl_stat.grid(row=0, column=0, sticky=tk.E)
-        self.status(lbl_stat, pidfile)
+        self.status(lbl_stat, btn_run, pidfile)
 
     def readfile(self, t_widget, logfile):
         t_widget.config(state='normal')
@@ -120,26 +124,34 @@ class App:
         t_widget.config(state='disabled')
         root.after(1000, self.readfile, t_widget, logfile)
 
-    def status(self, t_widget, pidfile):
+    def status(self, lbl, btn, pidfile):
         pf = None
         try:
             pf = open(pidfile, 'r')
         except:
-            t_widget['text'] = '■ Stopped'
-            t_widget['fg'] = 'red'
+            lbl['text'] = '■ Stopped'
+            lbl['fg'] = 'red'
+            btn['text'] = '▶'
 
         if pf:
-            t_widget['text'] = '■ Running: ' + pf.readline()[:-1]
-            t_widget['fg'] = 'green'
+            lbl['text'] = '■ Running: ' + pf.readline()[:-1]
+            lbl['fg'] = 'green'
+            btn['text'] = '■'
             pf.close()
 
-        root.after(1000, self.status, t_widget, pidfile)
+        root.after(1000, self.status, lbl, btn, pidfile)
 
-#    def start(self):
-#        subprocess.run([self.startcmd, 'start'])
+    def startstop(self, t_widget, runcmd):
+        if t_widget['text'] == '■':
+            subprocess.run([runcmd, 'stop'])
+        else:
+            subprocess.run([runcmd, 'start'])
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = App(root, startcmd='/usr/local/etc/ts-warp.sh', logfile='/var/log/ts-warp.log', pidfile='/var/run/ts-warp.pid')
+    app = App(root,
+              runcmd=gui_conf.runcmd,
+              logfile=gui_conf.logfile,
+              pidfile=gui_conf.pidfile)
     root.mainloop()

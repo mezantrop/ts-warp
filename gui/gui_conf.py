@@ -1,0 +1,1 @@
+"""GUI-WARP configuration file"""runcmd = '/usr/local/etc/ts-warp.sh'logfile = '/usr/local/var/log/ts-warp.log'pidfile = '/usr/local/var/run/ts-warp.pid'

@@ -57,6 +57,10 @@ ts-warp understands `SIGHUP` signal as command to reload configuration and `SIGI
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 
+Experimental GUI front-end can be started from the distribution `gui` directory: `# python3 gui-warp.py`
+
+![gui-warp.py](gui\gui-warp_py.png)
+
 ### Contacts
 
 You are very welcome to email me: Mikhail Zakharov <zmey20000@yahoo.com>

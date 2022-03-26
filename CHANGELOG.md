@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `gui\gui-warp.py`: ts-warp daemon status, log-file listing, buttons work
   * `gui\ts-warp.py` added. Note: the most of the buttons/functions are unusable
   * `ts-warp.sh`: stop() waits until the PID-file is removed
   * Stay calm and don't exit() daemon on the most of client issues
