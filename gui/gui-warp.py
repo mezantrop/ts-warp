@@ -29,7 +29,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-# TODO: Create INI-configuration editor
+# TODO:
+#   1. Create INI-configuration editor
+#   2. Create Firewall configuration editor
+#   3. In editors/viewers add buttons: save, refresh, pause
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -78,7 +81,7 @@ class App:
         tab_ini = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
-        tabControl.add(tab_ini, text='Configuration')
+        tabControl.add(tab_ini, text='INI')
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
@@ -86,42 +89,14 @@ class App:
         tab_ini.columnconfigure(0, weight=1)
         tab_ini.rowconfigure(0, weight=1)
 
-        ini_cnv = tk.Canvas(tab_ini)
-        ini_cnv.grid(column=0, row=0, sticky=tk.NSEW)
+        ini_txt = tk.Text(tab_ini)
+        ini_txt.grid(column=0, row=0, sticky=tk.NSEW)
+        tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
 
         scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
         scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
-        scroll_ini.config(command=ini_cnv.yview)
-        ini_cnv.config(yscrollcommand=scroll_ini.set)
-
-        ini_frm = tk.Frame(ini_cnv)
-        ini_cnv.create_window((0, 0), window=ini_frm, anchor='nw')
-
-        ini_frm.columnconfigure(0, weight=1)
-
-        ini_f = open(inifile)
-        ini_data = ini_f.readlines()
-
-        ini_wgts = []
-        n = 0
-        for ln in ini_data:
-            ln = ln.split('#', 1)[0]
-            ln = ln.split(';', 1)[0]
-            ln = ln.rstrip()
-            ini_frm.rowconfigure(n, weight=1)
-            n += 1
-
-            if '[' and ']' in ln:
-                ini_section = tk.Entry(ini_frm, width=100)
-                ini_section.insert(tk.END, ln)
-                ini_section.grid(column=0, row=n, sticky=tk.NSEW)
-                ini_wgts.append(ini_section)
-
-            if '=' in ln:
-                ini_variable = tk.Entry(ini_frm, width=100)
-                ini_variable.insert(tk.END, ln)
-                ini_variable.grid(column=0, row=n, sticky=tk.NSEW)
-                ini_wgts.append(ini_variable)
+        scroll_ini.config(command=ini_txt.yview)
+        ini_txt.config(yscrollcommand=scroll_ini.set)
 
         # Tab Log
         tab_log.columnconfigure(0, weight=1)
@@ -129,8 +104,7 @@ class App:
 
         log_txt = tk.Text(tab_log)
         log_txt.grid(column=0, row=0, sticky=tk.NSEW)
-        log_txt.config(state='disabled')
-        tab_log.bind("<Visibility>", self.readfile(log_txt, logfile))
+        tab_log.bind("<Visibility>", self.readfile(log_txt, logfile, refresh=True))
 
         scroll_log = tk.Scrollbar(tab_log, orient=tk.VERTICAL)
         scroll_log.grid(column=1, row=0, sticky=tk.NSEW)
@@ -146,15 +120,16 @@ class App:
         lbl_stat.grid(row=0, column=0, sticky=tk.E)
         self.status(lbl_stat, btn_run, pidfile)
 
-    def readfile(self, t_widget, logfile):
+    def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
-        lf = open(logfile, 'r')
+        lf = open(filename, 'r')
         t_widget.delete(1.0, tk.END)
         t_widget.insert(tk.END, lf.read())
         t_widget.see(tk.END)
         lf.close()
-        t_widget.config(state='disabled')
-        root.after(1000, self.readfile, t_widget, logfile)
+        if refresh:
+            t_widget.config(state='disabled')
+            root.after(1000, self.readfile, t_widget, filename, refresh)
 
     def status(self, lbl, btn, pidfile):
         pf = None
