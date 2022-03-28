@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `gui-warp.py` INI-, LOG-, FW- tabs with save/control buttons
   * `gui-warp.py` configuration tab started
   * `gui\gui-warp.py`: ts-warp daemon status, log-file listing, buttons work
   * `gui\ts-warp.py` added. Note: the most of the buttons/functions are unusable
