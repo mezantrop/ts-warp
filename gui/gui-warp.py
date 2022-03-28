@@ -30,9 +30,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 # TODO:
-#   1. Create INI-configuration editor
-#   2. Create Firewall configuration editor
-#   3. In editors/viewers add buttons: save, refresh, pause
+#   1. Rewrite ugly code
+#   2. Redo "refresh" timers
+#   3. Implement "tail" for the LOG-file
+#   4. Does the full featured configuration editor with input fields and etc is required?
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -45,12 +46,13 @@ class App:
     def __init__(self, root,
                  runcmd='/usr/local/etc/ts-warp.sh',
                  inifile='/usr/local/etc/ts-warp.ini',
+                 fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        ini_data = None
+        version = 'v0.1'
 
-        root.title("TS-WARP GUI v0.1")
+        root.title(f'GUI-warp {version}')
         width = 800
         height = 560
         root.geometry(f'{width}x{height}')
@@ -76,38 +78,78 @@ class App:
         btn_rld.grid(row=0, column=1, sticky=tk.W, padx=2)
         btn_rld['command'] = lambda: subprocess.run([runcmd, 'reload'])
 
-        # Display config/log pane
+        # Display ini/fw/log pane
         tabControl = ttk.Notebook(root)
         tab_ini = ttk.Frame(tabControl)
+        tab_fw = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
         tabControl.add(tab_ini, text='INI')
+        tabControl.add(tab_fw, text='FW')
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
-        # Tab INI/Config
+        # Tab INI
         tab_ini.columnconfigure(0, weight=1)
-        tab_ini.rowconfigure(0, weight=1)
+        tab_ini.columnconfigure(1, weight=0)
+        tab_ini.columnconfigure(2, weight=0)
+        tab_ini.rowconfigure(1, weight=1)
+
+        tk.Label(tab_ini, height=1, text='Update the file:').grid(column=0, row=0, sticky=tk.E)
+
+        btn_save = tk.Button(tab_ini, width=2, height=1, text='▲')
+        btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save['command'] = lambda: self.savefile(ini_txt, inifile)
 
         ini_txt = tk.Text(tab_ini)
-        ini_txt.grid(column=0, row=0, sticky=tk.NSEW)
+        ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
 
         scroll_ini = tk.Scrollbar(tab_ini, orient=tk.VERTICAL)
-        scroll_ini.grid(column=1, row=0, sticky=tk.NSEW)
+        scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
         scroll_ini.config(command=ini_txt.yview)
         ini_txt.config(yscrollcommand=scroll_ini.set)
 
+        # Tab FW
+        tab_fw.columnconfigure(0, weight=1)
+        tab_fw.columnconfigure(1, weight=0)
+        tab_fw.columnconfigure(2, weight=0)
+        tab_fw.rowconfigure(1, weight=1)
+
+        tk.Label(tab_fw, height=1, text='Update the file:').grid(column=0, row=0, sticky=tk.E)
+
+        btn_save = tk.Button(tab_fw, width=2, height=1, text='▲')
+        btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save['command'] = lambda: self.savefile(fw_txt, fwfile)
+
+        fw_txt = tk.Text(tab_fw)
+        fw_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
+        tab_fw.bind("<Visibility>", self.readfile(fw_txt, fwfile, refresh=False))
+
+        scroll_fw = tk.Scrollbar(tab_fw, orient=tk.VERTICAL)
+        scroll_fw.grid(column=2, row=1, sticky=tk.NSEW)
+        scroll_fw.config(command=fw_txt.yview)
+        fw_txt.config(yscrollcommand=scroll_fw.set)
+
         # Tab Log
         tab_log.columnconfigure(0, weight=1)
-        tab_log.rowconfigure(0, weight=1)
+        tab_log.columnconfigure(1, weight=0)
+        tab_log.columnconfigure(2, weight=0)
+        tab_log.rowconfigure(1, weight=1)
+
+        tk.Label(tab_log, height=1, text='Log auto-refresh:').grid(column=0, row=0, sticky=tk.E)
+
+        btn_pause = tk.Button(tab_log, width=2, height=1, text='■')
+        btn_pause.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        self.pause = False
+        btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
 
         log_txt = tk.Text(tab_log)
-        log_txt.grid(column=0, row=0, sticky=tk.NSEW)
+        log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_log.bind("<Visibility>", self.readfile(log_txt, logfile, refresh=True))
 
         scroll_log = tk.Scrollbar(tab_log, orient=tk.VERTICAL)
-        scroll_log.grid(column=1, row=0, sticky=tk.NSEW)
+        scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
         scroll_log.config(command=log_txt.yview)
         log_txt.config(yscrollcommand=scroll_log.set)
 
@@ -122,14 +164,30 @@ class App:
 
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
-        lf = open(filename, 'r')
+        f = open(filename, 'r')
         t_widget.delete(1.0, tk.END)
-        t_widget.insert(tk.END, lf.read())
+        t_widget.insert(tk.END, ''.join(f.readlines()))
         t_widget.see(tk.END)
-        lf.close()
+        f.close()
         if refresh:
             t_widget.config(state='disabled')
-            root.after(1000, self.readfile, t_widget, filename, refresh)
+            if not self.pause:
+                root.after(3000, self.readfile, t_widget, filename, refresh)
+
+    def savefile(self, t_widget, filename):
+        f = open(filename, 'w')
+        f.write(t_widget.get('1.0', tk.END))
+        f.close()
+
+    def pauselog(self, btn, txt, filename):
+        if self.pause:
+            self.pause = False
+            btn['text'] = '■'                               # Pause log auto-refresh
+            self.readfile(txt, filename, refresh=True)
+
+        else:
+            self.pause = True
+            btn['text'] = '↭'                               # Enable auto-refresh
 
     def status(self, lbl, btn, pidfile):
         pf = None
@@ -146,7 +204,7 @@ class App:
             btn['text'] = '■'
             pf.close()
 
-        root.after(1000, self.status, lbl, btn, pidfile)
+        root.after(10000, self.status, lbl, btn, pidfile)
 
     def startstop(self, t_widget, runcmd):
         if t_widget['text'] == '■':
