@@ -38,8 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
-
-import gui_conf
+import configparser
 
 
 class App:
@@ -50,7 +49,7 @@ class App:
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        version = 'v0.1'
+        version = 'v1.0'
 
         root.title(f'GUI-warp {version}')
         width = 800
@@ -214,10 +213,24 @@ class App:
 
 
 if __name__ == "__main__":
+    ini = configparser.ConfigParser()
+    prefix = '/usr/local'
+    ini.read(prefix + '/etc/gui-warp.ini')
+
+    runcmd = prefix + '/etc/ts-warp.sh'
+    inifile = prefix + '/etc/ts-warp.ini'
+    fwfile = prefix + '/etc/ts-warp_pf.conf'
+    logfile = prefix + '/var/log/ts-warp.log'
+    pidfile = prefix + '/var/run/ts-warp.pid'
+
+    if 'GUI-WARP' in ini.sections():
+        prefix = ini['GUI-WARP']['prefix']
+        runcmd = prefix + ini['GUI-WARP']['runcmd']
+        inifile = prefix + ini['GUI-WARP']['inifile']
+        fwfile = prefix + ini['GUI-WARP']['fwfile']
+        logfile = prefix + ini['GUI-WARP']['logfile']
+        pidfile = prefix + ini['GUI-WARP']['pidfile']
+
     root = tk.Tk()
-    app = App(root,
-              runcmd=gui_conf.runcmd,
-              inifile=gui_conf.inifile,
-              logfile=gui_conf.logfile,
-              pidfile=gui_conf.pidfile)
+    app = App(root, runcmd=runcmd, inifile=inifile, logfile=logfile, pidfile=pidfile)
     root.mainloop()

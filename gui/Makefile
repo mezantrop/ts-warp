@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
-# TS-Warp - Transparent SOCKS protocol Wrapper
+# GUI frontend for TS-Warp - Transparent SOCKS protocol Wrapper
 # ------------------------------------------------------------------------------
 
-# Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,20 +29,23 @@
 # ------------------------------------------------------------------------------
 PREFIX ?= /usr/local
 
-CC = cc
-CFLAGS = -Wall -I ../
-OBJECTS = ts-xedec.o
+.PHONY:	install
 
-.PHONY:	all clean install
+all:	gui-warp.py gui-warp.ini
 
-all: ts-xedec
+gui-warp.py:
+	sed 's|prefix *= *.*|prefix = "$(PREFIX)"|' gui-warp.py.in > gui-warp.py
 
-ts-xedec: $(OBJECTS)
-	$(CC) -o $@ $(OBJECTS) ../xedec.c 
+gui-warp.ini:
+	sed 's|prefix *= *.*|prefix = "$(PREFIX)"|' gui-warp.ini.in > gui-warp.ini
 
-install: ts-xedec
+install:	all
 	install -d $(PREFIX)/bin/
-	install -m 755 ts-xedec $(PREFIX)/bin/
+	install -m 755 gui-warp.py $(PREFIX)/bin/
+	install -d $(PREFIX)/etc/
+	install -m 755 gui-warp.ini $(PREFIX)/etc/
 
 clean:
-	rm -rf ts-xedec *.o
+	rm -rf __pycache__
+	rm -f gui-warp.py
+	rm -f gui-warp.ini

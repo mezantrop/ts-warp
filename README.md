@@ -21,7 +21,7 @@ a SOCKS-proxy server
 - [x] Password encoding (obfuscation) in configuration files
 - [x] SOCKS proxy chains
 - [x] Daemon mode
-- [ ] Front-end UI
+- [x] Front-end UI
 - [x] Installation script
 - [ ] Documentation
 
@@ -59,8 +59,14 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ### GUI front-end
 
-Experimental GUI front-end application to control ts-warp daemon can be started
-from the distribution `gui` directory: `# python3 gui-warp.py`
+Experimental GUI front-end application to control ts-warp daemon can be installed from the `gui` directory:
+
+`make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
+
+To start the GUI run:
+`# /<PREFIX>/bin/gui-warp.py`
+
+Note, Python 3 interpreter is required for the GUI
 
 ![gui-warp.py](gui/gui-warp_py.png)
 

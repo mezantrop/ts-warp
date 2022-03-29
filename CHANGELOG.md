@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* Current
+* 2022.03.29    ts-warp-1.0.3, gui-warp-1.0
+  * Examples updated
+  * `gui-warp.py` v1.0 release with installation via `make install`
   * `gui-warp.py` INI-, LOG-, FW- tabs with save/control buttons
   * `gui-warp.py` configuration tab started
   * `gui\gui-warp.py`: ts-warp daemon status, log-file listing, buttons work
@@ -10,7 +12,7 @@
   * Reject clients with no real-destination addresses
   * Documentation/examples update
 
-* 2022.03.15    v1.0.2
+* 2022.03.15    ts-warp-1.0.2
   * -i option replaces -I in CLI arguments
   * Full Linux with iptable code integration
   * PID-file option added to CLI parameters
@@ -19,7 +21,7 @@
   * To prevent сonfiguration files and scripts from being overwritten,
     `make install` copies them into `<PREFIX>/etc` with `.sample` postfix
 
-* 2022.03.11    v1.0.1
+* 2022.03.11    ts-warp-1.0.1
   * make install
   * `-I IP:Port` replaces `-I IP -i Port`; minor optimizations
   * INI-file parser to ignore variables without values
@@ -28,5 +30,5 @@
   * Better messaging in `ts-warp.sh` start/stop script
   * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska <alka96@protonmail.com> for testing
 
-* 2022.03.05    v1.0.0
+* 2022.03.05    ts-warp-1.0.0
   * Starting point to track versions
