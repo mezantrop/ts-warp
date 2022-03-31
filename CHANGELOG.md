@@ -1,5 +1,7 @@
 # CHANGELOG
 
+* Current
+  * Skip Domain check in ini_look_server() if target IP doesn't resolve
 * 2022.03.29    ts-warp-1.0.3, gui-warp-1.0
   * Examples updated
   * `gui-warp.py` v1.0 release with installation via `make install`

@@ -396,13 +396,13 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     char host[HOST_NAME_MAX], *domain = NULL;
     int domainlen = 0;
 
-    if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, 0))
+    if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
         printl(LOG_WARN, "Error resolving host: [%s]", inet2str(&ip, buf1));
-    
-    if ((domain = strchr(host, '.'))) {
-        domain++;
-        domainlen = strnlen(domain, HOST_NAME_MAX);
-    }
+    else
+        if ((domain = strchr(host, '.'))) {
+            domain++;
+            domainlen = strnlen(domain, HOST_NAME_MAX);
+        }
     
     printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]",
         inet2str(&ip, buf1), host, domain);
