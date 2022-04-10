@@ -1,7 +1,12 @@
 # CHANGELOG
 
 * Current
+  * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible
+    to specify ts-warp daemon as a SOCKS-server in userland. Don't forget to
+    add the respective section with a real SOCKS server in `ts-warp.ini` or
+    uncomment the `[DEFAULT]` one to catch all the unhandled requests.
   * Skip Domain check in ini_look_server() if target IP doesn't resolve
+
 * 2022.03.29    ts-warp-1.0.3, gui-warp-1.0
   * Examples updated
   * `gui-warp.py` v1.0 release with installation via `make install`
@@ -30,7 +35,8 @@
   * Fixed processed empty/nonexisting `socks_server` values in the INI file
   * Remove processed `chain_list` elements in `create_chains()`
   * Better messaging in `ts-warp.sh` start/stop script
-  * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska <alka96@protonmail.com> for testing
+  * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska
+    <alka96@protonmail.com> for testing
 
 * 2022.03.05    ts-warp-1.0.0
   * Starting point to track versions

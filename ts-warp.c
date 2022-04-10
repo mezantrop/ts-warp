@@ -275,11 +275,25 @@ int main(int argc, char* argv[]) {
             }
 
             /* Find SOCKS server to serve the daddr (dest. address) in INI file */
-            if (!(s_ini = ini_look_server(ini_root, daddr))) {
-                /*  Direct connection with the destination address bypassing SOCKS */
+            s_ini = ini_look_server(ini_root, daddr);
+            if (!s_ini) {
+                /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_WARN, "No suitable SOCKS server was found in INI-file");
-                printl(LOG_INFO, "Making direct connection with destination address");
 
+                if ((daddr.sa_family == AF_INET && 
+                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) || 
+                    (daddr.sa_family == AF_INET6 && 
+                    S6_ADDR(daddr) == S6_ADDR(*ires->ai_addr))) {
+                        /* Desination address:port is the same as ts-warp income 
+                        ip:port, i.e., a client contacted ts-warp dirctly: 
+                        no NAT/redirection */
+                        printl(LOG_WARN, "Dropping loop connection with ts-warp");
+                        close(csock);
+                        exit(1);
+                }
+
+                /*  Direct connection with the destination address bypassing SOCKS */
+                printl(LOG_INFO, "Making direct connection with destination address");
                 if ((ssock = connect_desnation(daddr)) == -1) {
                     printl(LOG_WARN, "Unable to connect with destination: [%s]",
                         inet2str(&daddr, buf));
@@ -288,7 +302,24 @@ int main(int argc, char* argv[]) {
                 }
 
                 printl(LOG_INFO, "Succesfully connected with desination address");
-            } else {
+            } else
+                /* We have found a SOCKS-proxy server for the destination */
+
+                /* Desination address:port is the same as ts-warp income ip:port,
+                i.e., a client contacted ts-warp directly: no NAT/redirection */
+                if ((daddr.sa_family == AF_INET && 
+                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) || 
+                    (daddr.sa_family == AF_INET6 && 
+                    S6_ADDR(daddr) == S6_ADDR(*ires->ai_addr))) {
+                        printl(LOG_INFO, "Connecting the client with SOCKS server directly");
+                        if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
+                            printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                inet2str(&daddr, buf));
+                            close(csock);
+                            exit(1);
+                        }
+                    }
+            else {
                 /* Start SOCKS proto ---------------------------------------- */
 
                 if (s_ini->proxy_chain) {
@@ -370,11 +401,12 @@ int main(int argc, char* argv[]) {
                     }
                 } else {
                     /* Only a single SOCKS server: no chain */
-                    printl(LOG_INFO, "Connecting the SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
+                    printl(LOG_INFO, "Connecting the SOCKS server: [%s]",
+                        inet2str(&s_ini->socks_server, buf));
 
                     if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
-                        printl(LOG_WARN, "Unable to connect with destination: [%s]",
-                            inet2str(&daddr, buf));
+                        printl(LOG_WARN, "Unable to connect with SOCKS server: [%s]",
+                            inet2str(&s_ini->socks_server, buf));
                         close(csock);
                         exit(1);
                     }

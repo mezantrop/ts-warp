@@ -58,6 +58,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define BUF_SIZE        1024 * 1024
 #define STR_SIZE        255
 
+/* TODO:
+    1. Create net.c/net.h and move sockaddr macroses there 
+    2. connect_desnation() from socks.c -> net.c 
+    3. Create sockaddr family comparison routine(s) in net.c */
+
 /* sockaddr to sockaddr_in */
 #define     SIN4_ADDR(sa)   ((struct sockaddr_in *)&sa)->sin_addr
 #define     SIN4_PORT(sa)   ((struct sockaddr_in *)&sa)->sin_port
