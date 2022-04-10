@@ -256,25 +256,23 @@ int main(int argc, char* argv[]) {
             printl(LOG_INFO, "A new client process started");
 
             /* Get the client original destination from NAT ----------------- */
-#if defined(linux)
-            /* On Linux && IPTABLES: */
             socklen_t daddrlen = sizeof daddr;  /* Client dest address len */
+#if defined(linux)
+            /* On Linux && IPTABLES */
             memset(&daddr, 0, daddrlen); 
             daddr.sa_family = caddr.sa_family;
             ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
 #else
-            /* On *BSD with PF: */
+            /* On *BSD with PF */
             ret = nat_lookup(&caddr, ires->ai_addr, &daddr);
 #endif
             if (ret != 0) {
-                printl(LOG_WARN, 
-                    "Rejecting the client: failed to determine the real destination");
-                shutdown(csock, SHUT_RDWR);
-                close(csock);
-                exit(1);
+                printl(LOG_WARN, "Failed to determine the real destination");
+                printl(LOG_WARN, "Getting destination IP from the socket");
+                getpeername(csock, &daddr, &daddrlen);
             }
 
-            /* Find SOCKS server to serve the daddr (dest. address) in INI file */
+            /* Find SOCKS server to serve the destination address in INI file */
             s_ini = ini_look_server(ini_root, daddr);
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */

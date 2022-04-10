@@ -123,7 +123,7 @@ int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,
                 return 1;
             }
         } else {
-            printl(LOG_WARN, "Failed to query PF NAT ");
+            printl(LOG_WARN, "Failed to query PF NAT");
             return 1;
         }
     }

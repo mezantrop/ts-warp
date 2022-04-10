@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * ts-warp daemon as a SOCKS-server when NAT/redirection enabled
   * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible
     to specify ts-warp daemon as a SOCKS-server in userland. Don't forget to
     add the respective section with a real SOCKS server in `ts-warp.ini` or
