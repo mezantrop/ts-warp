@@ -37,9 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <stdlib.h>
 
 #include "inifile.h"
+#include "network.h"
 #include "socks.h"
-#include "utils.h"
+#include "utility.h"
 #include "xedec.h"
+
 
 /* -------------------------------------------------------------------------- */
 ini_section *read_ini(char *ifile_name) {
@@ -191,7 +193,7 @@ ini_section *read_ini(char *ifile_name) {
                         c_targ->ip1 = *(str2inet(entry.val1, entry.mod1,
                             &res, NULL));
                         if (entry.val2)
-                            c_targ->ip2 = *(str2inet(entry.val2, entry.mod2, 
+                            c_targ->ip2 = *(str2inet(entry.val2, entry.mod2,
                                 &res, NULL));
                     }
 
@@ -242,7 +244,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
     while (c) {
         if (c->txt_section) {
             if ((s = getsection(ini, c->txt_section))) {
-                printl(LOG_VERB, "Section: [%s] has a chain link: [%s]", 
+                printl(LOG_VERB, "Section: [%s] has a chain link: [%s]",
                     c->txt_section, c->txt_chain);
 
                 sc = s->proxy_chain; 
@@ -257,7 +259,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                             st->chain_member->section_name); 
                     } else
                         printl(LOG_VERB,
-                            "Chain section: [%s] linked from: [%s] does not really exist", 
+                            "Chain section: [%s] linked from: [%s] does not really exist",
                             chain_section, s->section_name);
                 }
             }
@@ -279,7 +281,7 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
     s = ini;
     while (s) {
         if (!strcmp(s->section_name, name)) {
-            printl(LOG_VERB, "Section: [%s] found!", name);        
+            printl(LOG_VERB, "Section: [%s] found!", name);
             return s;
         }
         s = s->next;
@@ -304,7 +306,7 @@ void show_ini(struct ini_section *ini) {
         /* Display section */
         printl(LOG_VERB,
             "SHOW Section: [%s] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
-            s->section_name, inet2str(&s->socks_server, ip1), 
+            s->section_name, inet2str(&s->socks_server, ip1),
             ntohs(SIN4_PORT(s->socks_server)), s->socks_version,
             s->socks_user,  s->socks_password ? "********" : "(null)");
 
@@ -414,11 +416,11 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
         while (t) {
             switch(t->target_type) {
                 case INI_TARGET_HOST:
-                    if ((ip.sa_family == AF_INET && 
+                    if ((ip.sa_family == AF_INET &&
                         S4_ADDR(ip) == S4_ADDR(t->ip1) &&
                         SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
-                        (ip.sa_family == AF_INET6 && 
-                        S6_ADDR(ip) == S6_ADDR(t->ip1) && 
+                        (ip.sa_family == AF_INET6 &&
+                        !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                         printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in: [%s]",
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), s->section_name);
@@ -428,9 +430,9 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                     break;
 
                 case INI_TARGET_DOMAIN:
-                    if ((domainlen && strcasestr(t->name, domain) && 
+                    if ((domainlen && strcasestr(t->name, domain) &&
                         (ip.sa_family == AF_INET && 
-                            SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2))) || 
+                            SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2))) ||
                         (ip.sa_family == AF_INET6 && 
                             SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                         printl(LOG_VERB, "Found SOCKS server: [%s] to serve host: [%s] domain: [%s] in: [%s]",
@@ -443,7 +445,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                 case INI_TARGET_NETWORK:
                     if (ip.sa_family == AF_INET) {
                         /* IP & MASK_from_ini vs IP_from_ini & MASK_from_ini */
-                        if ((S4_ADDR(ip) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) && 
+                        if ((S4_ADDR(ip) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) &&
                             SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) {
                             printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), inet2str(&ip, buf2),
@@ -473,7 +475,8 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                         ntohl(S4_ADDR(ip)) >= ntohl(S4_ADDR(t->ip1)) && ntohl(S4_ADDR(ip)) <= ntohl(S4_ADDR(t->ip2)) &&
                         SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
                         (ip.sa_family == AF_INET6 &&
-                        S6_ADDR(ip) >= S6_ADDR(t->ip1) && S6_ADDR(ip) <= S6_ADDR(t->ip2) &&
+                        memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) > 0 &&
+                        memcmp(S6_ADDR(ip), S6_ADDR(t->ip2), sizeof(S6_ADDR(ip))) < 0 &&
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                         printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2),

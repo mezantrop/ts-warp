@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -112,13 +112,13 @@ typedef struct {
 typedef struct {
     uint8_t ver;            /* SOCKS version */
     uint8_t cmd;            /* Command
-                                0x01: TCP Connect; 
-                                0x02: TCP port Binding, e.g. FTP; 
+                                0x01: TCP Connect;
+                                0x02: TCP port Binding, e.g. FTP;
                                 0x03: associate a UDP port */
     uint8_t rsv;            /* 0x00: Reserved */
     uint8_t atype;          /* Destination address type
                                 0x01: IPv4 address
-                                0x03: Domain name 
+                                0x03: Domain name
                                 0x04: IPv6 address */
     uint8_t dsthost[258];   /* Destination address + port in a net byte order:
                                 IPv4 address:   4 bytes
@@ -130,13 +130,13 @@ typedef struct {
 typedef struct {
     uint8_t ver;        /* SOCKS version */
     uint8_t cmd;        /* Command
-                            0x01: TCP Connect; 
-                            0x02: TCP port Binding, e.g. FTP; 
+                            0x01: TCP Connect;
+                            0x02: TCP port Binding, e.g. FTP;
                             0x03: associate a UDP port */
     uint8_t rsv;        /* 0x00: Reserved */
     uint8_t atype;      /* Destination address type
                             0x01: IPv4 address
-                            0x03: Domain name 
+                            0x03: Domain name
                             0x04: IPv6 address */
     uint8_t dstaddr[4]; /* Destination address
                             IPv4 address:   4 bytes
@@ -148,26 +148,26 @@ typedef struct {
 typedef struct {
     uint8_t ver;        /* SOCKS version */
     uint8_t cmd;        /* Command
-                            0x01: TCP Connect; 
-                            0x02: TCP port Binding, e.g. FTP; 
+                            0x01: TCP Connect;
+                            0x02: TCP port Binding, e.g. FTP;
                             0x03: associate a UDP port */
     uint8_t rsv;        /* 0x00: Reserved */
     uint8_t atype;      /* Destination address type
                             0x01: IPv4 address
-                            0x03: Domain name 
+                            0x03: Domain name
                             0x04: IPv6 address */
     uint8_t dstaddr[16]; /* Destination address
                             IPv4 address:   4 bytes
                             Domain name:    1 byte Length + 1-255 bytes Name
                             IPv6 address:   16 bytes */
-    uint16_t dstport;   /* Dest port number in a network byte order */ 
+    uint16_t dstport;   /* Dest port number in a network byte order */
 } s5_request_ipv6;
 
 typedef struct {
     uint8_t ver;        /* SOCKS version */
     uint8_t cmd;        /* Command
                             0x01: TCP Connect; 
-                            0x02: TCP port Binding, e.g. FTP; 
+                            0x02: TCP port Binding, e.g. FTP;
                             0x03: associate a UDP port */
     uint8_t rsv;        /* 0x00: Reserved */
     uint8_t atype;      /* Destination address type */
@@ -188,13 +188,13 @@ typedef struct {
     uint8_t rsv;        /* 0x00: Reserved */
     uint8_t atype;      /* Server bound address type
                             0x01: IPv4 address
-                            0x03: Domain name 
+                            0x03: Domain name
                             0x04: IPv6 address */
     uint8_t *bndaddr;   /* Server bound address
                             IPv4 address:   4 bytes
                             Domain name:    1 byte Length + 1-255 bytes Name
                             IPv6 address:   16 bytes */
-    uint16_t bndport;   /* Bound port number in a network byte order */ 
+    uint16_t bndport;   /* Bound port number in a network byte order */
 } s5_reply;
 
 typedef struct {
@@ -214,7 +214,6 @@ typedef struct {
 } s5_reply_short;
 
 /* -- Function prototypes --------------------------------------------------- */
-int connect_desnation(struct sockaddr dest);
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr);

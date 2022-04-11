@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <unistd.h>
 
 #include "pidfile.h"
-#include "utils.h"
+#include "utility.h"
 
 extern char *pfile_name;
 

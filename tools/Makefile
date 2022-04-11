@@ -38,7 +38,7 @@ OBJECTS = ts-xedec.o
 all: ts-xedec
 
 ts-xedec: $(OBJECTS)
-	$(CC) -o $@ $(OBJECTS) ../xedec.c 
+	$(CC) -o $@ $(OBJECTS) ../xedec.c
 
 install: ts-xedec
 	install -d $(PREFIX)/bin/

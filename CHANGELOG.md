@@ -1,6 +1,11 @@
 # CHANGELOG
 
-* Current
+* 2022.04.11    ts-warp-1.0.4, gui-warp-1.0
+  * Code restructurization:
+    * `utils` module renamed into `utility`
+    * Network routines moved from `utility` and `socks` modules into `network`
+    * Various minor cleanups and refactoring
+  * Correct IPv6 address comparison
   * ts-warp daemon as a SOCKS-server when NAT/redirection enabled
   * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible
     to specify ts-warp daemon as a SOCKS-server in userland. Don't forget to

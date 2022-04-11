@@ -27,13 +27,51 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* -------------------------------------------------------------------------- */
-#if !defined (PREFIX)
-#define PREFIX "/usr/local"
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+
+/* Used ports */
+#define LISTEN_IPV4     "127.0.0.1"     /* We listen on this IPv4 address or */
+#define LISTEN_IPV6     "::1"           /* on this IPv6 address */
+#define LISTEN_DEFAULT  LISTEN_IPV4
+#define LISTEN_PORT     "10800"         /* This is our TCP port */
+#define SOCKS_PORT      "1080"          /* That is remote SOCKS server port */
+
+
+#define SA_FAMILY(sa)  &sa->sa_family
+
+/* sockaddr to sockaddr_in */
+#define SIN4_ADDR(sa)   ((struct sockaddr_in *)&sa)->sin_addr
+#define SIN4_PORT(sa)   ((struct sockaddr_in *)&sa)->sin_port
+#define SIN4_FAMILY(sa) ((struct sockaddr_in *)&sa)->sin_family
+#if !defined(linux)
+    #define SIN4_LENGTH(sa) ((struct sockaddr_in *)&sa)->sin_len
+#endif
+#define S4_ADDR(sa)     ((struct sockaddr_in *)&sa)->sin_addr.s_addr
+
+/* sockaddr to sockaddr_in6 */
+#define SIN6_ADDR(sa)   ((struct sockaddr_in6 *)&sa)->sin6_addr
+#define SIN6_PORT(sa)   ((struct sockaddr_in6 *)&sa)->sin6_port
+#define SIN6_FAMILY(sa) ((struct sockaddr_in6 *)&sa)->sin6_family
+#if !defined(linux)
+    #define SIN6_LENGTH(sa) ((struct sockaddr_in6 *)&sa)->sin6_len
+#endif
+#if defined(linux)
+    #define S6_ADDR(sa) ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr8
+#else
+    #define S6_ADDR(sa) ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr8
 #endif
 
-#define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
-#define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
-#define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
 
 /* -- Function prototypes --------------------------------------------------- */
-void trap_signal(int sig);
+int connect_desnation(struct sockaddr dest);
+char *inet2str(struct sockaddr *ai_addr, char *str_addr);
+struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, 
+    struct addrinfo *hints);

@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <sys/socket.h>
 #include <netdb.h> 
 
+
 /* -------------------------------------------------------------------------- */
 typedef struct ini_section {
     char *section_name;                 /* Sectionn name */
@@ -62,7 +63,7 @@ typedef struct ini_entry {  /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] *
 typedef struct ini_target {
     int target_type;        /* Hostname, Host IP, Domain, Network, Range */
     char *name;             /* Hostname / Domain or null */
-    struct sockaddr ip1;    /* Host IP, Net IP, First IP in Range or null 
+    struct sockaddr ip1;    /* Host IP, Net IP, First IP in Range or null
                                 and optional port number 0 65535 */
     struct sockaddr ip2;    /* Netmask, Last IP in Range or null + port */
 

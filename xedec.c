@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,6 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
+/* -------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -38,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <netdb.h>
 
 #include "xedec.h"
-//#include "utils.h"
 
 /* -------------------------------------------------------------------------- */
 char *init_xcrypt(int xkey_len) {

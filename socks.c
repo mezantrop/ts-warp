@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -37,33 +37,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include "network.h"
 #include "socks.h"
-#include "utils.h"
+#include "utility.h"
 
 extern char *pfile_name;
 
-/* -------------------------------------------------------------------------- */
-int connect_desnation(struct sockaddr dest) {
-    /* Establish TCP connetion with a det address */
-    
-    /* TODO: Move it to a new module net.c ? */
-
-    int sock;
-
-    if ((sock = socket(dest.sa_family, SOCK_STREAM, 0)) < 0) {
-        printl(LOG_CRIT, "Error creating a socket for the destination address");
-        return sock;
-    }
-
-    printl(LOG_INFO, "Socket to connect with destination address created");
-
-    if ((connect(sock, &dest, sizeof dest)) < 0) {
-        printl(LOG_CRIT, "Unable to connect with destination address");
-        return -1;
-    }
-
-    return sock;
-}
 
 /* -------------------------------------------------------------------------- */
 int socks5_hello(int socket, unsigned int auth_method, ...) {

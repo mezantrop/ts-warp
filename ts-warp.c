@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -51,11 +51,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 
 #include "ts-warp.h"
+#include "network.h"
 #include "utils.h"
 #include "socks.h"
 #include "inifile.h"
 #include "natlook.h"
 #include "pidfile.h"
+
 
 /* -------------------------------------------------------------------------- */
 uint8_t loglevel = LOG_LEVEL_DEFAULT;
@@ -184,7 +186,7 @@ int main(int argc, char* argv[]) {
     ihints.ai_socktype = SOCK_STREAM;
     ihints.ai_flags = AI_PASSIVE;
     if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
-        printl(LOG_CRIT, "Error resolving our address [%s]: %s", 
+        printl(LOG_CRIT, "Error resolving our address [%s]: %s",
             iaddr, gai_strerror(ret));
         mexit(1, pfile_name);
     }
@@ -278,12 +280,12 @@ int main(int argc, char* argv[]) {
                 /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_WARN, "No suitable SOCKS server was found in INI-file");
 
-                if ((daddr.sa_family == AF_INET && 
-                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) || 
-                    (daddr.sa_family == AF_INET6 && 
-                    S6_ADDR(daddr) == S6_ADDR(*ires->ai_addr))) {
-                        /* Desination address:port is the same as ts-warp income 
-                        ip:port, i.e., a client contacted ts-warp dirctly: 
+                if ((daddr.sa_family == AF_INET &&
+                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.sa_family == AF_INET6 &&
+                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
+                        /* Desination address:port is the same as ts-warp income
+                        ip:port, i.e., a client contacted ts-warp dirctly:
                         no NAT/redirection */
                         printl(LOG_WARN, "Dropping loop connection with ts-warp");
                         close(csock);
@@ -305,10 +307,10 @@ int main(int argc, char* argv[]) {
 
                 /* Desination address:port is the same as ts-warp income ip:port,
                 i.e., a client contacted ts-warp directly: no NAT/redirection */
-                if ((daddr.sa_family == AF_INET && 
-                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) || 
-                    (daddr.sa_family == AF_INET6 && 
-                    S6_ADDR(daddr) == S6_ADDR(*ires->ai_addr))) {
+                if ((daddr.sa_family == AF_INET &&
+                    S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.sa_family == AF_INET6 &&
+                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
                         printl(LOG_INFO, "Connecting the client with SOCKS server directly");
                         if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
                             printl(LOG_WARN, "Unable to connect with destination: [%s]",
@@ -376,9 +378,9 @@ int main(int argc, char* argv[]) {
 
                         if (sc->next) {
                             /* We want to connect with the next chain member */
-                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
+                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
                                 sc->next->chain_member->socks_server.sa_family == AF_INET ? 
-                                SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
+                                SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
                                 &sc->next->chain_member->socks_server) > 0) {
                                     printl(LOG_WARN, "SOCKS server returned an error");
                                     close(csock);
@@ -386,8 +388,8 @@ int main(int argc, char* argv[]) {
                             }
                         } else {
                             /* We are at the end of the chain, so connect with the section server */
-                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
-                                s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
+                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
+                                s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
                                 &s_ini->socks_server) > 0) {
                                     printl(LOG_WARN, "SOCKS server returned an error");
                                     close(csock);
@@ -412,7 +414,7 @@ int main(int argc, char* argv[]) {
                     printl(LOG_INFO, "Succesfully connected with SOCKS server");
                     printl(LOG_INFO, "Initiate SOCKS protocol: hello");
 
-                    switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, 
+                    switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH,
                     AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
                         case AUTH_METHOD_NOAUTH:    /* No authentication required */
                             break;
@@ -444,7 +446,7 @@ int main(int argc, char* argv[]) {
                     printl(LOG_INFO, "Initiate SOCKS protocol: request");
 
                     if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
-                        daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, 
+                        daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
                         &daddr) > 0) {                    
                             printl(LOG_CRIT, "SOCKS server returned an error");
                             close(csock);
@@ -538,7 +540,7 @@ void trap_signal(int sig) {
 
     int	status;                                     /* Client process status */
 
-	switch (sig) {
+    switch (sig) {
             case SIGHUP:
                 ini_root = delete_ini(ini_root);
                 ini_root = read_ini(ifile_name);
@@ -567,5 +569,5 @@ void trap_signal(int sig) {
             default:
                 printl(LOG_INFO, "Got unhandled signal: %d", sig);
                 break;
-	}
+    }
 }

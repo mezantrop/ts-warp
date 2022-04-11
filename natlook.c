@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -43,9 +43,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <net/if.h>
 
 #include "natlook.h"
-#include "utils.h"
+#include "network.h"
+#include "utility.h"
 
 extern char *pfile_name;
+
 
 /* -------------------------------------------------------------------------- */
 int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,

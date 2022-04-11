@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# INI file of GUI frontend for TS-Warp - Transparent SOCKS protocol Wrapper
+# ------------------------------------------------------------------------------
+
 [GUI-WARP]
 prefix = /usr/local
 

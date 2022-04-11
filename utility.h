@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 /* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -27,24 +27,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* -------------------------------------------------------------------------- */
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
+#include <stdio.h>
+
 
 /* Program name and version */
 #define PROG_NAME       "TS-Warp"
 #define PROG_NAME_SHORT "TSW"
-#define PROG_VERSION    "1.0.3"
+#define PROG_VERSION    "1.0.4"
 #define PROG_NAME_FULL  PROG_NAME " " PROG_VERSION
 #define PROG_NAME_CODE  PROG_NAME_SHORT PROG_VERSION
-
-/* Used ports */
-#define LISTEN_IPV4     "127.0.0.1"     /* We listen on this IPv4 address or */
-#define LISTEN_IPV6     "::1"           /* on this IPv6 address */
-#define LISTEN_DEFAULT  LISTEN_IPV4
-#define LISTEN_PORT     "10800"         /* This is our TCP port */
-#define SOCKS_PORT      "1080"          /* That is remote SOCKS server port */
 
 /* Log verbosity levels */
 #define LOG_NONE    0
@@ -58,37 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define BUF_SIZE        1024 * 1024
 #define STR_SIZE        255
 
-/* TODO:
-    1. Create net.c/net.h and move sockaddr macroses there 
-    2. connect_desnation() from socks.c -> net.c 
-    3. Create sockaddr family comparison routine(s) in net.c */
-
-/* sockaddr to sockaddr_in */
-#define     SIN4_ADDR(sa)   ((struct sockaddr_in *)&sa)->sin_addr
-#define     SIN4_PORT(sa)   ((struct sockaddr_in *)&sa)->sin_port
-#define     SIN4_FAMILY(sa) ((struct sockaddr_in *)&sa)->sin_family
-#if !defined(linux)
-    #define     SIN4_LENGTH(sa) ((struct sockaddr_in *)&sa)->sin_len
-#endif
-#define     S4_ADDR(sa)     ((struct sockaddr_in *)&sa)->sin_addr.s_addr
-/* sockaddr to sockaddr_in6 */
-#define     SIN6_ADDR(sa)   ((struct sockaddr_in6 *)&sa)->sin6_addr
-#define     SIN6_PORT(sa)   ((struct sockaddr_in6 *)&sa)->sin6_port
-#define     SIN6_FAMILY(sa) ((struct sockaddr_in6 *)&sa)->sin6_family
-#if !defined(linux)
-    #define     SIN6_LENGTH(sa) ((struct sockaddr_in6 *)&sa)->sin6_len
-#endif
-
-#if defined(linux)
-    #define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr8
-#else
-    #define     S6_ADDR(sa)     ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr8
-#endif
-
-#ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX 255
-#endif
-
 /* -- Global variables ------------------------------------------------------ */
 extern uint8_t loglevel;
 extern FILE *lfile;
@@ -99,8 +59,5 @@ extern char *pfile_name;
 void usage(int ecode);
 void printl(int level, char *fmt, ...);
 long toint(char *str);
-char *inet2str(struct sockaddr *ai_addr, char *str_addr);
-struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, 
-    struct addrinfo *hints);
 char *init_xcrypt(int xkey_len);
 void mexit(int status, char *pid_file);
