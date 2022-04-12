@@ -52,7 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #include "ts-warp.h"
 #include "network.h"
-#include "utils.h"
+#include "utility.h"
 #include "socks.h"
 #include "inifile.h"
 #include "natlook.h"

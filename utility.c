@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "utils.h"
+#include "utility.h"
 #include "network.h"
 #include "pidfile.h"
 

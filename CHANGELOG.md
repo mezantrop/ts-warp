@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* Current
+  * `utils` -> `utility` continue
+
 * 2022.04.11    ts-warp-1.0.4, gui-warp-1.0
   * Code restructurization:
     * `utils` module renamed into `utility`
