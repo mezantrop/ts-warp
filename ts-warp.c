@@ -283,7 +283,9 @@ int main(int argc, char* argv[]) {
                 if ((daddr.sa_family == AF_INET &&
                     S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.sa_family == AF_INET6 &&
-                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
+                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                        sizeof(S6_ADDR(daddr))))) {
+                        
                         /* Desination address:port is the same as ts-warp income
                         ip:port, i.e., a client contacted ts-warp dirctly:
                         no NAT/redirection */
@@ -310,10 +312,14 @@ int main(int argc, char* argv[]) {
                 if ((daddr.sa_family == AF_INET &&
                     S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.sa_family == AF_INET6 &&
-                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
-                        printl(LOG_INFO, "Connecting the client with SOCKS server directly");
+                    !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                        sizeof(S6_ADDR(daddr))))) {
+                    
+                        printl(LOG_INFO,
+                            "Connecting the client with SOCKS server directly");
                         if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
-                            printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                            printl(LOG_WARN,
+                                "Unable to connect with destination: [%s]",
                                 inet2str(&daddr, buf));
                             close(csock);
                             exit(1);

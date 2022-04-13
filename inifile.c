@@ -399,7 +399,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     int domainlen = 0;
 
     if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
-        printl(LOG_WARN, "Error resolving host: [%s]", inet2str(&ip, buf1));
+        printl(LOG_INFO, "Error resolving host: [%s]", inet2str(&ip, buf1));
     else
         if ((domain = strchr(host, '.'))) {
             domain++;
