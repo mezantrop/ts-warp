@@ -2,10 +2,6 @@
 
 ## Transparent SOCKS protocol Wrapper
 
-**Warning!** Early stage of development, don't expect everything to work properly
-
-See the [Changelog](CHANGELOG.md)
-
 ### Goals and TODO list
 
 - [x] Create a soxifier service - transparent firewall-based redirector of
@@ -24,6 +20,10 @@ TCP/IP connections to a SOCKS-proxy server
 - [x] Front-end UI
 - [x] Installation script
 - [ ] Documentation
+
+### Changelog
+
+See it [here](CHANGELOG.md)
 
 ### Installation
 
@@ -72,6 +72,9 @@ Note, Python 3 interpreter is required for the GUI
 
 ### Contacts
 
-You are very welcome to email me: Mikhail Zakharov <zmey20000@yahoo.com>
+Not so early stage of development, yet don't expect everything to work properly.
+If you have found a problem, idea or a question, do not hesitate to open an
+[issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or write me
+directly: Mikhail Zakharov <zmey20000@yahoo.com>
 
 Many thanks to [contributors](CONTRIBUTORS.md) of the project
