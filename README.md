@@ -27,7 +27,7 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- `make install` to install into `PREFIX=/usr/local` or `make install PREFIX=/path/to/install`, to use a custom `PREFIX`
+- `make install` to install files under `PREFIX=/usr/local` base or `make install PREFIX=/path/to/install`, to use a custom `PREFIX` directory
 
 - Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
   
