@@ -27,13 +27,13 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- `make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
+- `make install` to install into `PREFIX=/usr/local` or `make install PREFIX=/path/to/install`, to use a custom `PREFIX`
 
 - Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
   
 - **On macOS and \*BSD**:
   - Create `<PREFIX>/etc/ts-warp_pf.conf` based on `<PREFIX>/etc/ts-warp_pf.conf.sample` to configure packet filter
-  - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID- LOG- and INI- files location
+  - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI- files location
 
 - **On Linux**:
   - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
@@ -60,21 +60,23 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 ### GUI front-end
 
 Experimental GUI front-end application to control ts-warp daemon can be installed from the `gui` directory:
+`cd gui`
 
-`make install` or `make install PREFIX=/path/to/install`. Default is `PREFIX=/usr/local`
+`make install` it into `PREFIX=/usr/local` or `make install PREFIX=/path/to/install`
+to copy files under the different base directory
 
 To start the GUI run:
 `# /<PREFIX>/bin/gui-warp.py`
 
-Note, Python 3 interpreter is required for the GUI
+Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
 
 ![gui-warp.py](gui/gui-warp_py.png)
 
 ### Contacts
 
 Not so early stage of development, yet don't expect everything to work properly.
-If you have found a problem, idea or a question, do not hesitate to open an
-[issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or write me
-directly: Mikhail Zakharov <zmey20000@yahoo.com>
+If you have an idea, a question, or have found a problem, do not hesitate to
+open an [issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or write
+me directly: Mikhail Zakharov <zmey20000@yahoo.com>
 
 Many thanks to [contributors](CONTRIBUTORS.md) of the project
