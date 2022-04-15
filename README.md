@@ -8,7 +8,7 @@
 TCP/IP connections to a SOCKS-proxy server
 
 - Support platforms:
-  - [x] macOS, FreeBSD with PF, OpenBSD (not tested)
+  - [x] macOS, FreeBSD and OpenBSD with PF
   - [x] Linux with Iptables
 
 - [x] IPv6 stack support
@@ -37,6 +37,8 @@ See it [here](CHANGELOG.md)
 
 - **On Linux**:
   - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
+
+Check `examples` directory for more templates, e.g. for OpenBSD PF configuration sample
 
 ### Usage
 

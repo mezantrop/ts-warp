@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * OpenBSD compatibility and examples
   * Minor decorative changes
   * `utils` -> `utility` continue
 
