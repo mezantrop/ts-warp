@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ---------------------------------------------------------------------------- #
-# TS-Warp - Transparent SOCKS protocol Wrapper - IPTABLES configuration example#
+# TS-Warp - IPTABLES configuration for Linux example                           #
 # ---------------------------------------------------------------------------- #
 
 iptables -t nat -N SOCKS

@@ -28,32 +28,20 @@ See it [here](CHANGELOG.md)
 ### Installation
 
 - Run `# make install` to install files under `PREFIX=/usr/local` base or `# make install PREFIX=/path/to/install`, to use a custom `PREFIX` directory
-
 - Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
+- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI- files location
   
 - **On macOS and \*BSD**:
-  - Create `<PREFIX>/etc/ts-warp_pf.conf` based on `<PREFIX>/etc/ts-warp_pf.conf.sample` to configure packet filter
-  - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI- files location
+  Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample` to configure the packet filter
 
 - **On Linux**:
   - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
 
-Check `examples` directory for more templates, e.g. for OpenBSD PF configuration sample
-
 ### Usage
-
-**On macOS and \*BSD**:
 
 Under root privileges start, control or get status of ts-warp:
 
 `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
-
-**On Linux**:
-
-Using root privileges:
-
-- Enable packet redirection: `# <PREFIX>/etc/ts-warp_iptables.sh`
-- Start ts-warp daemon: `# <PREFIX>/bin/ts-warp -d`
 
 ts-warp understands `SIGHUP` signal as command to reload configuration and `SIGINT` to stop the daemon.
 
