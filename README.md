@@ -56,6 +56,8 @@ from the `gui` directory:
 
 `# cd gui`
 
+Then:
+
 `# make install` it into `PREFIX=/usr/local` or `# make install PREFIX=/path/to/install`
 to copy files under the different base directory
 
