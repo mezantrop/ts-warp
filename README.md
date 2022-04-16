@@ -27,15 +27,16 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- Run `# make install` to install files under `PREFIX=/usr/local` base or `# make install PREFIX=/path/to/install`, to use a custom `PREFIX` directory
-- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
-- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI- files location
-  
-- **On macOS and \*BSD**:
-  Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample` to configure the packet filter
-
-- **On Linux**:
-  - Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
+- Run `# make install` to install files under `PREFIX=/usr/local` or
+`# make install PREFIX=/path/to/install`, to use a custom `PREFIX` directory
+- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample`
+file to suite your needs
+- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-
+files location
+- *On macOS and \*BSD*. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate
+`<PREFIX>/etc/ts-warp_pf_*.conf.sample` to configure the packet filter
+- *On Linux*. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on
+`<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
 
 ### Usage
 
@@ -43,16 +44,19 @@ Under root privileges start, control or get status of ts-warp:
 
 `# <PREFIX>/etc/ts-warp.sh start|stop|restart|reload|status`
 
-ts-warp understands `SIGHUP` signal as command to reload configuration and `SIGINT` to stop the daemon.
+ts-warp understands `SIGHUP` signal as command to reload configuration and
+`SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 
 ### GUI front-end
 
-Experimental GUI front-end application to control ts-warp daemon can be installed from the `gui` directory:
-`cd gui`
+Experimental GUI front-end application to control ts-warp daemon can be installed
+from the `gui` directory:
 
-`make install` it into `PREFIX=/usr/local` or `make install PREFIX=/path/to/install`
+`# cd gui`
+
+`# make install` it into `PREFIX=/usr/local` or `# make install PREFIX=/path/to/install`
 to copy files under the different base directory
 
 To start the GUI run:
