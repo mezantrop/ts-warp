@@ -1,6 +1,8 @@
 # CHANGELOG
 
 * Current
+  * `ts-warp.sh` updated for Linux
+  * Examples updated for OpenBSD
   * OpenBSD compatibility and examples
   * Minor decorative changes
   * `utils` -> `utility` continue
