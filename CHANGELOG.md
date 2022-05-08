@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `ts-warp.sh` custom CLI options
   * `ts-warp.sh` updated for Linux
   * Examples updated for OpenBSD
   * OpenBSD compatibility and examples

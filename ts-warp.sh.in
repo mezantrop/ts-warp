@@ -51,7 +51,7 @@ _start() {
         uname -o | grep -i 'Linux' >/dev/null &&
             "$tswarp_prefix"/etc/ts-warp_iptables.sh || 
             /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
-        echo $tswarp_options | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
+        echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
     }
 }
 
@@ -93,7 +93,7 @@ _restart() {
     _check_root
     printf "Restarting ts-warp: "
     _stop
-    _start
+    _start $*
 }
 
 _check_root() {
@@ -103,17 +103,23 @@ _check_root() {
     }
 }
 
-[ $# -ne  1 ] && 
-    printf "Usage: %s start|stop|restart|reload|status\n" `basename "$0"` &&
+_usage() {
+    printf "Usage:\n\tts-warp.sh start|restart [options]\n" 
+    printf "\tts-warp.sh stop|reload|status\n"
     exit 1
+}
+
+
+# ------------------------------------------------------------------------------
+[ $# -eq 0 ] && _usage
 
 case "$1" in
-    [sS][tT][aA][rR][tT])           _start      ;;
-    [sS][tT][aA][tT][uU][sS])       _status 1   ;;
-    [sS][tT][oO][pP])               _stop       ;;
-    [rR][eE][lL][oO][aA][dD])       _reload     ;;
-    [rR][eE][sS][tT][aA][rR][tT])   _restart    ;;
-    *) printf "Unknown command\n"; exit 1;  ;;
+    [sS][tT][aA][rR][tT])           shift; _start $*    ;;
+    [sS][tT][aA][tT][uU][sS])       _status 1           ;;
+    [sS][tT][oO][pP])               _stop               ;;
+    [rR][eE][lL][oO][aA][dD])       _reload             ;;
+    [rR][eE][sS][tT][aA][rR][tT])   shift; _restart $*  ;;
+    *) printf "Unknown command: %s\n" "$1"; _usage      ;;
 esac
 
 printf "done\n"
