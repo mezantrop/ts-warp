@@ -42,7 +42,10 @@ files location
 
 Under root privileges start, control or get status of ts-warp:
 
-`# <PREFIX>/etc/ts-warp.sh start | stop | restart | reload | status`
+```sh
+# <PREFIX>/etc/ts-warp.sh start|restart [ts-warp options]
+# <PREFIX>/etc/ts-warp.sh stop|reload|status
+```
 
 ts-warp understands `SIGHUP` signal as command to reload configuration and
 `SIGINT` to stop the daemon.
