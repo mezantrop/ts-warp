@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
     }
-    printl(LOG_VERB, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
-    printl(LOG_INFO, "We want to listen on: [%s:%s]", iaddr, iport);
+    printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
+    printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
     if (d_flg) {
         /* -- Daemonizing --------------------------------------------------- */
@@ -186,12 +186,12 @@ int main(int argc, char* argv[]) {
     ihints.ai_socktype = SOCK_STREAM;
     ihints.ai_flags = AI_PASSIVE;
     if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
-        printl(LOG_CRIT, "Error resolving our address [%s]: %s",
+        printl(LOG_CRIT, "Error resolving ts-warp address [%s]: %s",
             iaddr, gai_strerror(ret));
         mexit(1, pfile_name);
     }
 
-    printl(LOG_INFO, "Our address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ts-warp address [%s] succesfully resolved to [%s]",
         iaddr, inet2str(ires->ai_addr, buf));
 
     ini_root = read_ini(ifile_name);
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
                 "Error creating a socket for incoming connections");
             mexit(1, pfile_name);
     }
-    printl(LOG_INFO, "Our socket for incoming connections created");
+    printl(LOG_VERB, "Our socket for incoming connections created");
     
     /* -- Bind incoming connections socket ---------------------------------- */
     int raddr = 1;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
         close(isock);
         mexit(1, pfile_name);
     }
-    printl(LOG_INFO, "The socket for incoming connections succesfully bound");
+    printl(LOG_VERB, "The socket for incoming connections succesfully bound");
 
     /* -- Start listening for clients --------------------------------------- */
     if (listen(isock, SOMAXCONN) == -1) {
@@ -237,12 +237,11 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        printl(LOG_INFO, "Serving client #: %d", cn++);
-        printl(LOG_VERB, "Client IP address: [%0s]", inet2str(&caddr, buf));
-        printl(LOG_INFO, "Incoming connection accepted");
+        printl(LOG_INFO, "Client: [%d], IP: [%s] accepted",
+            cn++, inet2str(&caddr, buf));
         
         if ((pid = fork()) == -1) {
-            printl(LOG_INFO, "Failed fork() to serve a client request");
+            printl(LOG_CRIT, "Failed fork() to serve a client request");
             mexit(1, pfile_name);
         }
         if (pid > 0) {                    /* Main (parent process) */
@@ -255,7 +254,7 @@ int main(int argc, char* argv[]) {
             close(isock);
 
             pid = getpid();
-            printl(LOG_INFO, "A new client process started");
+            printl(LOG_VERB, "A new client process started");
 
             /* Get the client original destination from NAT ----------------- */
             socklen_t daddrlen = sizeof daddr;  /* Client dest address len */
@@ -269,16 +268,20 @@ int main(int argc, char* argv[]) {
             ret = nat_lookup(&caddr, ires->ai_addr, &daddr);
 #endif
             if (ret != 0) {
-                printl(LOG_WARN, "Failed to determine the real destination");
-                printl(LOG_WARN, "Getting destination IP from the socket");
+                printl(LOG_WARN, "Failed to determine the real destination IP, trying to get it from the socket");
                 getpeername(csock, &daddr, &daddrlen);
             }
+
+            printl(LOG_INFO, "The client destination address is: [%s]",
+                inet2str(&daddr, buf));
 
             /* Find SOCKS server to serve the destination address in INI file */
             s_ini = ini_look_server(ini_root, daddr);
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */
-                printl(LOG_WARN, "No suitable SOCKS server was found in INI-file");
+                printl(LOG_WARN,
+                    "No SOCKS server was defined for the destination: [%s] in the INI-file",
+                    inet2str(&daddr, buf));
 
                 if ((daddr.sa_family == AF_INET &&
                     S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
@@ -295,7 +298,9 @@ int main(int argc, char* argv[]) {
                 }
 
                 /*  Direct connection with the destination address bypassing SOCKS */
-                printl(LOG_INFO, "Making direct connection with destination address");
+                printl(LOG_INFO,
+                    "Making a direct connection with the destination address: [%s]",
+                    inet2str(&daddr, buf));
                 if ((ssock = connect_desnation(daddr)) == -1) {
                     printl(LOG_WARN, "Unable to connect with destination: [%s]",
                         inet2str(&daddr, buf));
@@ -303,7 +308,9 @@ int main(int argc, char* argv[]) {
                     exit(1);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with desination address");
+                printl(LOG_INFO,
+                    "Succesfully connected with desination address: [%s]",
+                    inet2str(&daddr, buf));
             } else
                 /* We have found a SOCKS-proxy server for the destination */
 
@@ -380,7 +387,7 @@ int main(int argc, char* argv[]) {
                                 exit(1);
                         }
 
-                        printl(LOG_INFO, "Initiate SOCKS protocol: request");
+                        printl(LOG_VERB, "Initiate SOCKS protocol: request");
 
                         if (sc->next) {
                             /* We want to connect with the next chain member */
@@ -417,8 +424,9 @@ int main(int argc, char* argv[]) {
                         exit(1);
                     }
 
-                    printl(LOG_INFO, "Succesfully connected with SOCKS server");
-                    printl(LOG_INFO, "Initiate SOCKS protocol: hello");
+                    printl(LOG_INFO, "Succesfully connected with the SOCKS server: [%s]",
+                        inet2str(&s_ini->socks_server, buf));
+                    printl(LOG_VERB, "Initiate SOCKS protocol: hello");
 
                     switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH,
                     AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
@@ -449,7 +457,7 @@ int main(int argc, char* argv[]) {
                             exit(1);
                     }
 
-                    printl(LOG_INFO, "Initiate SOCKS protocol: request");
+                    printl(LOG_VERB, "Initiate SOCKS protocol: request");
 
                     if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
                         daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
