@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* Current
+* 2022.05.17    ts-warp-1.0.5, gui-warp-1.0
+  * Logging enhanced
   * `ts-warp.sh`: `uname -o` -> `uname -s` for macOS compatibility
   * `ts-warp.sh`: custom CLI options
   * `ts-warp.sh`: updated for Linux
