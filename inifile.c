@@ -399,7 +399,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     int domainlen = 0;
 
     if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
-        printl(LOG_INFO, "Error resolving host: [%s]", inet2str(&ip, buf1));
+        printl(LOG_VERB, "Error resolving host: [%s]", inet2str(&ip, buf1));
     else
         if ((domain = strchr(host, '.'))) {
             domain++;
@@ -505,7 +505,7 @@ int chk_inivar(void *v, char *vi) {
         *vi     a variable name in the INI-file (just for logging) */
 
     if (*(int *)v) {
-        printl(LOG_WARN, "Updating already defined [%s] variable", vi);
+        printl(LOG_WARN, "Updating default or already defined [%s] variable", vi);
         return 1;
     }
 
