@@ -1,8 +1,9 @@
 # CHANGELOG
 
 * Current
-  * `ts-warp.sh` custom CLI options
-  * `ts-warp.sh` updated for Linux
+  * `ts-warp.sh`: `uname -o` -> `uname -s` for macOS compatibility
+  * `ts-warp.sh`: custom CLI options
+  * `ts-warp.sh`: updated for Linux
   * Examples updated for OpenBSD
   * OpenBSD compatibility and examples
   * Minor decorative changes
