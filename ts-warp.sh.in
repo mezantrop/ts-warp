@@ -48,7 +48,7 @@ _start() {
     } || {
         _check_root
         printf "Starting ts-warp: "
-        uname -o | grep -i 'Linux' >/dev/null &&
+        uname -s | grep -i 'Linux' >/dev/null &&
             "$tswarp_prefix"/etc/ts-warp_iptables.sh || 
             /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
         echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
