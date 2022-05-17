@@ -45,7 +45,7 @@ int connect_desnation(struct sockaddr dest) {
         return sock;
     }
 
-    printl(LOG_INFO, "Socket to connect with destination address created");
+    printl(LOG_VERB, "Socket to connect with destination address created");
 
     if ((connect(sock, &dest, sizeof dest)) < 0) {
         printl(LOG_CRIT, "Unable to connect with destination address");
