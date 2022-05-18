@@ -394,7 +394,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     
     struct ini_section *s;
     struct ini_target *t;
-    char *buf1 = NULL, *buf2 = NULL, *buf3 = NULL, *buf4 = NULL;
+    char buf1[STR_SIZE], buf2[STR_SIZE], buf3[STR_SIZE], buf4[STR_SIZE];
     char host[HOST_NAME_MAX], *domain = NULL;
     int domainlen = 0;
 
@@ -424,7 +424,6 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                         printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in: [%s]",
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), s->section_name);
-                            free(buf1); free(buf2);
                         return s;
                     }
                     break;
@@ -437,7 +436,6 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                             SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                         printl(LOG_VERB, "Found SOCKS server: [%s] to serve host: [%s] domain: [%s] in: [%s]",
                             inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
-                            free(buf1);
                         return s;
                     }
                     break;
@@ -451,7 +449,6 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                                 inet2str(&s->socks_server, buf1), inet2str(&ip, buf2),
                                 inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4),
                                 s->section_name);
-                                free(buf1); free(buf2), free(buf3); free(buf4);
                             return s;
                         }
                     } else if (ip.sa_family == AF_INET6) {
@@ -465,7 +462,6 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2),
                             inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4),
                             s->section_name);
-                            free(buf1); free(buf2), free(buf3); free(buf4);
                         return s;
                     }
                     break;
@@ -482,7 +478,6 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2),
                             inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4),
                             s->section_name);
-                            free(buf1); free(buf2), free(buf3); free(buf4);
                         return s;
                     }
                     break;
