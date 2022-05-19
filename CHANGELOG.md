@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * `README.md`: better wording
   * `inifile.c`: `str2inet()` buffer usage fix
 
 * 2022.05.17    ts-warp-1.0.5, gui-warp-1.0
