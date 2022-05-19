@@ -27,8 +27,19 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- Run `# make install` to install files under `PREFIX=/usr/local` or
-`# make install PREFIX=/path/to/install`, to use a custom `PREFIX` directory
+- Just run:
+  
+  ```sh
+  # make install
+  ```
+  
+  This will install all the program files under the `/usr/local` tree. If a
+  different installation path is required, set a `PREFIX`:
+  
+  ```sh
+  # make install PREFIX=/path/to/install
+  ```
+
 - Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample`
 file to suite your needs
 - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-
@@ -43,8 +54,16 @@ files location
 Under root privileges start, control or get status of ts-warp:
 
 ```sh
-# <PREFIX>/etc/ts-warp.sh start|restart [ts-warp options]
+# <PREFIX>/etc/ts-warp.sh start|restart [options]
 # <PREFIX>/etc/ts-warp.sh stop|reload|status
+```
+
+All the ts-warp command-line options can be listed using `ts-warp -h`.
+For example, to temporary enable more verbose logs, restart ts-warp with
+`-v 4` option:
+
+```sh
+# <PREFIX>/etc/ts-warp.sh restart -v 4
 ```
 
 ts-warp understands `SIGHUP` signal as command to reload configuration and
@@ -54,18 +73,23 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ### GUI front-end
 
-Experimental GUI front-end application to control ts-warp daemon can be installed
+- Experimental GUI front-end application to control ts-warp daemon can be installed
 from the `gui` directory:
 
-`# cd gui`
+  ```sh
+  # cd gui
+  # make install
+  ```
 
-Then:
+  *Optionally, set `PREFIX`, to use a different installation target in the
+  `make` command above:
 
-`# make install` it into `PREFIX=/usr/local` or `# make install PREFIX=/path/to/install`
-to copy files under the different base directory
+  ``` sh
+  # make install PREFIX=/path/to/install
+  ```
 
-To start the GUI run:
-`# /<PREFIX>/bin/gui-warp.py`
+- To start the GUI run:
+  `# /<PREFIX>/bin/gui-warp.py`
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
 
@@ -75,7 +99,7 @@ Note, Python 3 interpreter with `tkinter` support is required to run the GUI fro
 
 Not so early stage of development, yet don't expect everything to work properly.
 If you have an idea, a question, or have found a problem, do not hesitate to
-open an [issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or write
-me directly: Mikhail Zakharov <zmey20000@yahoo.com>
+open an [issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or mail
+me: Mikhail Zakharov <zmey20000@yahoo.com>
 
 Many thanks to [contributors](CONTRIBUTORS.md) of the project
