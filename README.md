@@ -73,6 +73,8 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ### GUI front-end
 
+![gui-warp.py](gui/gui-warp_py.png)
+
 - Experimental GUI front-end application to control ts-warp daemon can be installed
 from the `gui` directory:
 
@@ -81,7 +83,7 @@ from the `gui` directory:
   # make install
   ```
 
-  *Optionally, set `PREFIX`, to use a different installation target in the
+  *Optionally*. Set `PREFIX`, to use a different installation target in the
   `make` command above:
 
   ``` sh
@@ -92,8 +94,6 @@ from the `gui` directory:
   `# /<PREFIX>/bin/gui-warp.py`
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
-
-![gui-warp.py](gui/gui-warp_py.png)
 
 ### Contacts
 
