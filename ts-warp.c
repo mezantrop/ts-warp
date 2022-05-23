@@ -45,6 +45,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include <sys/types.h>
+#include <pwd.h>
+
 #if defined(linux)
 #include <netinet/in.h>
 #include <linux/netfilter_ipv4.h>
@@ -97,7 +100,7 @@ int main(int argc, char* argv[]) {
     char *iport = LISTEN_PORT;              /* ...a port to accept clients */
     int d_flg = 0;                          /* Daemon mode */
     int f_flg = 0;                          /* Force start */
-
+    
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
     ini_section *s_ini;                     /* Current section of the INI-file */
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
@@ -153,6 +156,14 @@ int main(int argc, char* argv[]) {
     printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
+    #if !defined(linux)
+        int pfd = pf_open();                /* Open PF device-file on *BSD */
+    #endif
+
+    #if !defined(__APPLE__)  
+        struct passwd *pwd = getpwnam("nobody");
+    #endif
+
     if (d_flg) {
         /* -- Daemonizing --------------------------------------------------- */
         signal(SIGHUP, trap_signal);
@@ -177,8 +188,20 @@ int main(int argc, char* argv[]) {
         if (pid > 0) exit(0);
 
         printl(LOG_CRIT, "%s-%s daemon started", PROG_NAME, PROG_VERSION);
-        mpid = mk_pidfile(pfile_name, f_flg);
+        #if defined(__APPLE__)
+            mpid = mk_pidfile(pfile_name, f_flg, 0, 0);
+        #else
+            mpid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
+        #endif
     }
+
+    #if !defined(__APPLE__)
+        if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
+            printl(LOG_CRIT, "Failed to lower privilege level to UID:GID [%d:%d]",
+                pwd->pw_uid, pwd->pw_gid);
+            exit(1);
+        }
+    #endif
 
     /* -- Try validating our address for incoming connections --------------- */
     memset(&ihints, 0, sizeof ihints);
@@ -265,7 +288,7 @@ int main(int argc, char* argv[]) {
             ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
 #else
             /* On *BSD with PF */
-            ret = nat_lookup(&caddr, ires->ai_addr, &daddr);
+            ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
 #endif
             if (ret != 0) {
                 printl(LOG_WARN, "Failed to determine the real destination IP, trying to get it from the socket");

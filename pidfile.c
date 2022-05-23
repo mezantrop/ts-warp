@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* -- PID-file handling ----------------------------------------------------- */
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "pidfile.h"
@@ -51,7 +52,7 @@ char *rd_pidfile(char *file_name) {
 }
 
 /* -------------------------------------------------------------------------- */
-pid_t wr_pidfile(char *file_name) {
+pid_t wr_pidfile(char *file_name, uid_t owner, uid_t group) {
     FILE *pfile;
     pid_t pid = 0;
      
@@ -67,12 +68,17 @@ pid_t wr_pidfile(char *file_name) {
         mexit(1, pfile_name);
     }
 
+    if (chown(file_name, owner, group)) {
+        printl(LOG_CRIT, "Unable to chown(%d%d) the PID file: [%s]",
+            owner, group, file_name);
+        exit(1);
+    }
     fclose(pfile);
     return pid;
 }
 
 /* -------------------------------------------------------------------------- */
-pid_t mk_pidfile(char *file_name, int f_flg) {
+pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group) {
     /* Create a file and write PID there */
 
     if (f_flg)
@@ -83,7 +89,7 @@ pid_t mk_pidfile(char *file_name, int f_flg) {
             mexit(1, pfile_name);
         }
 
-    return wr_pidfile(file_name);
+    return wr_pidfile(file_name, owner, group);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #if !defined(linux)
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -50,17 +51,26 @@ extern char *pfile_name;
 
 
 /* -------------------------------------------------------------------------- */
-int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr,
-    struct sockaddr *daddr) {
-    
-    struct pfioc_natlook pfnl;
+int pf_open() {
     int pfd;
-    char dstr_addr[INET6_ADDRSTRLEN];
 
     if ((pfd = open(PF_DEV, O_RDWR)) == -1) {
         printl(LOG_CRIT, "Error openin PF device: [%s]", PF_DEV);
         mexit(1, pfile_name);
     }
+    return pfd;
+}
+
+/* -------------------------------------------------------------------------- */
+int pf_close(int pfd) { return close(pfd); }
+
+/* -------------------------------------------------------------------------- */
+int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
+    struct sockaddr *daddr) {
+    
+    struct pfioc_natlook pfnl;
+    char dstr_addr[INET6_ADDRSTRLEN];
+
 
     memset(&pfnl, 0, sizeof(struct pfioc_natlook));
     pfnl.direction = PF_OUT;
