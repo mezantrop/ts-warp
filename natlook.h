@@ -149,5 +149,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define DIOCNATLOOK    _IOWR('D', 23, struct pfioc_natlook)
 
 /* -- Function prototypes --------------------------------------------------- */
-int nat_lookup(struct sockaddr *caddr, struct sockaddr *iaddr, 
+int pf_open();
+int pf_close(int pfd);
+int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, 
     struct sockaddr *daddr);

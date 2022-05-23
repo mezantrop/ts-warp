@@ -121,8 +121,9 @@ void mexit(int status, char *pid_file) {
     while (wait3(&status, WNOHANG, 0) > 0) ;
     printl(LOG_CRIT, "Program finished");
     if (pid_file) {
-        unlink(pid_file);
-        printl(LOG_WARN, "PID file removed");
+        if (unlink(pid_file))
+            truncate(pid_file, 0);
+        printl(LOG_WARN, "PID file removed/PID erased");
     }
     exit(status);
 }

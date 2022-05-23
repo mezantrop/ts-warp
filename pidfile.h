@@ -28,6 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* -------------------------------------------------------------------------- */
 char *rd_pidfile(char *file_name);
-pid_t wr_pidfile(char *file_name);
-pid_t mk_pidfile(char *file_name, int f_flg);
+pid_t wr_pidfile(char *file_name,uid_t owner, uid_t group);
+pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group);
 int rm_pidfile(char *file_name);

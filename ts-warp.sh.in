@@ -58,7 +58,7 @@ _start() {
 _status() {
     # Set $1 if status message is required
 
-    [ -f "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
+    [ -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
         [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
         return 0
     } || {
@@ -72,7 +72,7 @@ _stop() {
         _check_root
         printf "Stopping ts-warp: "
         cat "$tswarp_pidfile" | xargs kill -TERM
-        while [ -f "$tswarp_pidfile" ] ; do sleep 1; done
+        while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
     } || 
         printf "ts-warp is already stopped: "
 }
