@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current
+  * README.md update
   * CLI option: `-h` reworked to show defaults
   * CLI option: `-u` - specify a `user` to run `ts-warp`
 

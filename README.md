@@ -33,8 +33,8 @@ See it [here](CHANGELOG.md)
   # make install
   ```
   
-  This will install all the program files under the `/usr/local` tree. If a
-  different installation path is required, set a `PREFIX`:
+  This will install all the files under the `/usr/local` tree. If a different
+  installation path is required, set a `PREFIX`:
   
   ```sh
   # make install PREFIX=/path/to/install
@@ -44,9 +44,9 @@ See it [here](CHANGELOG.md)
 file to suite your needs
 - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-
 files location
-- *On macOS and \*BSD*. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate
+- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate
 `<PREFIX>/etc/ts-warp_pf_*.conf.sample` to configure the packet filter
-- *On Linux*. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on
+- **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on
 `<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
 
 ### Usage
@@ -58,7 +58,31 @@ Under root privileges start, control or get status of ts-warp:
 # <PREFIX>/etc/ts-warp.sh stop|reload|status
 ```
 
-All the ts-warp command-line options can be listed using `ts-warp -h`.
+All the ts-warp command-line options can be listed using `$ ts-warp -h`:
+```
+Usage:
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
+
+Version:
+  TS-Warp-1.0.6
+
+All parameters are optional:
+  -i IP:Port        Incoming local IP address and port
+  -c file.ini       Configuration file, default: /usr/local/etc/ts-warp.ini
+
+  -l file.log       Log filename, default: /usr/local/var/log/ts-warp.log
+  -v 0..4           Log verbosity level: 0 - off, default 3
+
+  -d                Daemon mode
+  -p file.pid       PID filename, default: /usr/local/var/run/ts-warp.pid
+  -f                Force start
+
+  -u user           User to run ts-warp from, default: nobody
+
+  -h                This message
+
+```
+
 For example, to temporary enable more verbose logs, restart ts-warp with
 `-v 4` option:
 
@@ -93,7 +117,7 @@ from the `gui` directory:
 To start the GUI run:
 
 ``` sh
-# /<PREFIX>/bin/gui-warp.py &
+# <PREFIX>/bin/gui-warp.py &
 ```
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
