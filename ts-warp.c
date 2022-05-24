@@ -76,24 +76,26 @@ ini_section *ini_root;                      /* Root section of the INI-file */
  
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
-    /* Usage:
-        ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h
+/* Usage:
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
 
-    Version:
-        TS-Warp-X.Y.Z
+Version:
+  TS-Warp-X.Y.Z
 
-    All parameters are optional:
-        -i IP:Port      Incoming local IP address and port
-        -c file.ini     Configuration file
+All parameters are optional:
+  -i IP:Port      Incoming local IP address and port
+  -c file.ini     Configuration file
 
-        -l file.log     Log filename
-        -v 0..4         Log verbosity level: 0 - off, default 2
+  -l file.log     Log filename
+  -v 0..4         Log verbosity level: 0 - off, default: 3
 
-        -d              Daemon mode
-        -p file.pid     PID filename
-        -f              Force start
+  -d              Daemon mode
+  -p file.pid     PID filename
+  -f              Force start
 
-        -h              This message */
+  -u user         A user to run ts-warp, default: nobody
+
+  -h              This message */
 
     int flg;                                /* Command-line options flag */
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
@@ -101,6 +103,8 @@ int main(int argc, char* argv[]) {
     int d_flg = 0;                          /* Daemon mode */
     int f_flg = 0;                          /* Force start */
     
+    char *runas_user = RUNAS_USER;          /* A user to run ts-warp */
+
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
     ini_section *s_ini;                     /* Current section of the INI-file */
     unsigned char auth_method;              /* SOCKS5 accepted auth method */
@@ -117,7 +121,7 @@ int main(int argc, char* argv[]) {
     int rec, snd;                           /* received/sent bytes */
 
 
-    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fh")) != -1)
+    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fu:h")) != -1)
         switch(flg) {
             case 'i':                               /* Our IP/name */
                 iaddr = strsep(&optarg, ":");       /* IP:PORT */
@@ -135,6 +139,8 @@ int main(int argc, char* argv[]) {
                 pfile_name = optarg; break;         /* PID-file */
             case 'f':                               /* Force start */
                 f_flg = 1; break;
+            case 'u':
+                runas_user = optarg; break;
             case 'h':                               /* Help */
             default:
                 (void)usage(0);
@@ -161,7 +167,7 @@ int main(int argc, char* argv[]) {
     #endif
 
     #if !defined(__APPLE__)  
-        struct passwd *pwd = getpwnam("nobody");
+        struct passwd *pwd = getpwnam(runas_user);
     #endif
 
     if (d_flg) {
