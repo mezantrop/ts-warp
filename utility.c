@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include "ts-warp.h"
 #include "utility.h"
 #include "network.h"
 #include "pidfile.h"
@@ -53,22 +54,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* -------------------------------------------------------------------------- */
 void usage(int ecode) {
     printf("Usage:\n\
-    ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h\n\n\
 Version:\n\
-    %s-%s\n\n\
+  %s-%s\n\n\
 All parameters are optional:\n\
-    -i IP:Port\t    Incoming local IP address and port\n\
-    -c file.ini\t    Configuration file\n\
-    \n\
-    -l file.log\t    Log filename\n\
-    -v 0..4\t    Log verbosity level: 0 - off, default 2\n\
-    \n\
-    -d\t\t    Daemon mode\n\
-    -p file.pid\t    PID filename\n\
-    -f\t\t    Force start\n\
-    \n\
-    -h\t\t    This message\n\
-    \n", PROG_NAME, PROG_VERSION);
+  -i IP:Port\t    Incoming local IP address and port\n\
+  -c file.ini\t    Configuration file, default: %s\n\
+  \n\
+  -l file.log\t    Log filename, default: %s\n\
+  -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
+  \n\
+  -d\t\t    Daemon mode\n\
+  -p file.pid\t    PID filename, default: %s\n\
+  -f\t\t    Force start\n\
+  \n\
+  -u user\t    A user to run ts-warp, default: %s\n\
+  \n\
+  -h\t\t    This message\n\n", 
+    PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, 
+    PID_FILE_NAME, RUNAS_USER);
 
     exit(ecode);
 }

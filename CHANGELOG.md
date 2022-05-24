@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* Current
+  * CLI option: `-h` reworked to show defaults
+  * CLI option: `-u` - specify a `user` to run `ts-warp`
+
 * 2022.05.23    ts-warp-1.0.6, gui-warp-1.0
   * `setuid()` to lower privileges for the daemon runtime to the level of
     the user `nobody`. Still `root` privileges are required to start the daemon.
