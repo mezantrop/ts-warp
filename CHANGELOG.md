@@ -1,6 +1,9 @@
 # CHANGELOG
 
 * Current
+  * Minor issues fixed:
+    * fixed unused variable warning on macOS
+    * correced ts_pass name in the help
   * README.md update
   * CLI option: `-h` reworked to show defaults
   * CLI option: `-u` - specify a `user` to run `ts-warp`

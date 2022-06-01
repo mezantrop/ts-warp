@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     char *result = NULL;
 
     if (argc != 2) {
-        printf("Usage:\n\tpass_encode Password2Encode\n\n");
+        printf("Usage:\n\tts_pass Password2Encode\n\n");
         exit(1);
     }
 
