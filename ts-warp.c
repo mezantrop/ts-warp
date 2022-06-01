@@ -102,8 +102,10 @@ All parameters are optional:
     char *iport = LISTEN_PORT;              /* ...a port to accept clients */
     int d_flg = 0;                          /* Daemon mode */
     int f_flg = 0;                          /* Force start */
-    
-    char *runas_user = RUNAS_USER;          /* A user to run ts-warp */
+
+    #if !defined(__APPLE__)
+        char *runas_user = RUNAS_USER;      /* A user to run ts-warp */
+    #endif
 
     struct addrinfo ihints, *ires = NULL;   /* Our address info structures */
     ini_section *s_ini;                     /* Current section of the INI-file */
