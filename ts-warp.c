@@ -142,7 +142,12 @@ All parameters are optional:
             case 'f':                               /* Force start */
                 f_flg = 1; break;
             case 'u':
-                runas_user = optarg; break;
+                #if defined(__APPLE__)
+                    printf(stderr, "Warning: -u option under macOS is not available\n");
+                #else
+                    runas_user = optarg;
+                #endif 
+                break;
             case 'h':                               /* Help */
             default:
                 (void)usage(0);
