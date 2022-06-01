@@ -34,9 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
 #define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
 #define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
-#if !defined(__APPLE__)
-   #define RUNAS_USER      "nobody"
-#endif
+
+#define RUNAS_USER      "nobody"
 
 /* -- Function prototypes --------------------------------------------------- */
 void trap_signal(int sig);
