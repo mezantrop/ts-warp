@@ -1,9 +1,10 @@
 # CHANGELOG
 
-* Current
+* 2022.06.02    ts-warp-1.0.7, gui-warp-1.0
+  * `README.md` update
   * Minor issues fixed:
-    * fixed unused variable warning on macOS
-    * correced ts_pass name in the help
+    * fixed unused variable warning on macOS for the `-u` switch
+    * correced ts_pass program name in the help
   * README.md update
   * CLI option: `-h` reworked to show defaults
   * CLI option: `-u` - specify a `user` to run `ts-warp`
