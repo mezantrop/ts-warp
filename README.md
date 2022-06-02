@@ -27,7 +27,14 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- Just run:
+- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip)
+  ts-warp sources and unarchive them, or just clone the repository:
+  
+  ```sh
+  $ git clone https://github.com/mezantrop/ts-warp
+  ```
+
+- In the directory with ts-warp source code run:
   
   ```sh
   # make install
@@ -59,7 +66,8 @@ Under root privileges start, control or get status of ts-warp:
 ```
 
 All the ts-warp command-line options can be listed using `$ ts-warp -h`:
-```
+
+```sh
 Usage:
   ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
 

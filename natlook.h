@@ -77,7 +77,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
         uint8_t                direction;
     };
 #elif defined(__FreeBSD__)
-    /* FreeBSD has slightly old definitions: pfvar.h,v 1.282 2009/01/29 */
+    /* FreeBSD has slightly old definitions: pfvar.h, v1.282 2009/01/29 */
 
     enum    { PF_INOUT, PF_IN, PF_OUT };
 
@@ -110,7 +110,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
         u_int8_t         direction;
     };
 #else
-    /* Fresh https://cvsweb.openbsd.org/src/sys/net/pfvar.h, v 1.502 2021/06/23 */
+    /* https://cvsweb.openbsd.org/src/sys/net/pfvar.h, v1.502 2021/06/23 */
 
     enum	{ PF_INOUT, PF_IN, PF_OUT, PF_FWD };
 
