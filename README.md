@@ -98,7 +98,7 @@ For example, to temporary enable more verbose logs, restart ts-warp with
 # <PREFIX>/etc/ts-warp.sh restart -v 4
 ```
 
-ts-warp understands `SIGHUP` signal as command to reload configuration and
+ts-warp understands `SIGHUP` signal as the command to reload configuration and
 `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)

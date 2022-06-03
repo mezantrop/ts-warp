@@ -1,0 +1,80 @@
+.\" Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\" 1. Redistributions of source code must retain the above copyright notice, this
+.\"    list of conditions and the following disclaimer.
+.\"
+.\" 2. Redistributions in binary form must reproduce the above copyright notice,
+.\"    this list of conditions and the following disclaimer in the documentation
+.\"    and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+.\" DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+.\" SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+.\" CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+.\" OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.TH ts\-warp 8 "" "06 June 2022" "Mikhail Zakharov"
+.SH NAME
+ts-warp \- Transparent SOCKS protocol Wrapper
+.SH SYNOPSIS
+.B ts-warp
+[
+.I \-i
+IP:Port
+.I \-c
+file.ini
+.I \-l
+file.log
+.I \-v
+0-4
+.I \-d
+.I \-p
+file.pid
+.I \-f
+.I \-u
+user
+.I \-h
+]
+.SH DESCRIPTION
+\fBts-warp\fR is a transparent firewall-based redirector of TCP/IP traffic to a SOCKS-proxy server. For macOS, FreeBSD and OpenBSD \fBts-warp\fR utilizes PF and for Linux based environments Iptables firewal facilities. \fBts-warp\fR supports IPv6 stack, has a simple INI-like configuration file with password obfuscation function, supports SOCK5 authentication methods and SOCKS proxy chains.
+.SH OPTIONS
+The options are as follows:
+.TP 16
+.B \-i IP:Port
+Incoming local IP address and port
+.TP
+.B \-c file.ini
+Configuration file
+.BR
+.TP
+.B \-l file.log
+Log filename
+.TP
+.B \-v 0..4
+Log verbosity level: 0 - off, default 3
+.BR
+.TP
+.B \-d
+Daemon mode
+.TP
+.B \-p file.pid
+PID filename
+.TP
+.B \-f
+Force start
+.BR
+.TP
+.SH NOTES
+\fBts-warp\fR understands \fBSIGHUP\fR signal as command to reload configuration and \fBSIGINT\fR to stop the daemon.
+.SH SEE ALSO
+.BR ts\-warp.ini (5),
+.BR ts\-warp.sh (1),
+.BR ts\-pass (1),
+.BR gui\-warp.py (1)
