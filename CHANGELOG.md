@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* Current       2022.06.03
+  * Documentation: manpages creation started under `man` directory
+
 * 2022.06.02    ts-warp-1.0.7, gui-warp-1.0
   * `README.md` update
   * Minor issues fixed:
