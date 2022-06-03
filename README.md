@@ -1,5 +1,7 @@
 # TS-Warp
 
+[![CodeQL](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml)
+
 ## Transparent SOCKS protocol Wrapper
 
 ### Goals and TODO list
