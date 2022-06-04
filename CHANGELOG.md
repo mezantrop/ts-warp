@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * Current       2022.06.03
-  * Github CodeQL vulnerability scan integration workkflow
+  * Github CodeQL vulnerability scan integration workflow
   * Documentation: manpages creation started under `man` directory
 
 * 2022.06.02    ts-warp-1.0.7, gui-warp-1.0
