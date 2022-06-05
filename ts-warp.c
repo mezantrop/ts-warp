@@ -607,7 +607,9 @@ void trap_signal(int sig) {
                 if (getpid() == mpid) {             /* Main daemon */
                     shutdown(isock, SHUT_RDWR);
                     close(isock);
-                    pf_close(pfd);
+                    #if !defined(linux)
+                        pf_close(pfd);
+                    #endif
                     mexit(0, pfile_name);
                 } else {                            /* Client process */
                     shutdown(csock, SHUT_RDWR);
