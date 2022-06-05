@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* Current       2022.06.03
+* Current       2022.06.05
+  * Close `/dev/pf` on exit
   * Github CodeQL vulnerability scan integration workflow
   * Documentation: manpages creation started under `man` directory
 
