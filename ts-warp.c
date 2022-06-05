@@ -74,6 +74,11 @@ pid_t pid, mpid;                            /* Current and main daemon PID */
 int isock, ssock, csock;                    /* Sockets for in/out/clients */
 ini_section *ini_root;                      /* Root section of the INI-file */
  
+#if !defined(linux)
+    int pfd;                                /* PF device-file on *BSD */
+#endif
+
+
 /* -------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) { 
 /* Usage:
@@ -170,7 +175,7 @@ All parameters are optional:
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
     #if !defined(linux)
-        int pfd = pf_open();                /* Open PF device-file on *BSD */
+        pfd = pf_open();                /* Open PF device-file on *BSD */
     #endif
 
     #if !defined(__APPLE__)  
@@ -602,6 +607,7 @@ void trap_signal(int sig) {
                 if (getpid() == mpid) {             /* Main daemon */
                     shutdown(isock, SHUT_RDWR);
                     close(isock);
+                    pf_close(pfd);
                     mexit(0, pfile_name);
                 } else {                            /* Client process */
                     shutdown(csock, SHUT_RDWR);
