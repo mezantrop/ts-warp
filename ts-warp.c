@@ -148,7 +148,7 @@ All parameters are optional:
                 f_flg = 1; break;
             case 'u':
                 #if defined(__APPLE__)
-                    printf(stderr, "Warning: -u option under macOS is not available\n");
+                    fprintf(stderr, "Warning: -u option under macOS is not available\n");
                 #else
                     runas_user = optarg;
                 #endif 
