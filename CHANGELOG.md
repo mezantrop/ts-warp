@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current       2022.06.08
+  * fixed `inet2str()` memset buffer overflow
   * fixed `printf()` -> `fprintf()` typo in ts-warp.c on mac
   * Close `/dev/pf` on exit
   * Github CodeQL vulnerability scan integration workflow

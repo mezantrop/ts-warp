@@ -60,9 +60,9 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
     /* inet_ntop() wrapper. If str_add is NULL, memory is auto-allocated,
      don't forget to free it after usage! */
 
-    if (!str_addr) str_addr = (char *)malloc(INET6_ADDRSTRLEN + 1);
+    if (!str_addr) str_addr = (char *)malloc(INET6_ADDRSTRLEN);
 
-    memset(str_addr, 0, INET6_ADDRSTRLEN + 1);
+    memset(str_addr, 0, INET6_ADDRSTRLEN);
 
     switch (ai_addr->sa_family) {
         case AF_INET:
