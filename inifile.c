@@ -394,7 +394,8 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     
     struct ini_section *s;
     struct ini_target *t;
-    char buf1[STR_SIZE], buf2[STR_SIZE], buf3[STR_SIZE], buf4[STR_SIZE];
+    char buf1[INET6_ADDRSTRLEN], buf2[INET6_ADDRSTRLEN];
+    char buf3[INET6_ADDRSTRLEN], buf4[INET6_ADDRSTRLEN];
     char host[HOST_NAME_MAX], *domain = NULL;
     int domainlen = 0;
 

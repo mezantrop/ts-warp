@@ -1,6 +1,9 @@
 # CHANGELOG
 
-* Current       2022.06.08
+* Current       2022.06.09
+  * `utility.c`: mesg[256] -> mesg[STR_SIZE]
+  * `iniline.c`: Set smaller buffers in `ini_look_server()`
+  * `ts-warp.sh.in`: Force-start option '-f' removed from the default config
   * `network.c`: fixed `memset()` buffer overflow in `inet2str()`
   * `ts-warp.c`: fixed `printf()` -> `fprintf()` typo in `,main()` on mac
   * Close `/dev/pf` on exit
