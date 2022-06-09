@@ -138,6 +138,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
     s5_reply_short *rep;
     char buf[261];              /* Max SOCKS reply size */
     int rcount = 0;
+    int atype_len = SOCKS5_ATYPE_NAME_LEN;
 
     s5_request_short *req = (s5_request_short *)buf;
     req->ver = PROXY_PROTO_SOCKS_V5;
@@ -146,6 +147,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
     req->atype = atype;
 
     if (atype == SOCKS5_ATYPE_IPV4) {
+        atype_len = SOCKS5_ATYPE_IPV4_LEN;
         printl(LOG_VERB, "Preparing IPv4 SOCKS5 request");
 
         s5_request_ipv4 *req = (s5_request_ipv4 *)buf;
@@ -161,6 +163,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
         printl(LOG_VERB, "IPv4 SOCKS5 request sent");
     } else if (atype == SOCKS5_ATYPE_IPV6) {
+        atype_len = SOCKS5_ATYPE_IPV6_LEN;
         printl(LOG_VERB, "Preparing IPv6 SOCKS request");
 
         s5_request_ipv6 *req = (s5_request_ipv6 *)buf;
@@ -185,7 +188,9 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
     /* Receive reply from the server */
     memset(buf, 0, sizeof buf);
-    if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
+
+    /* 6 + atype_len: 6 is a SOCK5 header length - variable address field */
+    if ((rcount = recv(socket, &buf, 6 + atype_len, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the SOCKS server");
         mexit(1, pfile_name);
     }
