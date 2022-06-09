@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * Current       2022.06.09
+  * `socks.c/socks.h`: `SOCKS5_ATYPE_*_LEN` for precise address-type matching
   * `utility.c`: mesg[256] -> mesg[STR_SIZE]
   * `iniline.c`: Set smaller buffers in `ini_look_server()`
   * `ts-warp.sh.in`: Force-start option '-f' removed from the default config

@@ -109,6 +109,11 @@ typedef struct {
 #define SOCKS5_ATYPE_NAME       0x03
 #define SOCKS5_ATYPE_IPV6       0x04
 
+/* Address type: atype max length */
+#define SOCKS5_ATYPE_IPV4_LEN   4
+#define SOCKS5_ATYPE_NAME_LEN   256
+#define SOCKS5_ATYPE_IPV6_LEN   16
+
 typedef struct {
     uint8_t ver;            /* SOCKS version */
     uint8_t cmd;            /* Command
