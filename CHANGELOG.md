@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* Current       2022.06.09
+* 2022.06.11    ts-warp-1.0.8, gui-warp-1.0
+  * Better logging
+  * SOCKS4 added
   * `socks.c/socks.h`: `SOCKS5_ATYPE_*_LEN` for precise address-type matching
   * `utility.c`: mesg[256] -> mesg[STR_SIZE]
   * `iniline.c`: Set smaller buffers in `ini_look_server()`
