@@ -148,7 +148,8 @@ All parameters are optional:
                 f_flg = 1; break;
             case 'u':
                 #if defined(__APPLE__)
-                    fprintf(stderr, "Warning: -u option under macOS is not available\n");
+                    fprintf(stderr,
+                        "Warning: -u option under macOS is not available\n");
                 #else
                     runas_user = optarg;
                 #endif 
@@ -171,7 +172,8 @@ All parameters are optional:
             exit(1);
         }
     }
-    printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
+    printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]",
+        lfile_name, loglevel);
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
     #if !defined(linux)
@@ -215,7 +217,8 @@ All parameters are optional:
 
     #if !defined(__APPLE__)
         if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
-            printl(LOG_CRIT, "Failed to lower privilege level to UID:GID [%d:%d]",
+            printl(LOG_CRIT,
+                "Failed to lower privilege level to UID:GID [%d:%d]",
                 pwd->pw_uid, pwd->pw_gid);
             exit(1);
         }
@@ -309,7 +312,8 @@ All parameters are optional:
             ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
 #endif
             if (ret != 0) {
-                printl(LOG_WARN, "Failed to determine the real destination IP, trying to get it from the socket");
+                printl(LOG_WARN, 
+                    "Failed to find the real destination IP, trying to get it from the socket");
                 getpeername(csock, &daddr, &daddrlen);
             }
 
@@ -389,23 +393,136 @@ All parameters are optional:
                         close(csock);
                         exit(1);
                     }
+
                     while (sc) {
-                        switch (auth_method = socks5_hello(ssock,
-                                AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
-                                AUTH_METHOD_NOACCEPT)) {
-                            case AUTH_METHOD_NOAUTH:
-                                /* No authentication required */
-                                break;
-                            case AUTH_METHOD_UNAME:
-                                /* Perform user/password auth */
-                                if (socks5_auth(ssock,
-                                        sc->chain_member->socks_user, 
-                                        sc->chain_member->socks_password)) {
-                                    printl(LOG_WARN,
-                                        "SOCKS rejected user: [%s]",
-                                        sc->chain_member->socks_user);
+                        if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V5) {
+                            switch (auth_method = socks5_hello(ssock,
+                                    AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
+                                    AUTH_METHOD_NOACCEPT)) {
+                                case AUTH_METHOD_NOAUTH:
+                                    /* No authentication required */
+                                    break;
+                                case AUTH_METHOD_UNAME:
+                                    /* Perform user/password auth */
+                                    if (socks5_auth(ssock,
+                                            sc->chain_member->socks_user, 
+                                            sc->chain_member->socks_password)) {
+                                        printl(LOG_WARN,
+                                            "SOCKS5 server rejected user: [%s]",
+                                            sc->chain_member->socks_user);
+                                        close(csock);
+                                        exit(1);
+                                    }
+                                    break;
+                                case AUTH_METHOD_GSSAPI:
+                                case AUTH_METHOD_CHAP:
+                                case AUTH_METHOD_CRAM:
+                                case AUTH_METHOD_SSL:
+                                case AUTH_METHOD_NDS:
+                                case AUTH_METHOD_MAF:
+                                case AUTH_METHOD_JPB:
+                                    printl(LOG_CRIT,
+                                        "SOCKS5 server accepted unsupported auth-method: [%d]",
+                                        auth_method);
                                     close(csock);
                                     exit(1);
+                                case AUTH_METHOD_NOACCEPT:
+                                default:
+                                    printl(LOG_WARN,
+                                            "No auth methods were accepted by SOCKS5 server");
+                                    close(csock);
+                                    exit(1);
+                            }
+
+                            printl(LOG_VERB, "Initiate SOCKS5 protocol: request");
+
+                            if (sc->next) {
+                                /* We want to connect with the next chain member */
+                                if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
+                                    sc->next->chain_member->socks_server.sa_family == AF_INET ? 
+                                        SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
+                                    &sc->next->chain_member->socks_server) > 0) {
+                                        printl(LOG_WARN, "SOCKS5 server returned an error");
+                                        close(csock);
+                                        exit(1);
+                                }
+                            } else {
+                                /* We are at the end of the chain, so connect with the section server */
+                                if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
+                                    s_ini->socks_server.sa_family == AF_INET ?
+                                        SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
+                                    &s_ini->socks_server) > 0) {
+                                        printl(LOG_WARN,
+                                            "SOCKS5 server returned an error");
+                                        close(csock);
+                                        exit(1);
+                                }
+                            }
+                        } else if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V4) {
+                            printl(LOG_VERB, "Initiate SOCKS4 protocol: request");
+
+                            if (sc->next) {
+                                /* We want to connect with the next chain member */
+                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                        (struct sockaddr_in *)&sc->next->chain_member->socks_server,
+                                        sc->next->chain_member->socks_user) > 0) {
+                                            printl(LOG_WARN,
+                                                "SOCKS4 server returned an error");
+                                            close(csock);
+                                            exit(1);
+                                }
+                            } else {
+                                /* We are at the end of the chain, so connect with the section server */
+                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                        (struct sockaddr_in *)&s_ini->socks_server,
+                                        s_ini->socks_user) > 0) {
+                                            printl(LOG_WARN,
+                                                "SOCKS4 server returned an error");
+                                            close(csock);
+                                            exit(1);
+                                }
+                            }
+                        } else {
+                            /* Must be cleared already by read_ini() */
+                            printl(LOG_WARN,
+                                "Detected unsupported SOCKS version: [%d]",
+                                s_ini->proxy_chain->chain_member->socks_version);
+                            close(csock);
+                            exit(1);
+                        }
+                        sc = sc->next;
+                    }
+                } else {
+                    /* Only a single SOCKS server: no chain */
+                    printl(LOG_INFO, "Connecting the SOCKS server: [%s]",
+                        inet2str(&s_ini->socks_server, buf));
+
+                    if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
+                        printl(LOG_WARN, 
+                            "Unable to connect with SOCKS server: [%s]",
+                            inet2str(&s_ini->socks_server, buf));
+                        close(csock);
+                        exit(1);
+                    }
+
+                    printl(LOG_INFO,
+                        "Succesfully connected with the SOCKS server: [%s]",
+                        inet2str(&s_ini->socks_server, buf));
+                    printl(LOG_VERB, "Initiate SOCKS protocol: hello");
+
+                    if (s_ini->socks_version == PROXY_PROTO_SOCKS_V5) {
+                        switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH,
+                        AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
+                            case AUTH_METHOD_NOAUTH:    /* No authentication required */
+                                break;
+                            case AUTH_METHOD_UNAME:     /* Perform user/password auth */
+                                if (socks5_auth(ssock, s_ini->socks_user, 
+                                    s_ini->socks_password)) {
+                                        printl(LOG_WARN,
+                                            "SOCKS rejected user: [%s]",
+                                            s_ini->socks_user);
+                                        close(csock);
+                                        exit(1);
                                 }
                                 break;
                             case AUTH_METHOD_GSSAPI:
@@ -415,7 +532,7 @@ All parameters are optional:
                             case AUTH_METHOD_NDS:
                             case AUTH_METHOD_MAF:
                             case AUTH_METHOD_JPB:
-                                printl(LOG_CRIT,
+                                printl(LOG_WARN, 
                                     "SOCKS server accepted unsupported auth-method: [%d]",
                                     auth_method);
                                 close(csock);
@@ -423,89 +540,36 @@ All parameters are optional:
                             case AUTH_METHOD_NOACCEPT:
                             default:
                                 printl(LOG_WARN,
-                                        "No auth methods were accepted by SOCKS server");
+                                    "No auth methods were accepted by SOCKS server");
                                 close(csock);
                                 exit(1);
                         }
 
                         printl(LOG_VERB, "Initiate SOCKS protocol: request");
 
-                        if (sc->next) {
-                            /* We want to connect with the next chain member */
-                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                                sc->next->chain_member->socks_server.sa_family == AF_INET ? 
-                                SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
-                                &sc->next->chain_member->socks_server) > 0) {
-                                    printl(LOG_WARN, "SOCKS server returned an error");
-                                    close(csock);
-                                    exit(1);
-                            }
-                        } else {
-                            /* We are at the end of the chain, so connect with the section server */
-                            if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                                s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
-                                &s_ini->socks_server) > 0) {
-                                    printl(LOG_WARN, "SOCKS server returned an error");
-                                    close(csock);
-                                    exit(1);
-                            }
-                        }
-
-                        sc = sc->next;
-                    }
-                } else {
-                    /* Only a single SOCKS server: no chain */
-                    printl(LOG_INFO, "Connecting the SOCKS server: [%s]",
-                        inet2str(&s_ini->socks_server, buf));
-
-                    if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
-                        printl(LOG_WARN, "Unable to connect with SOCKS server: [%s]",
-                            inet2str(&s_ini->socks_server, buf));
-                        close(csock);
-                        exit(1);
-                    }
-
-                    printl(LOG_INFO, "Succesfully connected with the SOCKS server: [%s]",
-                        inet2str(&s_ini->socks_server, buf));
-                    printl(LOG_VERB, "Initiate SOCKS protocol: hello");
-
-                    switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH,
-                    AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
-                        case AUTH_METHOD_NOAUTH:    /* No authentication required */
-                            break;
-                        case AUTH_METHOD_UNAME:     /* Perform user/password auth */
-                            if (socks5_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
-                                printl(LOG_WARN, "SOCKS rejected user: [%s]", s_ini->socks_user);
+                        if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
+                            daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
+                            &daddr) > 0) {                    
+                                printl(LOG_CRIT, "SOCKS server returned an error");
                                 close(csock);
                                 exit(1);
-                            }
-                            break;
-                        case AUTH_METHOD_GSSAPI:
-                        case AUTH_METHOD_CHAP:
-                        case AUTH_METHOD_CRAM:
-                        case AUTH_METHOD_SSL:
-                        case AUTH_METHOD_NDS:
-                        case AUTH_METHOD_MAF:
-                        case AUTH_METHOD_JPB:
-                            printl(LOG_WARN, "SOCKS server accepted unsupported auth-method: [%d]",
-                                auth_method);
-                            close(csock);
-                            exit(1);
-                        case AUTH_METHOD_NOACCEPT:
-                        default:
-                            printl(LOG_WARN, "No auth methods were accepted by SOCKS server");
-                            close(csock);
-                            exit(1);
-                    }
-
-                    printl(LOG_VERB, "Initiate SOCKS protocol: request");
-
-                    if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
-                        daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
-                        &daddr) > 0) {                    
-                            printl(LOG_CRIT, "SOCKS server returned an error");
-                            close(csock);
-                            exit(1);
+                        }
+                    } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
+                        if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                (struct sockaddr_in *)&s_ini->socks_server,
+                                s_ini->socks_user) > 0) {
+                                    printl(LOG_WARN,
+                                        "SOCKS4 server returned an error");
+                                    close(csock);
+                                    exit(1);
+                        }
+                    } else {
+                        /* Must be cleared already by read_ini() */
+                        printl(LOG_WARN,
+                            "Detected unsupported SOCKS version: [%d]",
+                            s_ini->socks_version);
+                        close(csock);
+                        exit(1);
                     }
                 }
             }

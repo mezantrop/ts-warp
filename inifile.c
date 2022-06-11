@@ -117,23 +117,35 @@ ini_section *read_ini(char *ifile_name) {
                 continue;
             }
 
-            printl(LOG_VERB, "LN: %d V: %s v1: %s v2: %s m1: %s m2: %s",
+            printl(LOG_VERB, "LN: [%d] V: [%s] v1: [%s] v2: [%s] m1: [%s] m2: [%s]",
                 ln, entry.var, entry.val1, entry.val2,
                 !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD) ? "********" : 
                 entry.mod1, entry.mod2);
 
             /* Parse socks_* entries */
             if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
-                chk_inivar(&c_sect->socks_server, INI_ENTRY_SOCKS_SERVER);
+                chk_inivar(&c_sect->socks_server, INI_ENTRY_SOCKS_SERVER, ln);
                 c_sect->socks_server = *(str2inet(entry.val1, entry.mod1 ? 
                     entry.mod1 : "1080", &res, NULL));
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_VERSION)) {
-                    chk_inivar(&c_sect->socks_version, INI_ENTRY_SOCKS_VERSION);
+                    chk_inivar(&c_sect->socks_version, INI_ENTRY_SOCKS_VERSION, ln);
                     c_sect->socks_version = toint(entry.val);
+                    if (c_sect->socks_version != PROXY_PROTO_SOCKS_V4 &&
+                        c_sect->socks_version != PROXY_PROTO_SOCKS_V5) {
+                            printl(LOG_WARN, 
+                                "LN: [%d] Detected unsupported SOCKS version: [%d]", 
+                                ln, c_sect->socks_version);
+                            
+                            c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
+
+                            printl(LOG_WARN, 
+                                "LN: [%d] Resetting SOCKS version to default: [%d]", 
+                                ln, c_sect->socks_version);
+                        }
             } else 
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
-                    if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER))
+                    if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER, ln))
                         free(c_sect->socks_user);
                     c_sect->socks_user = strdup(entry.val);
             } else
@@ -147,22 +159,23 @@ ini_section *read_ini(char *ifile_name) {
 
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
-                    if (chk_inivar(&c_sect->socks_password, INI_ENTRY_SOCKS_PASSWORD))
+                    if (chk_inivar(&c_sect->socks_password, INI_ENTRY_SOCKS_PASSWORD, ln))
                             free(c_sect->socks_password);
 
                         if (!strcasecmp(entry.val1, XEDEC_PLAIN))
                             c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
-                                printl(LOG_CRIT, "Detected wrong encryption hash version!");
+                                printl(LOG_CRIT, 
+                                    "LN: [%d] Detected wrong encryption hash version!", ln);
                                 mexit(1, pfile_name);
                             }
 
                             c_sect->socks_password = strdup(x);
                             free(x);
                         } else {
-                            printl(LOG_CRIT, "Malformed INI-file entry: [%s]",
-                                INI_ENTRY_SOCKS_PASSWORD);
+                            printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]",
+                                ln, INI_ENTRY_SOCKS_PASSWORD);
                             mexit(1, pfile_name);
                         }
             } else {
@@ -325,7 +338,7 @@ void show_ini(struct ini_section *ini) {
         t = s->target_entry;
         while (t) {
             printl(LOG_VERB, 
-                "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2:[%d] Name: [%s] Type: [%d]",
+                "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
                 inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
                 t->ip1.sa_family == AF_INET ?
                     ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
@@ -495,13 +508,15 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
 }
 
 /* -------------------------------------------------------------------------- */
-int chk_inivar(void *v, char *vi) {
+int chk_inivar(void *v, char *vi, int ln) {
     /* Check if an INI-file variable already has a value in memory. Here:
         *v      a variable in memory, 
-        *vi     a variable name in the INI-file (just for logging) */
+        *vi     a variable name in the INI-file (just for logging) 
+        ln      a line number in the ini-file (for logging only) */
 
     if (*(int *)v) {
-        printl(LOG_WARN, "Updating default or already defined [%s] variable", vi);
+        printl(LOG_WARN, 
+            "LN: [%d] Updating default or already defined [%s] variable", ln, vi);
         return 1;
     }
 

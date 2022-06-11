@@ -31,15 +31,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define PROXY_PROTO_SOCKS_V5    5
 
 /* -- SOCKS V4 -------------------------------------------------------------- */
+#define SOCKS4_CMD_TCPCONNECT   0x01
+#define SOCKS4_CMD_TCPBIND      0x02
+
 typedef struct {
     uint8_t ver;        /* SOCKS version */
     uint8_t cmd;        /* Command
                             0x01: TCP Connect; 
                             0x02: TCP port Binding */
     uint16_t dstport;   /* Dest port number in a network byte order */
-    uint32_t dstip;     /* IPv4 Address 4 bytes in network byte order */
+    uint32_t dstaddr;   /* IPv4 Address 4 bytes in network byte order */
     unsigned char *id;  /* Null-terminated user ID string */
-} s4_requrst;
+} s4_request;
 
 typedef struct {
     uint8_t ver;        /* SOCKS version */
@@ -51,7 +54,7 @@ typedef struct {
                             0x5D: Request failed because client's identd
                                 could not confirm the user ID */
     uint16_t dstport;   /* Dest port number in a network byte order */
-    uint32_t dstip;     /* IPv4 Address 4 bytes in network byte order */
+    uint32_t dstaddr;   /* IPv4 Address 4 bytes in network byte order */
 } s4_reply;
 
 /* -- SOCKS V5 -------------------------------------------------------------- */
@@ -219,6 +222,7 @@ typedef struct {
 } s5_reply_short;
 
 /* -- Function prototypes --------------------------------------------------- */
+int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr);
