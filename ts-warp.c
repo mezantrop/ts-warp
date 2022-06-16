@@ -105,6 +105,7 @@ All parameters are optional:
     int flg;                                /* Command-line options flag */
     char *iaddr = LISTEN_DEFAULT;           /* Our (incomming) address and... */
     char *iport = LISTEN_PORT;              /* ...a port to accept clients */
+    int l_flg = 0;                          /* User didn't set the log file */
     int d_flg = 0;                          /* Daemon mode */
     int f_flg = 0;                          /* Force start */
 
@@ -130,21 +131,21 @@ All parameters are optional:
 
     while ((flg = getopt(argc, argv, "i:c:l:v:dp:fu:h")) != -1)
         switch(flg) {
-            case 'i':                               /* Our IP/name */
-                iaddr = strsep(&optarg, ":");       /* IP:PORT */
+            case 'i':                                   /* Our IP/name */
+                iaddr = strsep(&optarg, ":");           /* IP:PORT */
                 if (optarg) iport = optarg;
                 break;
-            case 'c':                               /* Configuration INI-file */
+            case 'c':                                   /* INI-file */
                 ifile_name = optarg; break;
-            case 'l':                               /* Logfile */
-                lfile_name = optarg; break;
-            case 'v':                               /* Log verbosity */
+            case 'l': 
+                l_flg = 1; lfile_name = optarg; break;  /* Logfile */
+            case 'v':                                   /* Log verbosity */
                 loglevel = (uint8_t)toint(optarg); break;
-            case 'd':                               /* Daemon mode */
+            case 'd':                                   /* Daemon mode */
                 d_flg = 1; break;
             case 'p':
-                pfile_name = optarg; break;         /* PID-file */
-            case 'f':                               /* Force start */
+                pfile_name = optarg; break;             /* PID-file */
+            case 'f':                                   /* Force start */
                 f_flg = 1; break;
             case 'u':
                 #if defined(__APPLE__)
@@ -163,7 +164,10 @@ All parameters are optional:
     if (!iport[0]) iport = LISTEN_PORT;
 
     /* Open log-file */
-    if (!(lfile = fopen(lfile_name, "a"))) {
+    if (!d_flg && !l_flg) {
+        lfile = stdout;
+        printl(LOG_INFO, "Log file: [STDOUT], verbosity level: [%d]", loglevel);
+    } else if (!(lfile = fopen(lfile_name, "a"))) {
         printl(LOG_WARN, "Unable to open log: [%s], now trying: [%s]",
             lfile_name, LOG_FILE_NAME);
         lfile_name = LOG_FILE_NAME;
@@ -171,9 +175,9 @@ All parameters are optional:
             printl(LOG_CRIT, "Unable to open the default log: [%s]", lfile_name);
             exit(1);
         }
+        printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]",
+            lfile_name, loglevel);
     }
-    printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]",
-        lfile_name, loglevel);
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
     #if !defined(linux)

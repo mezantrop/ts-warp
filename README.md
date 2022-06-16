@@ -30,13 +30,13 @@ See it [here](CHANGELOG.md)
 ### Installation
 
 - [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip)
-  ts-warp sources and unarchive them, or just clone the repository:
+  TS-Warp sources and unarchive them, or just clone the repository:
   
   ```sh
   $ git clone https://github.com/mezantrop/ts-warp
   ```
 
-- In the directory with ts-warp source code run:
+- In the directory with TS-Warp source code run:
   
   ```sh
   # make install
@@ -60,7 +60,7 @@ files location
 
 ### Usage
 
-Under root privileges start, control or get status of ts-warp:
+Under root privileges start, control or get status of ts-warp daemon:
 
 ```sh
 # <PREFIX>/etc/ts-warp.sh start|restart [options]

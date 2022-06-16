@@ -1,5 +1,10 @@
 # CHANGELOG
 
+* 2022.06.16    Current
+  * `ts-warp.c`: Log to STDOUT if TS-Warp is started in foreground: no `-d`
+    option and no log-file `-l` is explicitly specified
+  * `README.md`: updated
+
 * 2022.06.11    ts-warp-1.0.8, gui-warp-1.0
   * Better logging
   * SOCKS4 added
