@@ -29,8 +29,8 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip)
-  TS-Warp sources and unarchive them, or just clone the repository:
+- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them,
+or just clone the repository:
   
   ```sh
   $ git clone https://github.com/mezantrop/ts-warp
@@ -42,21 +42,18 @@ See it [here](CHANGELOG.md)
   # make install
   ```
   
-  This will install all the files under the `/usr/local` tree. If a different
-  installation path is required, set a `PREFIX`:
+  This will install all the files under the `/usr/local` tree. If a different installation path is required, set a `PREFIX`:
   
   ```sh
   # make install PREFIX=/path/to/install
   ```
 
-- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample`
-file to suite your needs
-- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-
-files location
-- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate
-`<PREFIX>/etc/ts-warp_pf_*.conf.sample` to configure the packet filter
-- **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on
-`<PREFIX>/etc/ts-warp_iptables.sh.sample` to configure firewall
+- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
+- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location
+- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample`
+to configure the packet filter
+- **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample`
+to configure firewall
 
 ### Usage
 
@@ -93,15 +90,13 @@ All parameters are optional:
 
 ```
 
-For example, to temporary enable more verbose logs, restart ts-warp with
-`-v 4` option:
+For example, to temporary enable more verbose logs, restart ts-warp with `-v 4` option:
 
 ```sh
 # <PREFIX>/etc/ts-warp.sh restart -v 4
 ```
 
-ts-warp understands `SIGHUP` signal as the command to reload configuration and
-`SIGINT` to stop the daemon.
+ts-warp understands `SIGHUP` signal as the command to reload configuration and `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 
@@ -109,16 +104,14 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ![gui-warp.py](gui/gui-warp_py.png)
 
-Experimental GUI front-end application to control ts-warp daemon can be installed
-from the `gui` directory:
+Experimental GUI front-end application to control ts-warp daemon can be installed from the `gui` directory:
 
 ```sh
 # cd gui
 # make install
 ```
 
-*Optionally*. Set `PREFIX`, to use a different installation target in the
-`make` command above:
+*Optionally*. Set `PREFIX`, to use a different installation target in the `make` command above:
 
 ``` sh
 # make install PREFIX=/path/to/install
@@ -134,9 +127,8 @@ Note, Python 3 interpreter with `tkinter` support is required to run the GUI fro
 
 ### Contacts
 
-Not so early stage of development, yet don't expect everything to work properly.
-If you have an idea, a question, or have found a problem, do not hesitate to
-open an [issue](https://github.com/mezantrop/ts-warp/issues/new/choose) or mail
-me: Mikhail Zakharov <zmey20000@yahoo.com>
+Not so early stage of development, yet don't expect everything to work properly. If you have an idea, a question,
+or have found a problem, do not hesitate to open an [issue](https://github.com/mezantrop/ts-warp/issues/new/choose)
+or mail me: Mikhail Zakharov <zmey20000@yahoo.com>
 
 Many thanks to [contributors](CONTRIBUTORS.md) of the project

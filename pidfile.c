@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- PID-file handling ----------------------------------------------------- */
+/* -- PID-file handling --------------------------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -36,10 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 extern char *pfile_name;
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 char *rd_pidfile(char *file_name) {
     FILE *pfile;
-    static char pid[9];                 /* Could PID be of long long type? */
+    static char pid[9];                                                 /* Could PID be of long long type? */
      if ((pfile = fopen(file_name, "r")))
         if (fgets(pid, sizeof pid, pfile)) {
             printl(LOG_VERB, "Daemon running, pid: [%s]", pid);
@@ -51,7 +51,7 @@ char *rd_pidfile(char *file_name) {
     return NULL;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 pid_t wr_pidfile(char *file_name, uid_t owner, uid_t group) {
     FILE *pfile;
     pid_t pid = 0;
@@ -69,15 +69,14 @@ pid_t wr_pidfile(char *file_name, uid_t owner, uid_t group) {
     }
 
     if (chown(file_name, owner, group)) {
-        printl(LOG_CRIT, "Unable to chown(%d%d) the PID file: [%s]",
-            owner, group, file_name);
+        printl(LOG_CRIT, "Unable to chown(%d%d) the PID file: [%s]", owner, group, file_name);
         exit(1);
     }
     fclose(pfile);
     return pid;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group) {
     /* Create a file and write PID there */
 
@@ -92,7 +91,7 @@ pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group) {
     return wr_pidfile(file_name, owner, group);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int rm_pidfile(char *file_name) {
     /* Just a wrapper for unlink() */
     return unlink(file_name);

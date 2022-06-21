@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- SOCKS protocol implementation ----------------------------------------- */
+/* -- SOCKS protocol implementation --------------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 extern char *pfile_name;
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user) {
     /* Send SOCKS4 request */
 
@@ -81,8 +81,7 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
         rep.status, rcount);
 
     if (rep.ver != PROXY_PROTO_SOCKS_V4) {
-        printl(LOG_CRIT, "SOCKS4 server speaks unsupported protocol version: [%d]", 
-            rep.ver);
+        printl(LOG_CRIT, "SOCKS4 server speaks unsupported protocol version: [%d]", rep.ver);
         mexit(1, pfile_name);
     }
     
@@ -91,12 +90,12 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
     return rep.status;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_hello(int socket, unsigned int auth_method, ...) {
     /* Send SOCKS5 Hello and receive a reply. 
     
-    Specify one mandatory auth_method, list the rest of auth methods as variadic
-    arguments. Make sure the last of them is always AUTH_METHOD_NOACCEPT !!! */
+    Specify one mandatory auth_method, list the rest of auth methods as variadic arguments. Make sure the last of them
+    is always AUTH_METHOD_NOACCEPT !!! */
 
     s5_request_hello req;
     s5_reply_hello rep;
@@ -104,8 +103,7 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
     unsigned int am = 0;
 
     if (auth_method == AUTH_METHOD_NOACCEPT) {
-        printl(LOG_CRIT,
-            "socks5_hello(): auth_method must not be AUTH_METHOD_NOACCEPT");
+        printl(LOG_CRIT, "socks5_hello(): auth_method must not be AUTH_METHOD_NOACCEPT");
         return AUTH_METHOD_NOACCEPT;
     }
 
@@ -129,15 +127,13 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
 
     /* Receive 'hello' response from SOCKS server */
     if ((recv(socket, &rep, sizeof rep, 0)) == -1) {
-        printl(LOG_CRIT,
-            "Unable to receive 'hello' reply from the SOCKS5 server");
+        printl(LOG_CRIT, "Unable to receive 'hello' reply from the SOCKS5 server");
         return AUTH_METHOD_NOACCEPT;
     }
     
     /* Veryfy Socks version */
     if (rep.ver != PROXY_PROTO_SOCKS_V5) {
-        printl(LOG_CRIT, "SOCKS5 server speaks unsupported protocol: v[%d]", 
-            rep.ver);
+        printl(LOG_CRIT, "SOCKS5 server speaks unsupported protocol: v[%d]", rep.ver);
         return AUTH_METHOD_NOACCEPT;
     }
     
@@ -145,9 +141,9 @@ int socks5_hello(int socket, unsigned int auth_method, ...) {
     return rep.cauth;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_auth(int socket, char *user, char *password) {
-    char buf[513];              /* Max SOCKS5 auth request size */
+    char buf[513];                                                      /* Max SOCKS5 auth request size */
     int idlen = 0, pwlen = 0;
     int rcount;
     s5_reply_auth *rep = NULL;
@@ -174,19 +170,17 @@ int socks5_auth(int socket, char *user, char *password) {
     }
 
     rep = (s5_reply_auth *)buf;
-    printl(LOG_VERB, "SOCKS5 reply: [%d][%d], Bytes [%d]", rep->ver, 
-        rep->status, rcount);
+    printl(LOG_VERB, "SOCKS5 reply: [%d][%d], Bytes [%d]", rep->ver, rep->status, rcount);
 
     return rep->status;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr) {
-    /* Perform SOCKS5 request; Use only IPv4/IPv6 addresses: atype 1 or 4,
-    Domain name: atype 3 is not supported */
+    /* Perform SOCKS5 request; Use only IPv4/IPv6 addresses: atype 1 or 4, Domain name: atype 3 is not supported */
 
     s5_reply_short *rep;
-    char buf[261];              /* Max SOCKS5 reply size */
+    char buf[261];                                                      /* Max SOCKS5 reply size */
     int rcount = 0;
     int atype_len = SOCKS5_ATYPE_NAME_LEN;
 
@@ -229,8 +223,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
         printl(LOG_VERB, "IPv6 SOCKS5 request sent");
     } else {
-        printl(LOG_CRIT, "Unsupported address types: [%d] is in the request",
-            daddr->sa_family);
+        printl(LOG_CRIT, "Unsupported address types: [%d] is in the request", daddr->sa_family);
         mexit(1, pfile_name);
     }
 
@@ -250,9 +243,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
         rep->status, rcount);
 
     if (rep->ver != PROXY_PROTO_SOCKS_V5) {
-        printl(LOG_CRIT,
-            "SOCKS5 server speaks unsupported protocol version: [%d]", 
-            rep->ver);
+        printl(LOG_CRIT, "SOCKS5 server speaks unsupported protocol version: [%d]", rep->ver);
         mexit(1, pfile_name);
     }
     

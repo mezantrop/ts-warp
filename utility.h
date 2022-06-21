@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,37 +26,37 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 #include <stdio.h>
 #include <stdint.h>
 
 
 /* Program name and version */
-#define PROG_NAME       "TS-Warp"
-#define PROG_NAME_SHORT "TSW"
-#define PROG_VERSION    "1.0.8"
-#define PROG_NAME_FULL  PROG_NAME " " PROG_VERSION
-#define PROG_NAME_CODE  PROG_NAME_SHORT PROG_VERSION
+#define PROG_NAME          "TS-Warp"
+#define PROG_NAME_SHORT    "TSW"
+#define PROG_VERSION       "1.0.8"
+#define PROG_NAME_FULL     PROG_NAME " " PROG_VERSION
+#define PROG_NAME_CODE     PROG_NAME_SHORT PROG_VERSION
 
 /* Log verbosity levels */
-#define LOG_NONE    0
-#define LOG_CRIT    1
-#define LOG_WARN    2
-#define LOG_INFO    3
-#define LOG_VERB    4
-#define LOG_LEVEL_DEFAULT   LOG_INFO
-#define LOG_LEVEL ((char const*[]){"NONE", "CRIT", "WARN", "INFO", "VERB"})
+#define LOG_NONE           0
+#define LOG_CRIT           1
+#define LOG_WARN           2
+#define LOG_INFO           3
+#define LOG_VERB           4
+#define LOG_LEVEL_DEFAULT  LOG_INFO
+#define LOG_LEVEL          ((char const*[]){"NONE", "CRIT", "WARN", "INFO", "VERB"})
 
-#define BUF_SIZE        1024 * 1024
-#define STR_SIZE        255
+#define BUF_SIZE           1024 * 1024
+#define STR_SIZE           255
 
-/* -- Global variables ------------------------------------------------------ */
+/* -- Global variables ---------------------------------------------------------------------------------------------- */
 extern uint8_t loglevel;
 extern FILE *lfile;
 extern int pid;
 extern char *pfile_name;
 
-/* -- Function prototypes --------------------------------------------------- */
+/* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void usage(int ecode);
 void printl(int level, char *fmt, ...);
 long toint(char *str);

@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -35,11 +35,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* Used ports */
-#define LISTEN_IPV4     "127.0.0.1"     /* We listen on this IPv4 address or */
-#define LISTEN_IPV6     "::1"           /* on this IPv6 address */
+#define LISTEN_IPV4     "127.0.0.1"                                     /* We listen on this IPv4 address or */
+#define LISTEN_IPV6     "::1"                                           /* on this IPv6 address */
 #define LISTEN_DEFAULT  LISTEN_IPV4
-#define LISTEN_PORT     "10800"         /* This is our TCP port */
-#define SOCKS_PORT      "1080"          /* That is remote SOCKS server port */
+#define LISTEN_PORT     "10800"                                         /* This is our TCP port */
+#define SOCKS_PORT      "1080"                                          /* That is remote SOCKS server port */
 
 
 #define SA_FAMILY(sa)  &sa->sa_family
@@ -70,8 +70,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define HOST_NAME_MAX 255
 #endif
 
-/* -- Function prototypes --------------------------------------------------- */
+/* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int connect_desnation(struct sockaddr dest);
 char *inet2str(struct sockaddr *ai_addr, char *str_addr);
-struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, 
-    struct addrinfo *hints);
+struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, struct addrinfo *hints);

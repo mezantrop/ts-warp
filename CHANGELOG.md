@@ -1,8 +1,8 @@
 # CHANGELOG
 
-* 2022.06.16    Current
-  * `ts-warp.c`: Log to STDOUT if TS-Warp is started in foreground: no `-d`
-    option and no log-file `-l` is explicitly specified
+* 2022.06.21    Current
+  * 120-chars width formatting
+  * `ts-warp.c`: Log to STDOUT if TS-Warp is started in foreground: no `-d` option and no log-file `-l` is specified
   * `README.md`: updated
 
 * 2022.06.11    ts-warp-1.0.8, gui-warp-1.0
@@ -28,11 +28,8 @@
   * CLI option: `-u` - specify a `user` to run `ts-warp`
 
 * 2022.05.23    ts-warp-1.0.6, gui-warp-1.0
-  * `setuid()` to lower privileges for the daemon runtime to the level of
-    the user `nobody`. Still `root` privileges are required to start the daemon.
-
-    Note! On macOS `ts-warp` always runs under `root` user, because of
-    the OS "features".
+  * `setuid()` to lower privileges for the daemon runtime to the level of the user `nobody`. Still `root` privileges are
+    required to start the daemon. Note! On macOS `ts-warp` always runs under `root` user, because of the OS "features".
   * `natlook.c`: `pf_open()`, `pf_close` to optimize `nat_lookup()`
   * `README.md`: better wording
   * `inifile.c`: `str2inet()` buffer usage fix
@@ -54,9 +51,8 @@
     * Various minor cleanups and refactoring
   * Correct IPv6 address comparison
   * Enable ts-warp daemon acting as a SOCKS-server when NAT/redirection enabled
-  * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible
-    to specify ts-warp daemon as a SOCKS-server in userland. Don't forget to
-    add the respective section with a real SOCKS server in `ts-warp.ini` or
+  * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible to specify ts-warp daemon as
+    a SOCKS-server in userland. Don't forget to add the respective section with a real SOCKS server in `ts-warp.ini` or
     uncomment the `[DEFAULT]` one to catch all the unhandled requests.
   * Skip Domain check in `ini_look_server()` if target IP doesn't resolve
 
@@ -88,8 +84,7 @@
   * Fixed processed empty/nonexisting `socks_server` values in the INI-file
   * Remove processed `chain_list` elements in `create_chains()`
   * Better messaging in `ts-warp.sh` start/stop script
-  * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska
-    <alka96@protonmail.com> for testing
+  * `natlook()` dest port printout on Mac, fixed; thanks Alicja Michalska <alka96@protonmail.com> for testing
 
 * 2022.03.05    ts-warp-1.0.0
   * Starting point to track versions

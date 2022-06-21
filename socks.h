@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,35 +26,33 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- SOCKS protocol definitions -------------------------------------------- */
+/* -- SOCKS protocol definitions ------------------------------------------------------------------------------------ */
 #define PROXY_PROTO_SOCKS_V4    4
 #define PROXY_PROTO_SOCKS_V5    5
 
-/* -- SOCKS V4 -------------------------------------------------------------- */
+/* -- SOCKS V4 ------------------------------------------------------------------------------------------------------ */
 #define SOCKS4_CMD_TCPCONNECT   0x01
 #define SOCKS4_CMD_TCPBIND      0x02
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t cmd;        /* Command
-                            0x01: TCP Connect; 
-                            0x02: TCP port Binding */
-    uint16_t dstport;   /* Dest port number in a network byte order */
-    uint32_t dstaddr;   /* IPv4 Address 4 bytes in network byte order */
-    unsigned char *id;  /* Null-terminated user ID string */
+    uint8_t ver;                /* SOCKS version */
+    uint8_t cmd;                /* Command
+                                    0x01: TCP Connect; 
+                                    0x02: TCP port Binding */
+    uint16_t dstport;           /* Dest port number in a network byte order */
+    uint32_t dstaddr;           /* IPv4 Address 4 bytes in network byte order */
+    unsigned char *id;          /* Null-terminated user ID string */
 } s4_request;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t status;     /* Returned status
-                            0x5A: Request granted
-                            0x5B: Request rejected or failed
-                            0x5C: Request failed: client is not running
-                                identd (or not reachable from server)
-                            0x5D: Request failed because client's identd
-                                could not confirm the user ID */
-    uint16_t dstport;   /* Dest port number in a network byte order */
-    uint32_t dstaddr;   /* IPv4 Address 4 bytes in network byte order */
+    uint8_t ver;                /* SOCKS version */
+    uint8_t status;             /* Returned status
+                                    0x5A: Request granted
+                                    0x5B: Request rejected or failed
+                                    0x5C: Request failed: client is not running identd (or not reachable from server)
+                                    0x5D: Request failed because client's identd could not confirm the user ID */
+    uint16_t dstport;           /* Dest port number in a network byte order */
+    uint32_t dstaddr;           /* IPv4 Address 4 bytes in network byte order */
 } s4_reply;
 
 /* -- SOCKS V5 -------------------------------------------------------------- */
@@ -64,42 +62,42 @@ typedef struct {
 #define AUTH_METHOD_GSSAPI      0x01
 #define AUTH_METHOD_UNAME       0x02
 /* 0x03–0x7F: methods assigned by IANA */
-#define AUTH_METHOD_CHAP        0x03        /* Challenge-Handshake Auth Proto */
-/*                              0x04        Unassigned */
-#define AUTH_METHOD_CRAM        0x05        /* Challenge-Response Auth Method */
-#define AUTH_METHOD_SSL         0x06        /* Secure Sockets Layer */
-#define AUTH_METHOD_NDS         0x07        /* NDS Authentication (Novell?) */
-#define AUTH_METHOD_MAF         0x08        /* Multi-Authentication Framework */
-#define AUTH_METHOD_JPB         0x09        /* JSON Parameter Block */
-/*                              0x0A–0x7F   Unassigned */
-/*                              0x80–0xFE   Reserved for private use */
-#define AUTH_METHOD_NOACCEPT    0xFF        /* No methods accepted by server */
+#define AUTH_METHOD_CHAP        0x03                /* Challenge-Handshake Auth Proto */
+/*                              0x04                Unassigned */
+#define AUTH_METHOD_CRAM        0x05                /* Challenge-Response Auth Method */
+#define AUTH_METHOD_SSL         0x06                /* Secure Sockets Layer */
+#define AUTH_METHOD_NDS         0x07                /* NDS Authentication (Novell?) */
+#define AUTH_METHOD_MAF         0x08                /* Multi-Authentication Framework */
+#define AUTH_METHOD_JPB         0x09                /* JSON Parameter Block */
+/*                              0x0A–0x7F           Unassigned */
+/*                              0x80–0xFE           Reserved for private use */
+#define AUTH_METHOD_NOACCEPT    0xFF                /* No methods accepted by server */
 
 typedef struct {
-    uint8_t ver;                    /* SOCKS version */
-    uint8_t nauth;                  /* Number of auth methods */
-    uint8_t auth[AUTH_MAX_METHODS]; /* Authentication methods */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t nauth;                                  /* Number of auth methods */
+    uint8_t auth[AUTH_MAX_METHODS];                 /* Authentication methods */
 } s5_request_hello;
 
 #define HELLO_NOAUTH    "\x05\x01\x00"
 #define HELLO_UNAME     "\x05\x02\x00\x02"
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t cauth;      /* Chosen auth method */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t cauth;                                  /* Chosen auth method */
 } s5_reply_hello;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t idlen;      /* Username length */
-    uint8_t *id;        /* ID 1-255 chars */
-    uint8_t pwlen;      /* Password length */
-    uint8_t *pw;        /* Password 1-255 */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t idlen;                                  /* Username length */
+    uint8_t *id;                                    /* ID 1-255 chars */
+    uint8_t pwlen;                                  /* Password length */
+    uint8_t *pw;                                    /* Password 1-255 */
 } s5_request_auth;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t status;     /* 0x00: OK, else KO */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t status;                                 /* 0x00: OK, else KO */
 } s5_reply_auth;
 
 /* Useful SOCKS5 request field definitions of s5_request* structures */
@@ -118,110 +116,110 @@ typedef struct {
 #define SOCKS5_ATYPE_IPV6_LEN   16
 
 typedef struct {
-    uint8_t ver;            /* SOCKS version */
-    uint8_t cmd;            /* Command
-                                0x01: TCP Connect;
-                                0x02: TCP port Binding, e.g. FTP;
-                                0x03: associate a UDP port */
-    uint8_t rsv;            /* 0x00: Reserved */
-    uint8_t atype;          /* Destination address type
-                                0x01: IPv4 address
-                                0x03: Domain name
-                                0x04: IPv6 address */
-    uint8_t dsthost[258];   /* Destination address + port in a net byte order:
-                                IPv4 address:   4 bytes
-                                Domain name:    1 byte Length + 1-255 bytes Name
-                                IPv6 address:   16 bytes
-                                Dest port:      2 bytes */ 
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t cmd;                                    /* Command
+                                                        0x01: TCP Connect;
+                                                        0x02: TCP port Binding, e.g. FTP;
+                                                        0x03: associate a UDP port */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Destination address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t dsthost[258];                           /* Destination address + port in a net byte order:
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes
+                                                        Dest port:      2 bytes */ 
 } s5_request;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t cmd;        /* Command
-                            0x01: TCP Connect;
-                            0x02: TCP port Binding, e.g. FTP;
-                            0x03: associate a UDP port */
-    uint8_t rsv;        /* 0x00: Reserved */
-    uint8_t atype;      /* Destination address type
-                            0x01: IPv4 address
-                            0x03: Domain name
-                            0x04: IPv6 address */
-    uint8_t dstaddr[4]; /* Destination address
-                            IPv4 address:   4 bytes
-                            Domain name:    1 byte Length + 1-255 bytes Name
-                            IPv6 address:   16 bytes */
-    uint16_t dstport;   /* Dest port number in a network byte order */ 
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t cmd;                                    /* Command
+                                                        0x01: TCP Connect;
+                                                        0x02: TCP port Binding, e.g. FTP;
+                                                        0x03: associate a UDP port */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Destination address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t dstaddr[4];                             /* Destination address
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes */
+    uint16_t dstport;                               /* Dest port number in a network byte order */ 
 } s5_request_ipv4;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t cmd;        /* Command
-                            0x01: TCP Connect;
-                            0x02: TCP port Binding, e.g. FTP;
-                            0x03: associate a UDP port */
-    uint8_t rsv;        /* 0x00: Reserved */
-    uint8_t atype;      /* Destination address type
-                            0x01: IPv4 address
-                            0x03: Domain name
-                            0x04: IPv6 address */
-    uint8_t dstaddr[16]; /* Destination address
-                            IPv4 address:   4 bytes
-                            Domain name:    1 byte Length + 1-255 bytes Name
-                            IPv6 address:   16 bytes */
-    uint16_t dstport;   /* Dest port number in a network byte order */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t cmd;                                    /* Command
+                                                        0x01: TCP Connect;
+                                                        0x02: TCP port Binding, e.g. FTP;
+                                                        0x03: associate a UDP port */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Destination address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t dstaddr[16];                            /* Destination address
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes */
+    uint16_t dstport;                               /* Dest port number in a network byte order */
 } s5_request_ipv6;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t cmd;        /* Command
-                            0x01: TCP Connect; 
-                            0x02: TCP port Binding, e.g. FTP;
-                            0x03: associate a UDP port */
-    uint8_t rsv;        /* 0x00: Reserved */
-    uint8_t atype;      /* Destination address type */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t cmd;                                    /* Command
+                                                        0x01: TCP Connect; 
+                                                        0x02: TCP port Binding, e.g. FTP;
+                                                        0x03: associate a UDP port */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Destination address type */
 } s5_request_short;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t status;     /* Returned status
-                            0x00: Request granted
-                            0x01: General failure
-                            0x02: Connection not allowed by ruleset
-                            0x03: Network unreachable
-                            0x04: Host unreachable
-                            0x05: Connection refused by destination host
-                            0x06: TTL expired
-                            0x07: Command not supported / protocol error
-                            0x08: Address type not supported */
-    uint8_t rsv;        /* 0x00: Reserved */
-    uint8_t atype;      /* Server bound address type
-                            0x01: IPv4 address
-                            0x03: Domain name
-                            0x04: IPv6 address */
-    uint8_t *bndaddr;   /* Server bound address
-                            IPv4 address:   4 bytes
-                            Domain name:    1 byte Length + 1-255 bytes Name
-                            IPv6 address:   16 bytes */
-    uint16_t bndport;   /* Bound port number in a network byte order */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t status;                                 /* Returned status
+                                                        0x00: Request granted
+                                                        0x01: General failure
+                                                        0x02: Connection not allowed by ruleset
+                                                        0x03: Network unreachable
+                                                        0x04: Host unreachable
+                                                        0x05: Connection refused by destination host
+                                                        0x06: TTL expired
+                                                        0x07: Command not supported / protocol error
+                                                        0x08: Address type not supported */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Server bound address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t *bndaddr;                               /* Server bound address
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes */
+    uint16_t bndport;                               /* Bound port number in a network byte order */
 } s5_reply;
 
 typedef struct {
-    uint8_t ver;        /* SOCKS version */
-    uint8_t status;     /* Returned status
-                            0x00: Request granted
-                            0x01: General failure
-                            0x02: Connection not allowed by ruleset
-                            0x03: Network unreachable
-                            0x04: Host unreachable
-                            0x05: Connection refused by destination host
-                            0x06: TTL expired
-                            0x07: Command not supported / protocol error
-                            0x08: Address type not supported */
-    uint8_t rsv;        /* 0x00: Reserved */
-    uint8_t atype;      /* Server bound address type 0x01: IPv4 address */
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t status;                                 /* Returned status
+                                                        0x00: Request granted
+                                                        0x01: General failure
+                                                        0x02: Connection not allowed by ruleset
+                                                        0x03: Network unreachable
+                                                        0x04: Host unreachable
+                                                        0x05: Connection refused by destination host
+                                                        0x06: TTL expired
+                                                        0x07: Command not supported / protocol error
+                                                        0x08: Address type not supported */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Server bound address type 0x01: IPv4 address */
 } s5_reply_short;
 
-/* -- Function prototypes --------------------------------------------------- */
+/* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);

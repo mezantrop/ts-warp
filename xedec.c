@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "xedec.h"
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 char *init_xcrypt(int xkey_len) {
     char *xkey = NULL;
     char *urnd_name = URANDOM;
@@ -60,7 +60,7 @@ char *init_xcrypt(int xkey_len) {
     return xkey;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 char *xencrypt(char *xkey, char *prefix, char *text) {
     /* 0xHASH: klen|xkey|pref|text */
 
@@ -78,19 +78,14 @@ char *xencrypt(char *xkey, char *prefix, char *text) {
     int_hash[0] = xkey_len;
     snprintf(int_hash + 1, hash_len, "%s%s%s", xkey, prefix, text);
 
-    for (s = int_hash + sizeof(char) + xkey_len; 
-        s <= int_hash + hash_len - 1; 
-        *s++ ^= xkey[b++ % xkey_len]);
-
-    for (s = int_hash, d = hex_hash; 
-        s < int_hash + hash_len; 
-        sprintf(d, "%02X", *s++), d+=2);
+    for (s = int_hash + sizeof(char) + xkey_len; s <= int_hash + hash_len - 1; *s++ ^= xkey[b++ % xkey_len]) ;
+    for (s = int_hash, d = hex_hash; s < int_hash + hash_len; sprintf(d, "%02X", *s++), d+=2) ;
 
     free(int_hash);
     return hex_hash;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 char *xdecrypt(char *hex_hash, char *prefix) {
     char *int_hash = NULL, *xkey = NULL, *pref = NULL, *text = NULL, *s = NULL;
     int hash_len = 0, pref_len = 0;
@@ -112,12 +107,9 @@ char *xdecrypt(char *hex_hash, char *prefix) {
     pref = xkey + xkey_len;
     pref_len = strlen(prefix);
 
-    for (s = pref, b = 0; 
-        s < int_hash + (hash_len / 2); 
-        *s++ ^= xkey[b++ % xkey_len]);
+    for (s = pref, b = 0; s < int_hash + (hash_len / 2); *s++ ^= xkey[b++ % xkey_len]) ;
 
-    if (strncmp(prefix, pref, pref_len))    /* Wrong encryption hash version! */
-        return NULL;
+    if (strncmp(prefix, pref, pref_len)) return NULL;                   /* Wrong encryption hash version! */
 
     text = strdup(pref + pref_len);
 

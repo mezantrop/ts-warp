@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 GUI frontend for TS-Warp - Transparent SOCKS protocol Wrapper
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 Copyright (c) 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -181,12 +181,12 @@ class App:
     def pauselog(self, btn, txt, filename):
         if self.pause:
             self.pause = False
-            btn['text'] = '■'                               # Pause log auto-refresh
+            btn['text'] = '■'                                            # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
 
         else:
             self.pause = True
-            btn['text'] = '↭'                               # Enable auto-refresh
+            btn['text'] = '↭'                                           # Enable auto-refresh
 
     def status(self, lbl, btn, pidfile):
         pf = None
