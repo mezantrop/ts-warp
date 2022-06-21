@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- IP address NAT lookup structure definitions --------------------------- */
+/* -- IP address NAT lookup structure definitions ------------------------------------------------------------------- */
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -148,8 +148,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 #define DIOCNATLOOK    _IOWR('D', 23, struct pfioc_natlook)
 
-/* -- Function prototypes --------------------------------------------------- */
+/* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int pf_open();
 int pf_close(int pfd);
-int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, 
-    struct sockaddr *daddr);
+int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, struct sockaddr *daddr);

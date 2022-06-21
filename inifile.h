@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,28 +26,28 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- INI-file processing --------------------------------------------------- */
+/* -- INI-file processing ------------------------------------------------------------------------------------------- */
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h> 
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct ini_section {
-    char *section_name;                 /* Sectionn name */
-    struct sockaddr socks_server;       /* SOCKS server IP-address and Port */
-    uint8_t socks_version;              /* SOCKS version: 4 | 5 */
-    char *socks_user;                   /* SOCKS server username */
-    char *socks_password;               /* SOCKS server user password */
-    struct socks_chain *proxy_chain;    /* SOCKS proxy chain */
-    struct ini_target *target_entry;    /* List of target definitions */
-    struct ini_section *next;           /* The next INI-section */
+    char *section_name;                                                 /* Sectionn name */
+    struct sockaddr socks_server;                                       /* SOCKS server IP-address and Port */
+    uint8_t socks_version;                                              /* SOCKS version: 4 | 5 */
+    char *socks_user;                                                   /* SOCKS server username */
+    char *socks_password;                                               /* SOCKS server user password */
+    struct socks_chain *proxy_chain;                                    /* SOCKS proxy chain */
+    struct ini_target *target_entry;                                    /* List of target definitions */
+    struct ini_section *next;                                           /* The next INI-section */
 } ini_section;
 
-typedef struct ini_entry {  /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] */
+typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] */
     char *var; 
-    char *val;              /* Raw value: whatever right from the '=' char */
+    char *val;                      /* Raw value: whatever right from the '=' char */
     char *val1;
     char *mod1;
     char *mod2;
@@ -61,23 +61,22 @@ typedef struct ini_entry {  /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] *
 #define INI_TARGET_RANGE    4
 
 typedef struct ini_target {
-    int target_type;        /* Hostname, Host IP, Domain, Network, Range */
-    char *name;             /* Hostname / Domain or null */
-    struct sockaddr ip1;    /* Host IP, Net IP, First IP in Range or null
-                                and optional port number 0 65535 */
-    struct sockaddr ip2;    /* Netmask, Last IP in Range or null + port */
+    int target_type;                /* Hostname, Host IP, Domain, Network, Range */
+    char *name;                     /* Hostname / Domain or null */
+    struct sockaddr ip1;            /* Host IP, Net IP, First IP in Range or null and optional port number 0 65535 */
+    struct sockaddr ip2;            /* Netmask, Last IP in Range or null + port */
 
-    struct ini_target *next; /* The next range entry */
+    struct ini_target *next;                                            /* The next range entry */
 } ini_target;
 
-typedef struct socks_chain {            /* SOCKS server chains */
+typedef struct socks_chain {                                            /* SOCKS server chains */
     struct ini_section *chain_member;
     struct socks_chain *next;
 } socks_chain;
 
-typedef struct chain_list {     /* Chains as they defind in the INI */
-    char *txt_section;          /* section name */
-    char *txt_chain;            /* String representing sections to chain */
+typedef struct chain_list {                                             /* Chains as they defind in the INI */
+    char *txt_section;                                                  /* section name */
+    char *txt_chain;                                                    /* String representing sections to chain */
     struct chain_list *next;
 } chain_list;
 
@@ -93,7 +92,7 @@ typedef struct chain_list {     /* Chains as they defind in the INI */
 #define INI_ENTRY_TARGET_NETWORK    "target_network"
 #define INI_ENTRY_TARGET_RANGE      "target_range"
 
-/* -- Function prototypes --------------------------------------------------- */
+/* -- Function prototypes ------------------------------------------------------------------------------------------- */
 ini_section *read_ini(char *ifile_name);
 void show_ini(struct ini_section *ini);
 struct ini_section *delete_ini(struct ini_section *ini);

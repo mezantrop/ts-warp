@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 extern char *pfile_name;
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int pf_open() {
     int pfd;
 
@@ -61,10 +61,10 @@ int pf_open() {
     return pfd;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int pf_close(int pfd) { return close(pfd); }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
     struct sockaddr *daddr) {
     
@@ -108,22 +108,16 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             break;
 
         default:
-            printl(LOG_CRIT,
-                "Unsupported Address family in nat_lookup() request: [%d]",
-                pfnl.af);
+            printl(LOG_CRIT, "Unsupported Address family in nat_lookup() request: [%d]", pfnl.af);
             return 1;
     }
 
     #if defined(__APPLE__)
-        printl(LOG_VERB, "saddr: [%s:%d]",
-            inet2str(caddr, dstr_addr), ntohs(pfnl.sxport.port));
-        printl(LOG_VERB, "daddr: [%s:%d]",
-            inet2str(caddr, dstr_addr), ntohs(pfnl.dxport.port));
+        printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sxport.port));
+        printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dxport.port));
     #else
-        printl(LOG_VERB, "saddr: [%s:%d]",
-            inet2str(caddr, dstr_addr), ntohs(pfnl.sport));
-        printl(LOG_VERB, "daddr: [%s:%d]",
-            inet2str(caddr, dstr_addr), ntohs(pfnl.dport));
+        printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sport));
+        printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dport));
     #endif
  
     if (ioctl(pfd, DIOCNATLOOK, &pfnl) == -1) {
@@ -166,17 +160,13 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             break;
 
         default:
-            printl(LOG_CRIT,
-                "Unsupported Address family in nat_lookup() response: [%d]",
-                pfnl.af);
+            printl(LOG_CRIT, "Unsupported Address family in nat_lookup() response: [%d]", pfnl.af);
             return 1;
     }
     #if defined(__APPLE__)
-        printl(LOG_VERB, "Real destination address: [%s:%d]",
-            inet2str(daddr, dstr_addr), ntohs(pfnl.rdxport.port));
+        printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdxport.port));
     #else
-        printl(LOG_VERB, "Real destination address: [%s:%d]",
-            inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
+        printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
     #endif
 
     return 0;

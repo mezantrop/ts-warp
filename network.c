@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
 
@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- Network functions ----------------------------------------------------- */
+/* -- Network functions --------------------------------------------------------------------------------------------- */
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "utility.h"
 
  
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 int connect_desnation(struct sockaddr dest) {
     /* Establish TCP connetion with a det address */
     
@@ -55,7 +55,7 @@ int connect_desnation(struct sockaddr dest) {
     return sock;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
     /* inet_ntop() wrapper. If str_add is NULL, memory is auto-allocated,
      don't forget to free it after usage! */
@@ -66,26 +66,20 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
 
     switch (ai_addr->sa_family) {
         case AF_INET:
-            return 
-                (char *)inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr),
-                    str_addr, INET_ADDRSTRLEN);
+            return (char *)inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr), str_addr, INET_ADDRSTRLEN);
 
         case AF_INET6:
-            return
-                (char *)inet_ntop(AF_INET6, &SIN6_ADDR(*ai_addr),
-                    str_addr, INET6_ADDRSTRLEN);
+            return (char *)inet_ntop(AF_INET6, &SIN6_ADDR(*ai_addr), str_addr, INET6_ADDRSTRLEN);
 
         default:
-            printl(LOG_WARN, "Unrecognized address family: %d", 
-                ai_addr->sa_family);
+            printl(LOG_WARN, "Unrecognized address family: %d", ai_addr->sa_family);
             return NULL;
     }
     return str_addr;
 }
 
-/* -------------------------------------------------------------------------- */
-struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, 
-    struct addrinfo *hints) {
+/* ------------------------------------------------------------------------------------------------------------------ */
+struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, struct addrinfo *hints) {
     
     int free_mem = 0;
     int ret;
@@ -99,8 +93,7 @@ struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res,
     }
 
     if ((ret = getaddrinfo(str_addr, str_port, hints, &res)) > 0) {
-        printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]",
-            str_addr, str_port, gai_strerror(ret));
+        printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]", str_addr, str_port, gai_strerror(ret));
         mexit(1, pfile_name);
     }
         
