@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2022.06.21    Current
+* 2022.06.30    Current
   * 120-chars width formatting
   * `ts-warp.c`: Log to STDOUT if TS-Warp is started in foreground: no `-d` option and no log-file `-l` is specified
   * `README.md`: updated
