@@ -14,7 +14,7 @@ TCP/IP connections to a SOCKS-proxy server
   - [x] Linux with Iptables
 
 - [x] IPv6 stack support
-- [x] Maintain simple configuraion structure as INI-file
+- [x] Maintain simple configuration structure as INI-file
 - [x] Support basic SOCKS authentication methods
 - [x] Password encoding (obfuscation) in configuration files
 - [x] SOCKS proxy chains
@@ -71,7 +71,7 @@ Usage:
   ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
 
 Version:
-  TS-Warp-1.0.6
+  TS-Warp-1.0.X
 
 All parameters are optional:
   -i IP:Port        Incoming local IP address and port

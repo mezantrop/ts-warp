@@ -18,7 +18,44 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .TH ts\-warp5 5 "" "06 June 2022" "Mikhail Zakharov"
 .SH NAME
-ts\-warp INI-like configuration file format
+\fBTS\-Warp\fR INI-like configuration file format
+.SH DESCRIPTION
+\fBts\-warp\fR uses INI-like configuration files to identify SOCKS servers for destinations, clients are willing to 
+reach. The format of ts-warp INI-files are almost dentical to the classical INI dialect, with the only exception, that
+duplicate names for \fBkeys\fR are alloved within the same \fBsection\fR.
+
+Each \fBsection\fR, a string, enclosed in square brackets ('[', ']'), specifies a name for a SOCKS server block. A 
+section consists of keys describing \fBSOCKS server\fR attributes, as well, as keys specifying destination \fBtargets\fR.
+.SH \fBSOCKS server\fR keys
+.TP
+.B socks_server
+.BR
+.TP
+.B socks_chain
+.BR
+.TP
+.B socks_port
+.BR
+.TP
+.B socks_version
+.BR
+.TP
+.B socks_user
+.BR
+.TP
+.B socks_password
+.SH \fBTarget\fR keys
+.TP
+.B target_host
+.BR
+.TP
+.B target_domain
+.BR
+.TP
+.B target_network
+.BR
+.TP
+.B target_range
 .SH SEE ALSO
 .BR ts\-warp (8),
 .BR ts\-warp.sh (1),
