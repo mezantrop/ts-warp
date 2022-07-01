@@ -18,7 +18,7 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .TH ts\-warp 8 "" "06 June 2022" "Mikhail Zakharov"
 .SH NAME
-ts-warp \- Transparent SOCKS protocol Wrapper
+TS-Warp \- \fBT\fRransparent \fBS\fROCKS protocol \fBW\fRrapper
 .SH SYNOPSIS
 .B ts-warp
 [
@@ -39,7 +39,10 @@ user
 .I \-h
 ]
 .SH DESCRIPTION
-\fBts-warp\fR is a transparent firewall-based redirector of TCP/IP traffic to a SOCKS-proxy server. For macOS, FreeBSD and OpenBSD \fBts-warp\fR utilizes PF and for Linux based environments Iptables firewal facilities. \fBts-warp\fR supports IPv6 stack, has a simple INI-like configuration file with password obfuscation function, supports SOCK5 authentication methods and SOCKS proxy chains.
+\fBts-warp\fR is a transparent firewall-based redirector of TCP/IP traffic to SOCKS-proxy servers. For macOS, FreeBSD
+and OpenBSD \fBts-warp\fR utilizes PF and for Linux based environments Iptables firewal facilities. \fBts-warp\fR
+supports IPv6 stack, has a simple INI-like configuration file with password obfuscation function, supports SOCK5
+authentication methods and SOCKS proxy chains.
 .SH OPTIONS
 The options are as follows:
 .TP 16
@@ -51,7 +54,7 @@ Configuration file
 .BR
 .TP
 .B \-l file.log
-Log filename
+Log filename. If \fBts-warp\fR runs in foreground, the default log is STDOUT.
 .TP
 .B \-v 0..4
 Log verbosity level: 0 - off, default 3
@@ -66,6 +69,13 @@ PID filename
 .B \-f
 Force start
 .BR
+.TP
+.B \-u user
+A user to run \fBts-warp\fR. On macOS this has no effect, \fBts-warp\fR runs alwas as root.
+.BR
+.TP
+.B \-h
+A short help message
 .TP
 .SH NOTES
 \fBts-warp\fR understands \fBSIGHUP\fR signal as command to reload configuration and \fBSIGINT\fR to stop the daemon.
