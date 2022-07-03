@@ -1,8 +1,8 @@
 # CHANGELOG
 
-* 2022.07.01    Current
+* 2022.07.03    Current
   * `man\ts-warp.8`: minor updates
-  * `man\ts-warp.5`: started creating
+  * `man\ts-warp.5`: draft created
   * `README.md`: typos fixed
   * 120-chars width formatting
   * `ts-warp.c`: Log to STDOUT if TS-Warp is started in foreground: no `-d` option and no log-file `-l` is specified
