@@ -79,7 +79,6 @@ typedef struct chain_list {                                             /* Chain
 /* INI-file entries */
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"
 #define INI_ENTRY_SOCKS_CHAIN       "socks_chain"
-#define INI_ENTRY_SOCKS_PORT        "socks_port"
 #define INI_ENTRY_SOCKS_VERSION     "socks_version"
 #define INI_ENTRY_SOCKS_USER        "socks_user"
 #define INI_ENTRY_SOCKS_PASSWORD    "socks_password"

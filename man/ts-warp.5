@@ -20,42 +20,78 @@
 .SH NAME
 \fBTS\-Warp\fR INI-like configuration file format
 .SH DESCRIPTION
-\fBts\-warp\fR uses INI-like configuration files to identify SOCKS servers for destinations, clients are willing to 
-reach. The format of ts-warp INI-files are almost dentical to the classical INI dialect, with the only exception, that
-duplicate names for \fBkeys\fR are alloved within the same \fBsection\fR.
+\fBts\-warp\fR uses INI-like configuration files to identify SOCKS servers for destinations that clients are willing to 
+reach. The format of ts-warp INI-files are almost dentical to the classical INI dialect, with the only main exception,
+that duplicate names for \fBkeys\fR are alloved within the same \fBsection\fR.
 
 Each \fBsection\fR, a string, enclosed in square brackets ('[', ']'), specifies a name for a SOCKS server block. A 
-section consists of keys describing \fBSOCKS server\fR attributes, as well, as keys specifying destination \fBtargets\fR.
+section consists of keys (variables) describing \fBSOCKS server\fR attributes, as well, as keys specifying destination
+\fBtargets\fR.
+
+Remarks are specified with: \fB;\fR and \fB#\fR characters
+
+Key names are case insensitive i.e., \fBtarget_host\fR is the same as \fBtArGeT_HoSt\fR
 .SH \fBSOCKS server\fR keys
 .TP
-.B socks_server
+.B socks_server = <IP | Hostname>[:port]
+Manadatory variable, specifying a SOCKS server for the section. Optional port number defaults to 1080.
 .BR
 .TP
-.B socks_chain
+.B socks_chain = SECTION_1, SECTION_N
+Defines a chain of sections with SOCKS servers, that are required to reach first before contacting the server in the
+current section. Optional variable.
 .BR
 .TP
-.B socks_port
+.B socks_version = 5 | 4
+Specifies the server SOCKS version. Optional, defaults to 5.
 .BR
 .TP
-.B socks_version
+.B socks_user = username
+A username if the server requires authentication. Only plaintext authentication is supported.
 .BR
 .TP
-.B socks_user
-.BR
-.TP
-.B socks_password
+.B socks_password = plain:PlaintextPassword | tsw01:HEXADECIMALHASH
+A user password if the SOCKS-server requires authentication. Can be specified as plaintext if preceded with \fBplain:\fR
+prefix or encoded by \fBts-pass(8)\fR with TS-Warp obfuscation algorithm if the \fBtsw01:\fR prefix is set.
 .SH \fBTarget\fR keys
 .TP
-.B target_host
+.B target_host = <IP | Hostname>:[port_1[-port_n]]
+Describes a single target host either with it's IP address or resolveable host name. Optionally a port or a port range
+can be specified to narrow the band. 
 .BR
 .TP
-.B target_domain
+.B target_domain = example.org:[port_1[-port_n]]
+Specifies the name of a domain resolveable via DNS. Optionally a port or a port range can be specified to narrow the
+band.
 .BR
 .TP
-.B target_network
+.B target_network = IP[:port_1[-port_n]]/Netmask
+Specifies an IPv4 or IPv6 subnet. Netmasks are accepted only in dot-decimal notation. Optionally a port or a port range
+can be specified to narrow the band.
 .BR
 .TP
-.B target_range
+.B target_range = IP_1[:port_1[-port_n]]/IP_n
+Specifies a range of sequential IPv4, IPv6 addresses. Optionally a port or a port range can be specified to narrow the
+band.
+.SH EXAMPLES
+.PP
+.EX
+[HOME NETWORK]                          ; Section definition
+# Target definitions:
+; target_host = 192.168.1.1
+; target_host = Anvil
+; target_network = 192.168.1.0/255.255.255.0
+; target_range = 192.168.1.1/192.168.1.20
+target_domain = balmora.lan
+
+# Server definitions:
+socks_server = 192.168.1.237
+; socks_version = 5
+socks_user = socks
+; socks_password = plain:TopSecretPass@34
+socks_password = tsw01:08415D5F6519633F1D150E08552837506D12383C177C176F7C322E1F562D
+.EE
+.PP
 .SH SEE ALSO
 .BR ts\-warp (8),
 .BR ts\-warp.sh (1),
