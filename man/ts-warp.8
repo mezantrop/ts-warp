@@ -43,38 +43,47 @@ user
 and OpenBSD \fBts-warp\fR utilizes PF and for Linux based environments Iptables firewal facilities. \fBts-warp\fR
 supports IPv6 stack, has a simple INI-like configuration file with password obfuscation function, supports SOCK5
 authentication methods and SOCKS proxy chains.
+
+Sample PF and Iptables configuration files for \fBts-warp\fR can be found in \fBts-warp_pf_<OSNAME>.conf\fR and
+\fBts-warp_iptables.sh\fR respectively. 
+
+Example of the INI-file can be found in \fBts-warp.ini\fR.
+
+Typically ts-warp, as well as firewall, are controlled using \fBts-warp.sh\fR script, but they also can be managed
+manually. In this case, see the \fBOPTIONS\fR and \fBNOTES\fR sections below and check \fBpfctl(8)\fR or
+\fBiptables(8)\fR for the firewall control operations.
 .SH OPTIONS
 The options are as follows:
 .TP 16
-.B \-i IP:Port
+\fI\-i\fR IP:Port
 Incoming local IP address and port
 .TP
-.B \-c file.ini
+\fI\-c\fR file.ini
 Configuration file
 .BR
 .TP
-.B \-l file.log
+\fI\-l\fR file.log
 Log filename. If \fBts-warp\fR runs in foreground, the default log is STDOUT.
 .TP
-.B \-v 0..4
+\fI\-v\fR 0..4
 Log verbosity level: 0 - off, default 3
 .BR
 .TP
-.B \-d
+\fI\-d\fR
 Daemon mode
 .TP
-.B \-p file.pid
+\fI\-p\fR file.pid
 PID filename
 .TP
-.B \-f
+\fI\-f\fR
 Force start
 .BR
 .TP
-.B \-u user
+\fI\-u\fR user
 A user to run \fBts-warp\fR. On macOS this has no effect, \fBts-warp\fR runs alwas as root.
 .BR
 .TP
-.B \-h
+\fI\-h\fR
 A short help message
 .TP
 .SH NOTES
