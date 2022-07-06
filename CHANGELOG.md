@@ -1,7 +1,7 @@
 # CHANGELOG
 
-* 2022.07.03    Current
-  * `man\ts-warp.8`: minor updates
+* 2022.07.06    Current
+  * `man\ts-warp.8`: updates
   * `man\ts-warp.5`: draft created
   * `README.md`: typos fixed
   * 120-chars width formatting
