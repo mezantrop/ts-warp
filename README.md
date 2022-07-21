@@ -30,30 +30,55 @@ See it [here](CHANGELOG.md)
 ### Installation
 
 - [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them,
-or just clone the repository:
+or just clone the repository running `git` in a terminal:
   
   ```sh
   $ git clone https://github.com/mezantrop/ts-warp
   ```
 
-- In the directory with TS-Warp source code run:
+Typically the installation operations require root privileges, below we use `sudo` to achieve the goal, but on some
+operating systems you may need to invoke `su` instead.
+
+- Using terminal, in the directory with TS-Warp source code run:
   
   ```sh
-  # make install
+  # sudo make install
   ```
   
-  This will install all the files under the `/usr/local` tree. If a different installation path is required, set a `PREFIX`:
+  This will install all the files under the `/usr/local` tree. If a different installation path is required, set `PREFIX`:
   
   ```sh
-  # make install PREFIX=/path/to/install
+  # sudo make install PREFIX=/path/to/install
   ```
 
-- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your needs
-- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location
+- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your configuration. For example:
+
+```sh
+# sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
+# sudo nano /usr/local/etc/ts-warp.ini
+```
+  
+- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
+
+```sh
+# sudo nano /usr/local/etc/ts-warp.sh
+```
+
 - **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample`
-to configure the packet filter
+to configure the packet filter. For example:
+
+```sh
+# sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+# sudo nano /usr/local/etc/ts-warp_pf.conf
+```
+
 - **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample`
-to configure firewall
+to configure firewall. For example:
+
+```sh
+# sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+# sudo nano /usr/local/etc/ts-warp_iptables.sh
+```
 
 ### Usage
 
@@ -93,7 +118,7 @@ All parameters are optional:
 For example, to temporary enable more verbose logs, restart ts-warp with `-v 4` option:
 
 ```sh
-# <PREFIX>/etc/ts-warp.sh restart -v 4
+# sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
 ts-warp understands `SIGHUP` signal as the command to reload configuration and `SIGINT` to stop the daemon.
@@ -108,19 +133,19 @@ Experimental GUI front-end application to control ts-warp daemon can be installe
 
 ```sh
 # cd gui
-# make install
+# sudo make install
 ```
 
 *Optionally*. Set `PREFIX`, to use a different installation target in the `make` command above:
 
 ``` sh
-# make install PREFIX=/path/to/install
+# sudo make install PREFIX=/path/to/install
 ```
 
 To start the GUI run:
 
 ``` sh
-# <PREFIX>/bin/gui-warp.py &
+# sudo <PREFIX>/bin/gui-warp.py &
 ```
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
