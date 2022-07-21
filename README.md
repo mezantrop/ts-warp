@@ -53,32 +53,32 @@ operating systems you may need to invoke `su` instead.
 
 - Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your configuration. For example:
 
-```sh
-# sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
-# sudo nano /usr/local/etc/ts-warp.ini
-```
+  ```sh
+  # sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
+  # sudo nano /usr/local/etc/ts-warp.ini
+  ```
   
 - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
 
-```sh
-# sudo nano /usr/local/etc/ts-warp.sh
-```
+  ```sh
+  # sudo nano /usr/local/etc/ts-warp.sh
+  ```
 
 - **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample`
 to configure the packet filter. For example:
 
-```sh
-# sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
-# sudo nano /usr/local/etc/ts-warp_pf.conf
-```
+  ```sh
+  # sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+  # sudo nano /usr/local/etc/ts-warp_pf.conf
+  ```
 
 - **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample`
 to configure firewall. For example:
 
-```sh
-# sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-# sudo nano /usr/local/etc/ts-warp_iptables.sh
-```
+  ```sh
+  # sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+  # sudo nano /usr/local/etc/ts-warp_iptables.sh
+  ```
 
 ### Usage
 
