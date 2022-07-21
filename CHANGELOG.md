@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.07.21    Current
+  * `inifile.c`: `ini_look_server()`: `host[0] = 0` prevents garbage output if `getnameinfo()` fails. Thanks Juha Nurmela
   * `README.md` updated
   * `man\ts-warp.8`: updated
   * `man\ts-warp.5`: draft created

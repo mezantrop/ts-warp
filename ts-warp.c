@@ -336,7 +336,6 @@ All parameters are optional:
                 printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr, buf));
             } else
                 /* We have found a SOCKS-proxy server for the destination */
-
                 if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
