@@ -22,6 +22,7 @@ TCP/IP connections to a SOCKS-proxy server
 - [x] Front-end UI
 - [x] Installation script
 - [ ] Documentation
+- [ ] Redirect DNS requests for remote targets
 
 ### Changelog
 
