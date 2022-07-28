@@ -1,7 +1,7 @@
 # CHANGELOG
 
-* 2022.07.27    Current
-  * `README.md`: TODO: Redirect DNS requests for remote targets
+* 2022.07.28    Current
+  * `README.md`: TODO: UDP redirection; Resolve remote names via SOCKS
   * `inifile.c`: `ini_look_server()`: `host[0] = 0` prevents garbage output if `getnameinfo()` fails. Thanks Juha Nurmela
   * `README.md` updated
   * `man\ts-warp.8`: updated
