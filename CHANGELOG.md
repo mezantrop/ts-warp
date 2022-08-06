@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.08.06    Current
+  * `utility.c`: `toint()` wrapping
   * `usage()`: moved from `utility.c` to `ts-warp.c`
   * `utility.h`: Cleanup
 
