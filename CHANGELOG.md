@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.08.06    Current
+  * `utility.h`: Cleanup
+
 * 2022.08.06    ts-warp-1.0.9, gui-warp-1.0
   * `logfile.c`: Logging moved out of `utility.c`
   * `README.md`: TODO: UDP redirection; Resolve remote names via SOCKS
