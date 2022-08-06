@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "ts-warp.h"
 #include "utility.h"
 #include "network.h"
+#include "logfile.h"
 #include "pidfile.h"
 
 
@@ -70,30 +71,6 @@ All parameters are optional:\n\
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
 
     exit(ecode);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-void printl(int level, char *fmt, ...) {
-    /* Print to log */
-
-    time_t timestamp;
-    struct tm *tstamp;
-    va_list ap;
-    char mesg[STR_SIZE];
-    
-    if (level > loglevel || !fmt || !fmt[0]) return;
-    if (!lfile) lfile = stderr;
-    if (pid <= 0) pid = getpid();
-    timestamp = time(NULL);
-    tstamp = localtime(&timestamp);
-    va_start(ap, fmt);
-    vsnprintf(mesg, sizeof mesg , fmt, ap);
-    va_end(ap);
-    fprintf(lfile, "%04d.%02d.%02d %02d:%02d:%02d %s [%d]:\t%s\n", 
-        tstamp->tm_year + 1900, tstamp->tm_mon + 1, tstamp->tm_mday, tstamp->tm_hour, tstamp->tm_min, tstamp->tm_sec, 
-        LOG_LEVEL[level], pid, mesg);
-
-    fflush(lfile);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

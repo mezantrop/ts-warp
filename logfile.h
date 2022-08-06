@@ -22,12 +22,22 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- Global variables ---------------------------------------------------------------------------------------------- */
-extern int pid;
-extern char *pfile_name;
+/* ------------------------------------------------------------------------------------------------------------------ */
+#include <stdio.h>
 
-/* -- Function prototypes ------------------------------------------------------------------------------------------- */
-char *rd_pidfile(char *file_name);
-pid_t wr_pidfile(char *file_name,uid_t owner, uid_t group);
-pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group);
-int rm_pidfile(char *file_name);
+
+/* -- Global variables ---------------------------------------------------------------------------------------------- */
+extern uint8_t loglevel;
+extern FILE *lfile;
+
+/* -- Log verbosity levels ------------------------------------------------------------------------------------------ */
+#define LOG_NONE           0
+#define LOG_CRIT           1
+#define LOG_WARN           2
+#define LOG_INFO           3
+#define LOG_VERB           4
+#define LOG_LEVEL_DEFAULT  LOG_INFO
+#define LOG_LEVEL          ((char const*[]){"NONE", "CRIT", "WARN", "INFO", "VERB"})
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void printl(int level, char *fmt, ...);

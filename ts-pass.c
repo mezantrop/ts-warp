@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* Password encoder for TS-Warp                                                                                       */
+/* TS-Pass - Password encoder for TS-Warp                                                                             */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
@@ -22,7 +22,7 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- Password hash generation tool --------------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 /* TODO: Read password from stdin with echo off to hide plaintext password */
 

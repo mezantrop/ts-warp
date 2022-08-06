@@ -27,6 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <string.h>
 
 #include "network.h"
+#include "logfile.h"
+#include "pidfile.h"
 #include "utility.h"
 
  
