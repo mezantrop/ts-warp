@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.08.06    Current
+  * `usage()`: moved from `utility.c` to `ts-warp.c`
   * `utility.h`: Cleanup
 
 * 2022.08.06    ts-warp-1.0.9, gui-warp-1.0

@@ -35,7 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define STR_SIZE           255
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-void usage(int ecode);
 long toint(char *str);
 char *init_xcrypt(int xkey_len);
 void mexit(int status, char *pid_file);

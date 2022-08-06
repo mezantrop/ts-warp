@@ -60,7 +60,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t loglevel = LOG_LEVEL_DEFAULT;
+int loglevel = LOG_LEVEL_DEFAULT;
 FILE *lfile = NULL;
 char *ifile_name = INI_FILE_NAME;
 char *lfile_name = LOG_FILE_NAME;
@@ -133,17 +133,23 @@ All parameters are optional:
                 if (optarg) iport = optarg;
                 break;
             case 'c':                                                   /* INI-file */
-                ifile_name = optarg; break;
+                ifile_name = optarg;
+                break;
             case 'l': 
-                l_flg = 1; lfile_name = optarg; break;                  /* Logfile */
+                l_flg = 1; lfile_name = optarg;                         /* Logfile */
+                break;
             case 'v':                                                   /* Log verbosity */
-                loglevel = (uint8_t)toint(optarg); break;
+                if ((loglevel = toint(optarg)) == -1) usage(1); 
+                break;
             case 'd':                                                   /* Daemon mode */
-                d_flg = 1; break;
+                d_flg = 1; 
+                break;
             case 'p':
-                pfile_name = optarg; break;                             /* PID-file */
+                pfile_name = optarg;                                    /* PID-file */
+                break;
             case 'f':                                                   /* Force start */
-                f_flg = 1; break;
+                f_flg = 1; 
+                break;
             case 'u':
                 #if defined(__APPLE__)
                     fprintf(stderr, "Warning: -u option under macOS is not available\n");
@@ -627,4 +633,29 @@ void trap_signal(int sig) {
                 printl(LOG_INFO, "Got unhandled signal: %d", sig);
                 break;
     }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void usage(int ecode) {
+    printf("Usage:\n\
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h\n\n\
+Version:\n\
+  %s-%s\n\n\
+All parameters are optional:\n\
+  -i IP:Port\t    Incoming local IP address and port\n\
+  -c file.ini\t    Configuration file, default: %s\n\
+  \n\
+  -l file.log\t    Log filename, default: %s\n\
+  -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
+  \n\
+  -d\t\t    Daemon mode\n\
+  -p file.pid\t    PID filename, default: %s\n\
+  -f\t\t    Force start\n\
+  \n\
+  -u user\t    A user to run ts-warp, default: %s\n\
+  \n\
+  -h\t\t    This message\n\n", 
+    PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
+
+    exit(ecode);
 }

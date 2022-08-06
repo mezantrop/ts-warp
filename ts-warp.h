@@ -35,3 +35,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void trap_signal(int sig);
+void usage(int ecode);
