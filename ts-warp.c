@@ -139,7 +139,11 @@ All parameters are optional:
                 l_flg = 1; lfile_name = optarg;                         /* Logfile */
                 break;
             case 'v':                                                   /* Log verbosity */
-                if ((loglevel = toint(optarg)) == -1) usage(1); 
+                loglevel = toint(optarg);
+                if (loglevel < LOG_NONE || loglevel > LOG_VERB) {
+                    fprintf(stderr, "Wrong -v verbosity level value: [%s]\n", optarg);
+                    usage(1);
+                }
                 break;
             case 'd':                                                   /* Daemon mode */
                 d_flg = 1; 
