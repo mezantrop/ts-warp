@@ -22,12 +22,38 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* -- Global variables ---------------------------------------------------------------------------------------------- */
-extern int pid;
-extern char *pfile_name;
+/* -- Logging ------------------------------------------------------------------------------------------------------- */
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdarg.h>
 
-/* -- Function prototypes ------------------------------------------------------------------------------------------- */
-char *rd_pidfile(char *file_name);
-pid_t wr_pidfile(char *file_name,uid_t owner, uid_t group);
-pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group);
-int rm_pidfile(char *file_name);
+
+#include "logfile.h"
+#include "utility.h"
+#include "pidfile.h"
+
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void printl(int level, char *fmt, ...) {
+    /* Print to log */
+
+    time_t timestamp;
+    struct tm *tstamp;
+    va_list ap;
+    char mesg[STR_SIZE];
+    
+    if (level > loglevel || !fmt || !fmt[0]) return;
+    if (!lfile) lfile = stderr;
+    if (pid <= 0) pid = getpid();
+    timestamp = time(NULL);
+    tstamp = localtime(&timestamp);
+    va_start(ap, fmt);
+    vsnprintf(mesg, sizeof mesg , fmt, ap);
+    va_end(ap);
+    fprintf(lfile, "%04d.%02d.%02d %02d:%02d:%02d %s [%d]:\t%s\n", 
+        tstamp->tm_year + 1900, tstamp->tm_mon + 1, tstamp->tm_mday, tstamp->tm_hour, tstamp->tm_min, tstamp->tm_sec, 
+        LOG_LEVEL[level], pid, mesg);
+
+    fflush(lfile);
+}

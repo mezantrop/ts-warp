@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "inifile.h"
 #include "network.h"
 #include "socks.h"
+#include "logfile.h"
+#include "pidfile.h"
 #include "utility.h"
 #include "xedec.h"
 
