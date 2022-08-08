@@ -70,7 +70,7 @@ ini_section *read_ini(char *ifile_name) {
         strsep(&s, "#;\n");
 
         /* Get section */
-        if (sscanf(buffer, "[%[A-Z \t0-9]]", section) == 1) {
+        if (sscanf(buffer, "[%[a-zA-Z \t0-9]]", section) == 1) {
             printl(LOG_VERB, "LN: %d S: %s", ln, section);
 
             /* Current section to use */
@@ -183,9 +183,11 @@ ini_section *read_ini(char *ifile_name) {
                     SIN4_FAMILY(c_targ->ip1) = AF_INET;
                     SIN4_FAMILY(c_targ->ip2) = AF_INET; 
  
-                    if (target_type == INI_TARGET_DOMAIN)
-                        c_targ->name = strdup(entry.val1);              /* Domain */
-                    else {
+                    if (target_type == INI_TARGET_DOMAIN) {
+                        d = entry.val;
+                        strsep(&d, "±§!@#$%^&*()_+=`~,<>/\\|{}[]:\"'");         /* Delete unwanted chars from domain */
+                        c_targ->name = strdup(entry.val);                       /* Domain */
+                    } else {
                         c_targ->name = NULL;
                         c_targ->ip1 = *(str2inet(entry.val1, entry.mod1, &res, NULL));
                         if (entry.val2) c_targ->ip2 = *(str2inet(entry.val2, entry.mod2, &res, NULL));
