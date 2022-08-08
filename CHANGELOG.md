@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.08.06    Current
+* 2022.08.08    ts-warp-1.0.10, gui-warp-1.0
+  * `ts-warp.c`: SOCKS Chains improvement
   * `inifile.c`: Lowcase in section names and better domain names parsing
   * `utility.c`: `toint()` wrapping
   * `usage()`: moved from `utility.c` to `ts-warp.c`
