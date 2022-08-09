@@ -48,21 +48,25 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
     s4_request req;
     s4_reply rep;
     int idlen = 0, rcount = 0;
-
-
-    idlen = strnlen(user, 255);
-
-    printl(LOG_VERB, "Preparing IPv4 SOCKS4 request");
+  
+    printl(LOG_CRIT, "Preparing IPv4 SOCKS4 request");
     
+    /* Fill in the request */
+    strcpy((char*)req.id, "TS-Warp");                       /* Sic! Some username is required by server! */
+    idlen = strnlen((char *)req.id, STR_SIZE);
+
     req.ver = PROXY_PROTO_SOCKS_V4;
     req.cmd = cmd;
     req.dstaddr = S4_ADDR(*daddr);
     req.dstport = SIN4_PORT(*daddr);
-    memcpy(req.id, user, idlen);
+    if (user != NULL) {
+        idlen = strnlen(user, STR_SIZE);
+        strncpy((char *)req.id, user, idlen);
+    }
 
     printl(LOG_VERB, "Sending IPv4 SOCKS4 request");
 
-    if (send(socket, &req, sizeof(s4_request), 0) == -1) {
+    if (send(socket, &req, 8 + idlen + 1, 0) == -1) {
         printl(LOG_CRIT, "Unable to send a request to the SOCKS4 server");
         mexit(1, pfile_name);
     }
@@ -74,11 +78,10 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
         mexit(1, pfile_name);
     }
 
-    printl(LOG_VERB, "SOCKS4 reply: [%d][%d], Bytes [%d]", rep.ver, 
-        rep.status, rcount);
+    printl(LOG_VERB, "SOCKS4 reply: [%d][%d], Bytes [%d]", rep.nul, rep.status, rcount);
 
-    if (rep.ver != PROXY_PROTO_SOCKS_V4) {
-        printl(LOG_CRIT, "SOCKS4 server speaks unsupported protocol version: [%d]", rep.ver);
+    if (rep.nul != 0) {
+        printl(LOG_CRIT, "SOCKS4 server speaks unsupported protocol version: [%d]", rep.nul);
         mexit(1, pfile_name);
     }
     
