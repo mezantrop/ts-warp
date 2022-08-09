@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.08.09    Current
+  * Chains & SOCKSv4 rewritten
+
 * 2022.08.08    ts-warp-1.0.10, gui-warp-1.0
   * `ts-warp.c`: SOCKS Chains improvement
   * `inifile.c`: Lowcase in section names and better domain names parsing
