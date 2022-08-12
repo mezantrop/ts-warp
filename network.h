@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define SOCKS_PORT      "1080"                                          /* That is remote SOCKS server port */
 
 
-#define SA_FAMILY(sa)  &sa->sa_family
+#define SA_FAMILY(sa)  ((struct sockaddr *)&sa)->sa_family
 
 /* sockaddr to sockaddr_in-> */
 #define SIN4_ADDR(sa)   ((struct sockaddr_in *)&sa)->sin_addr

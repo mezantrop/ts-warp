@@ -52,7 +52,7 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
     printl(LOG_CRIT, "Preparing IPv4 SOCKS4 request");
     
     /* Fill in the request */
-    strcpy((char*)req.id, "TS-Warp");                       /* Sic! Some username is required by server! */
+    strcpy((char*)req.id, PROG_NAME);                       /* Sic! Some username is required by server! */
     idlen = strnlen((char *)req.id, STR_SIZE);
 
     req.ver = PROXY_PROTO_SOCKS_V4;
