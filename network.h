@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #define SOCKS_PORT      "1080"                                          /* That is remote SOCKS server port */
 
 
+/* -- Socket conversion macros -------------------------------------------------------------------------------------- */
 #define SA_FAMILY(sa)  ((struct sockaddr *)&sa)->sa_family
 
 /* sockaddr to sockaddr_in-> */
@@ -49,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 #define S4_ADDR(sa)     ((struct sockaddr_in *)&sa)->sin_addr.s_addr
 
-/* sockaddr to sockaddr_in6 */
+/* sockaddr to sockaddr_in6-> */
 #define SIN6_ADDR(sa)   ((struct sockaddr_in6 *)&sa)->sin6_addr
 #define SIN6_PORT(sa)   ((struct sockaddr_in6 *)&sa)->sin6_port
 #define SIN6_FAMILY(sa) ((struct sockaddr_in6 *)&sa)->sin6_family
@@ -63,7 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #endif
 
 #ifndef HOST_NAME_MAX
-#define HOST_NAME_MAX 255
+    #define HOST_NAME_MAX 255
 #endif
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
