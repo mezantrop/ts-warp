@@ -1,7 +1,7 @@
 # CHANGELOG
 
-* 2022.08.12    Current
-  * `socks.c`, `network.h`: macro tweaks
+* 2022.08.09    Current
+  * `inifile.c`: Skip variables not in sections
   * Chains & SOCKSv4 rewritten
 
 * 2022.08.08    ts-warp-1.0.10, gui-warp-1.0

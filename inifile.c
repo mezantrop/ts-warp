@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 ini_section *read_ini(char *ifile_name) {
-    /*Read and parse INI-file */
+    /* Read and parse INI-file */
 
     FILE *fini;
     char buffer[BUF_SIZE], section[STR_SIZE];
@@ -106,6 +106,12 @@ ini_section *read_ini(char *ifile_name) {
             entry.val1 = strsep(&s, ":-");                              /* val1 clean */
             entry.mod1 = strsep(&s, ":-");                              /* mod1 optional */
             entry.mod2 = strsep(&s, ":-");                              /* mod2 optional */
+
+            if (!l_sect && entry.var) {
+                /* A line is not in a section */
+                printl(LOG_VERB, "LN: %d IGNORED: The variable is not in a section", ln);
+                continue;
+            }
 
             if (!entry.val1 || !entry.val1[0]) {
                 printl(LOG_VERB, "LN: %d IGNORED: The variable must be assigned a value", ln);
