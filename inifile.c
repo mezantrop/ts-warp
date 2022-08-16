@@ -110,11 +110,13 @@ ini_section *read_ini(char *ifile_name) {
             if (!l_sect && entry.var) {
                 /* A line is not in a section */
                 printl(LOG_VERB, "LN: %d IGNORED: The variable is not in a section", ln);
+                free(entry.val);
                 continue;
             }
 
             if (!entry.val1 || !entry.val1[0]) {
                 printl(LOG_VERB, "LN: %d IGNORED: The variable must be assigned a value", ln);
+                free(entry.val);
                 continue;
             }
 

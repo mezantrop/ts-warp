@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.08.09    Current
+* 2022.08.16    Current
+  * `inifile.c`: `free(entry.val)` if unused
   * `inifile.c`: Skip variables not in sections
   * Chains & SOCKSv4 rewritten
 
