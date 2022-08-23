@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.08.16    Current
+* 2022.08.23    Current
+  * `examples/ts-warp_pf_macos.conf`: `en7` added as often used
   * `inifile.c`: `free(entry.val)` if unused
   * `inifile.c`: Skip variables not in sections
   * Chains & SOCKSv4 rewritten
