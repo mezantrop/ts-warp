@@ -57,23 +57,26 @@ _start() {
 
 _status() {
     # Set $1 if status message is required
+    echo $opts | grep -q '\-f' && { printf "Force mode requested\n"; return 1; }
 
     [ -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
-        [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
+        [ "$1" != "" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
         return 0
     } || {
-        [ "$1" ] && printf "ts-warp is not running: "
+        [ "$1" != "" ] && printf "ts-warp is not running: "
         return 1
     }
 }
 
 _stop() {
-    _status && {
+    _status || {
         _check_root
         printf "Stopping ts-warp: "
-        cat "$tswarp_pidfile" | xargs kill -TERM
-        while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
-    } || 
+        [ -f "$tswarp_pidfile" ] &&
+            cat "$tswarp_pidfile" | xargs kill -TERM
+        [ -f "$tswarp_pidfile" ] &&
+            ps -ax | awk '/ts-warp/ && !/awk/ {system("kill -KILL " $1)}'
+    } &&
         printf "ts-warp is already stopped: "
 }
 
@@ -112,6 +115,8 @@ _usage() {
 
 # ------------------------------------------------------------------------------
 [ $# -eq 0 ] && _usage
+
+opts=$*
 
 case "$1" in
     [sS][tT][aA][rR][tT])           shift; _start $*    ;;
