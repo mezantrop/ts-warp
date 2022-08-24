@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2022.08.24    Current
-  * `ts-warp.sh`: restored
+  * `ts-warp.sh`: Force mode for start/stop procedures rewritten
   * `examples/ts-warp_pf_macos.conf`: `en7` added as often used
   * `inifile.c`: `free(entry.val)` if unused
   * `inifile.c`: Skip variables not in sections

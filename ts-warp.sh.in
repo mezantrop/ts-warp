@@ -41,18 +41,23 @@ tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v 3"
 
+FORCE=0                     # Ignore status and start/stop ts-warp forcibly
+
 # ------------------------------------------------------------------------------
 _start() {
-    _status && {
-        printf "ts-warp is already running: "
-    } || {
-        _check_root
-        printf "Starting ts-warp: "
-        uname -s | grep -i 'Linux' >/dev/null &&
-            "$tswarp_prefix"/etc/ts-warp_iptables.sh || 
-            /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
-        echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
-    }
+    if [ $FORCE -eq 0 ]; then
+        _status && {
+            printf "ts-warp is already running: "
+            return 0
+        }
+    fi
+
+    _check_root
+    printf "Starting ts-warp: "
+    uname -s | grep -i 'Linux' >/dev/null &&
+        "$tswarp_prefix"/etc/ts-warp_iptables.sh || 
+        /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
+    echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
 }
 
 _status() {
@@ -68,13 +73,19 @@ _status() {
 }
 
 _stop() {
-    _status && {
-        _check_root
-        printf "Stopping ts-warp: "
-        cat "$tswarp_pidfile" | xargs kill -TERM
-        while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
-    } || 
-        printf "ts-warp is already stopped: "
+    if [ $FORCE -eq 1 ]; then 
+        printf "Stopping ts-warp with force: "
+        ps -ax | awk '$5 ~ /ts-warp/ && !/awk/ {system("kill -KILL " $1)}'
+        [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
+    else
+        _status && {
+            _check_root
+            printf "Stopping ts-warp: "
+            [ -f "$tswarp_pidfile" ] &&  cat "$tswarp_pidfile" | xargs kill -TERM
+            while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
+        } || 
+            printf "ts-warp is already stopped: "
+    fi
 }
 
 _reload() {
@@ -112,6 +123,8 @@ _usage() {
 
 # ------------------------------------------------------------------------------
 [ $# -eq 0 ] && _usage
+
+echo $* | grep -q '\-f' && FORCE=1
 
 case "$1" in
     [sS][tT][aA][rR][tT])           shift; _start $*    ;;
