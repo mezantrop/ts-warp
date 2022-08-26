@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.08.24    Current
+* 2022.08.26    Current
+  * `ts-warp.sh`: stop -f for macOS update
   * `ts-warp.sh`: Force mode for start/stop procedures rewritten
   * `examples/ts-warp_pf_macos.conf`: `en7` added as often used
   * `inifile.c`: `free(entry.val)` if unused
