@@ -370,7 +370,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     return (ini); 
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------ */
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip) {
     /* Lookup a SOCKS server ip in the list referred by ini */
     
