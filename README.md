@@ -8,8 +8,7 @@
 
 ### Goals and TODO list
 
-- [x] Create a soxifier service - transparent firewall-based redirector of
-TCP/IP connections to a SOCKS-proxy server
+- [x] Create a socksifier service - transparent firewall-based redirector of TCP/IP connections to a SOCKS-proxy server
 
 - Support platforms:
   - [x] macOS, FreeBSD and OpenBSD with PF
