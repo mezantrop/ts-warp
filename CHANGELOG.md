@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.09.06    Current
+* 2022.09.16    Current
+  * `Makefile`: make uninstall
   * Minor decorative changes
   * `ts-warp.sh`: stop -f for macOS update
   * `ts-warp.sh`: Force mode for start/stop procedures rewritten
