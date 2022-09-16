@@ -55,6 +55,18 @@ install: ts-warp ts-pass
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
 
+uninstall:
+	rm -f $(PREFIX)/bin/ts-warp 
+	rm -f $(PREFIX)/bin/ts-pass
+	rm -f $(PREFIX)/etc/ts-warp.sh
+	rm -f $(PREFIX)/etc/ts-warp.ini.sample
+	rm -f $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
+	rm -f $(PREFIX)/etc/ts-warp_pf_freebsd.conf.sample
+	rm -f $(PREFIX)/etc/ts-warp_pf_macos.conf.sample
+	rm -f $(PREFIX)/etc/ts-warp_iptables.sh.sample
+	rm -f $(PREFIX)/var/log/ts-warp.log
+	rm -f $(PREFIX)/var/run/ts-warp.pid
+
 clean:
 	rm -rf ts-warp ts-warp.sh ts-pass *.o *.dSYM *.core
 

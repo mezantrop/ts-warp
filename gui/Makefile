@@ -41,6 +41,10 @@ install:	all
 	install -d $(PREFIX)/etc/
 	install -m 755 gui-warp.ini $(PREFIX)/etc/
 
+uninstall:
+	rm -f $(PREFIX)/bin/gui-warp.py 
+	rm -f $(PREFIX)/etc/gui-warp.ini
+
 clean:
 	rm -rf __pycache__
 	rm -f gui-warp.py
