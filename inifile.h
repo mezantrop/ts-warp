@@ -31,13 +31,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct ini_section {
-    char *section_name;                                                 /* Sectionn name */
+    char *section_name;                                                 /* Section name */
     struct sockaddr socks_server;                                       /* SOCKS server IP-address and Port */
     uint8_t socks_version;                                              /* SOCKS version: 4 | 5 */
     char *socks_user;                                                   /* SOCKS server username */
     char *socks_password;                                               /* SOCKS server user password */
     struct socks_chain *proxy_chain;                                    /* SOCKS proxy chain */
     struct ini_target *target_entry;                                    /* List of target definitions */
+
+    /*NIT Pool specification */
+    char *nit_domain;                                                   /* NIT Domain name */
+    struct sockaddr nit_ipaddr;                                         /* NIT IP/address */
+    struct sockaddr nit_ipmask;                                         /* NIT address mask */
+
     struct ini_section *next;                                           /* The next INI-section */
 } ini_section;
 
@@ -62,17 +68,17 @@ typedef struct ini_target {
     struct sockaddr ip1;            /* Host IP, Net IP, First IP in Range or null and optional port number 0 65535 */
     struct sockaddr ip2;            /* Netmask, Last IP in Range or null + port */
 
-    struct ini_target *next;                                            /* The next range entry */
+    struct ini_target *next;                                /* The next range entry */
 } ini_target;
 
-typedef struct socks_chain {                                            /* SOCKS server chains */
+typedef struct socks_chain {                                /* SOCKS server chains */
     struct ini_section *chain_member;
     struct socks_chain *next;
 } socks_chain;
 
-typedef struct chain_list {                                             /* Chains as they defind in the INI */
-    char *txt_section;                                                  /* section name */
-    char *txt_chain;                                                    /* String representing sections to chain */
+typedef struct chain_list {                                 /* Chains as they defind in the INI */
+    char *txt_section;                                      /* section name */
+    char *txt_chain;                                        /* String representing sections to chain */
     struct chain_list *next;
 } chain_list;
 
@@ -86,6 +92,9 @@ typedef struct chain_list {                                             /* Chain
 #define INI_ENTRY_TARGET_DOMAIN     "target_domain"
 #define INI_ENTRY_TARGET_NETWORK    "target_network"
 #define INI_ENTRY_TARGET_RANGE      "target_range"
+
+#define NS_INI_ENTRY_NIT_POOL       "nit_pool"              /* nit_pool = domain.net:192.168.168.0/255.255.255.0 */
+
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 ini_section *read_ini(char *ifile_name);

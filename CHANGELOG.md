@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.09.16    Current
+* 2022.09.18    Current
+  * `socks5_request()`: SOCKS5_ATYPE_NAME added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
   * `Makefile`: make uninstall
   * Minor decorative changes
   * `ts-warp.sh`: stop -f for macOS update

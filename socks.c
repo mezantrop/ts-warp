@@ -177,7 +177,7 @@ int socks5_auth(int socket, char *user, char *password) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr) {
-    /* Perform SOCKS5 request; Use only IPv4/IPv6 addresses: atype 1 or 4, Domain name: atype 3 is not supported */
+    /* Perform SOCKS5 request; IPv4/IPv6 addresses: atype 1/4, Domain name: atype 3 */
 
     s5_reply_short *rep;
     char buf[261];                                                      /* Max SOCKS5 reply size */
@@ -206,6 +206,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
         }
 
         printl(LOG_VERB, "IPv4 SOCKS5 request sent");
+    
     } else if (atype == SOCKS5_ATYPE_IPV6) {
         atype_len = SOCKS5_ATYPE_IPV6_LEN;
         printl(LOG_VERB, "Preparing IPv6 SOCKS5 request");
@@ -222,6 +223,30 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
         }
 
         printl(LOG_VERB, "IPv6 SOCKS5 request sent");
+   
+    } else if (atype == SOCKS5_ATYPE_NAME) {
+        char daddr_ch[HOST_NAME_MAX];
+
+        printl(LOG_VERB, "Preparing NAME SOCKS5 request");
+
+        getnameinfo(daddr, sizeof(*daddr), daddr_ch, sizeof(daddr_ch), NULL, 0, 0);
+        atype_len = strlen(daddr_ch);
+     
+        char *name = (char *)req + sizeof(s5_request_short);
+        *name++ = atype_len;
+        memcpy(name, daddr_ch, atype_len);
+        name += atype_len;
+        *(in_port_t *)name = SA_FAMILY(*daddr) == AF_INET ? (in_port_t)SIN4_PORT(*daddr) : (in_port_t)SIN6_PORT(*daddr);
+
+        printl(LOG_VERB, "Sending NAME SOCKS5 request");
+
+        if (send(socket, req,  sizeof(s5_request_short) + 1 + atype_len + 2,  0) == -1) {
+            printl(LOG_CRIT, "Unable to send a request to the SOCKS server");
+            mexit(1, pfile_name);
+        }
+
+        printl(LOG_VERB, "NAME SOCKS5 request sent");
+
     } else {
         printl(LOG_CRIT, "Unsupported address types: [%d] is in the request", daddr->sa_family);
         mexit(1, pfile_name);

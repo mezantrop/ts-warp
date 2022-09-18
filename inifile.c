@@ -82,6 +82,11 @@ ini_section *read_ini(char *ifile_name) {
             c_sect->socks_password = NULL;
             c_sect->proxy_chain = NULL;
             c_sect->target_entry = NULL;
+
+            c_sect->nit_domain = NULL;
+            memset(&c_sect->nit_ipaddr, 0, sizeof(struct sockaddr));
+            memset(&c_sect->nit_ipmask, 0, sizeof(struct sockaddr));
+
             c_sect->next = NULL;
 
             if (!ini_root) ini_root = c_sect; else l_sect->next = c_sect;
@@ -145,12 +150,12 @@ ini_section *read_ini(char *ifile_name) {
             } else 
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
                     if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER, ln)) free(c_sect->socks_user);
-                    c_sect->socks_user = strdup(entry.val);
+                    c_sect->socks_user = strdup(entry.val);                                         /* TODO: free() */
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
                     chain_temp = (struct chain_list *)malloc(sizeof(struct chain_list));
-                    chain_temp->txt_section = strdup(c_sect->section_name);
-                    chain_temp->txt_chain = strdup(entry.val);
+                    chain_temp->txt_section = strdup(c_sect->section_name);                         /* TODO: free() */
+                    chain_temp->txt_chain = strdup(entry.val);                                      /* TODO: free() */
                     chain_temp->next = NULL;
                     if (chain_this) chain_this->next = chain_temp; 
                     else { chain_root = chain_temp; chain_this = chain_root; }
@@ -161,7 +166,7 @@ ini_section *read_ini(char *ifile_name) {
                             free(c_sect->socks_password);
 
                         if (!strcasecmp(entry.val1, XEDEC_PLAIN))
-                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
+                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);   /* TODO: free() */
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
                                 printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash version!", ln);
@@ -173,7 +178,13 @@ ini_section *read_ini(char *ifile_name) {
                         } else {
                             printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_SOCKS_PASSWORD);
                             mexit(1, pfile_name);
-                        }
+                        }                        
+            } else
+                /* Parse nit_* entries */
+                if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
+                    c_sect->nit_domain = strdup(entry.val1);                                        /* TODO: free() */
+                    c_sect->nit_ipaddr = *(str2inet(entry.mod1, NULL, &res, NULL));
+                    c_sect->nit_ipmask = *(str2inet(entry.val2, NULL, &res, NULL));
             } else {
                 target_type = INI_TARGET_NOTSET;
                 /* Parse target_* entries: var=val1[:mod1[-mod2]]/val2 */
@@ -194,7 +205,7 @@ ini_section *read_ini(char *ifile_name) {
                     if (target_type == INI_TARGET_DOMAIN) {
                         d = entry.val;
                         strsep(&d, "±§!@#$%^&*()_+=`~,<>/\\|{}[]:\"'");         /* Delete unwanted chars from domain */
-                        c_targ->name = strdup(entry.val);                       /* Domain */
+                        c_targ->name = strdup(entry.val);                       /* Domain */        /* TODO: free() */
                     } else {
                         c_targ->name = NULL;
                         c_targ->ip1 = *(str2inet(entry.val1, entry.mod1, &res, NULL));
@@ -308,6 +319,11 @@ void show_ini(struct ini_section *ini) {
             }
             printl(LOG_VERB, "-> [%s]", s->section_name);
         }
+
+        /* Display NIT pool */
+        if (s->nit_domain)
+            printl(LOG_VERB, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s:%s]", 
+                s->nit_domain, inet2str(&s->nit_ipaddr, ip1), inet2str(&s->nit_ipmask, ip2));
 
         /* Display target entries */
         t = s->target_entry;
