@@ -25,6 +25,7 @@
 - [ ] Documentation
 - [ ] UDP support
 - [ ] Resolve remote names via SOCKS
+- [ ] (optional) HTTP proxy
 
 ### Changelog
 
