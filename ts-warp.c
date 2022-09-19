@@ -521,13 +521,11 @@ single_server:
 
                         printl(LOG_VERB, "Initiate SOCKS5 protocol: request [%s] -> [%s]", 
                             inet2str(&s_ini->socks_server, suf), inet2str(&daddr, buf));
-
-/*                        if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, SOCKS5_ATYPE_NAME, &daddr) > 0) { */
-                        if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, 
-                                daddr.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6, &daddr) > 0) {
-                                printl(LOG_CRIT, "SOCKS server returned an error");
-                                close(csock);
-                                exit(1);
+                        
+                        if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, socks5_atype(s_ini, daddr), &daddr) > 0) {
+                            printl(LOG_CRIT, "SOCKS server returned an error");
+                            close(csock);
+                            exit(1);
                         }
                     } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
 
