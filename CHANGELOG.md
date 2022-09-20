@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.09.19    Current
+* 2022.09.20    Current
+  * `inifile.c`: `socks5_atype()`: Correct SOCKS5 address type selection
   * `inifile.c`: `socks5_atype()`: SOCKS5 Address type selector: IPv4/IPv6/Name
   * `socks5_request()`: SOCKS5_ATYPE_NAME added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
   * `Makefile`: make uninstall

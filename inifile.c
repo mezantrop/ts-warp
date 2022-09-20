@@ -508,8 +508,9 @@ int socks5_atype(ini_section *ini, struct sockaddr daddr) {
     int sat = SOCKS5_ATYPE_IPV4;
 
     if (daddr.sa_family == AF_INET && S4_ADDR(ini->socks_server) != S4_ADDR(daddr)) {
-        if ((S4_ADDR(ini->nit_ipaddr) & S4_ADDR(ini->nit_ipmask)) == (S4_ADDR(daddr) & S4_ADDR(ini->nit_ipmask)))
-            sat = SOCKS5_ATYPE_NAME;
+        if (ini->nit_domain && 
+            (S4_ADDR(ini->nit_ipaddr) & S4_ADDR(ini->nit_ipmask)) == (S4_ADDR(daddr) & S4_ADDR(ini->nit_ipmask)))
+                sat = SOCKS5_ATYPE_NAME;
     } else {
         /* AF_INET6 */
         sat = SOCKS5_ATYPE_NAME;
