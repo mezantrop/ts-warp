@@ -157,9 +157,8 @@ ini_section *read_ini(char *ifile_name) {
                     chain_temp->txt_section = strdup(c_sect->section_name);                         /* TODO: free() */
                     chain_temp->txt_chain = strdup(entry.val);                                      /* TODO: free() */
                     chain_temp->next = NULL;
-                    if (chain_this) chain_this->next = chain_temp; 
-                    else { chain_root = chain_temp; chain_this = chain_root; }
-
+                    if (!chain_root) chain_root = chain_temp; else chain_this->next = chain_temp;
+                    chain_this = chain_temp;
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
                     if (chk_inivar(&c_sect->socks_password, INI_ENTRY_SOCKS_PASSWORD, ln))
@@ -246,7 +245,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
     
     c = chain;
     while (c) {
-        if (c->txt_section) {
+        if (c->txt_section[0]) {
             if ((s = getsection(ini, c->txt_section))) {
                 printl(LOG_VERB, "Section: [%s] has a chain link: [%s]", c->txt_section, c->txt_chain);
 
@@ -449,8 +448,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                         }
                     } else if (ip.sa_family == AF_INET6) {
                         /* IPv6 & MASK_from_ini vs IPv6_from_ini & MASK_from_ini */
-			            int b;
-                        for (b = 0; b < 16; ++b)
+                        for (int b = 0; b < 16; ++b)
                             if ((S6_ADDR(ip)[b] & S6_ADDR(t->ip2)[b]) != (S6_ADDR(t->ip1)[b] & S6_ADDR(t->ip2)[b]))
                                 break;
 
