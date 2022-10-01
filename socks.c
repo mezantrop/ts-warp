@@ -232,6 +232,8 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
         getnameinfo(daddr, sizeof(*daddr), daddr_ch, sizeof(daddr_ch), NULL, 0, 0);
         atype_len = strlen(daddr_ch);
      
+        printl(LOG_VERB, "The name in the NAME SOCKS5 request: [%s]", daddr_ch);
+
         char *name = (char *)req + sizeof(s5_request_short);
         *name++ = atype_len;
         memcpy(name, daddr_ch, atype_len);

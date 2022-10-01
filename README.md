@@ -24,7 +24,7 @@
 - [x] Installation script
 - [ ] Documentation
 - [ ] UDP support
-- [ ] Resolve remote names via SOCKS
+- [x] Resolve remote names via SOCKS (Early development stage)
 - [ ] (optional) HTTP proxy
 
 ### Changelog

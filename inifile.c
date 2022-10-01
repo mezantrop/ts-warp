@@ -518,7 +518,7 @@ int socks5_atype(ini_section *ini, struct sockaddr daddr) {
                 break;
             }
     }
-    
+
     printl(LOG_VERB, "Selecting SOCKS5 address type: [%d]", sat);
     return sat;
 }

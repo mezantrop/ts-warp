@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.09.23    Current
+* 2022.10.01    ts-warp-1.0.11, gui-warp-1.0, ns-warp-1.0.0
+  * NS-Warp published
   * `inifile.c`: create_chains(): Chain list traversal fix; Thanks Bart Couvreur for the bug-hunting
   * `inifile.c`: `socks5_atype()`: Correct SOCKS5 address type selection
   * `inifile.c`: `socks5_atype()`: SOCKS5 Address type selector: IPv4/IPv6/Name
