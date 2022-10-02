@@ -442,8 +442,8 @@ void usage(int ecode) {
     printf("Usage:\n\
   ns-warp -i IP:Port -s IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -h\n\n\
 All parameters are optional:\n\
-  -i IP:Port\t    Incoming local IP address and port\n\
-  -s IP:Port\t    Incoming local IP address and port\n\
+  -i IP:Port\t    NS-Warp server SIP address and port\n\
+  -s IP:Port\t    Original DNS server IP address and port\n\
   \n\
   -c file.ini\t    Configuration INI-file, default: %s\n\
   \n\
