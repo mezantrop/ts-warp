@@ -38,6 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 nit *read_ini(char *ifile_name) {
+
+    /* TODO: Fix errors while reading complex INI-files */
+
     FILE *fini;
     char buffer[BUF_SIZE];
     char *s = NULL, *d = NULL;                                          /* String manipulation pointers */
