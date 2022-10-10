@@ -27,6 +27,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
    #define PREFIX "/usr/local"
 #endif
 
+#if !defined (WITH_TCP_NODELAY)
+   #define WITH_TCP_NODELAY 1
+#endif
+
 #define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
 #define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
 #define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"

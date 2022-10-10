@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.10.02    Current
+* 2022.10.10    Current
+  * `WITH_TCP_NODELAY` option to speedup connections
   * `ns-warp.c` `usage()` update
 
 * 2022.10.01    ts-warp-1.0.11, gui-warp-1.0, ns-warp-1.0.0

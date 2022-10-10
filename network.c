@@ -43,6 +43,12 @@ int connect_desnation(struct sockaddr dest) {
         return sock;
     }
 
+    #if (WITH_TCP_NODELAY)
+        unsigned char tpc_ndelay = 1;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (unsigned char *)&tpc_ndelay, sizeof(tpc_ndelay)) == -1)
+            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for outgoing connections");
+    #endif
+    
     printl(LOG_VERB, "Socket to connect with destination address created");
 
     if ((connect(sock, &dest, sizeof dest)) < 0) {
