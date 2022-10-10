@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <stdlib.h>
 
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -247,13 +248,18 @@ All parameters are optional:
     show_ini(ini_root);
 
     /* -- Create socket for the incoming connections ---------------------------------------------------------------- */
-    if ((isock = socket(ires->ai_family, ires->ai_socktype, 
-        ires->ai_protocol)) == -1) {
-            printl(LOG_CRIT, "Error creating a socket for incoming connections");
-            mexit(1, pfile_name);
+    if ((isock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
+        printl(LOG_CRIT, "Error creating a socket for incoming connections");
+        mexit(1, pfile_name);
     }
     printl(LOG_VERB, "Our socket for incoming connections created");
-    
+
+    #if (WITH_TCP_NODELAY)
+        unsigned char tpc_ndelay = 1;
+        if (setsockopt(isock, IPPROTO_TCP, TCP_NODELAY, (unsigned char *)&tpc_ndelay, sizeof(tpc_ndelay)) == -1)
+            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for incoming connections");
+    #endif
+
     /* -- Bind incoming connections socket -------------------------------------------------------------------------- */
     int raddr = 1;
     if (setsockopt(isock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(raddr))) {
