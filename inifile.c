@@ -150,12 +150,12 @@ ini_section *read_ini(char *ifile_name) {
             } else 
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
                     if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER, ln)) free(c_sect->socks_user);
-                    c_sect->socks_user = strdup(entry.val);                                         /* TODO: free() */
+                    c_sect->socks_user = strdup(entry.val);
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
                     chain_temp = (struct chain_list *)malloc(sizeof(struct chain_list));
-                    chain_temp->txt_section = strdup(c_sect->section_name);                         /* TODO: free() */
-                    chain_temp->txt_chain = strdup(entry.val);                                      /* TODO: free() */
+                    chain_temp->txt_section = strdup(c_sect->section_name);
+                    chain_temp->txt_chain = strdup(entry.val);
                     chain_temp->next = NULL;
                     if (!chain_root) chain_root = chain_temp; else chain_this->next = chain_temp;
                     chain_this = chain_temp;
@@ -165,7 +165,7 @@ ini_section *read_ini(char *ifile_name) {
                             free(c_sect->socks_password);
 
                         if (!strcasecmp(entry.val1, XEDEC_PLAIN))
-                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);   /* TODO: free() */
+                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
                                 printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash version!", ln);
@@ -181,7 +181,7 @@ ini_section *read_ini(char *ifile_name) {
             } else
                 /* Parse nit_* entries */
                 if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
-                    c_sect->nit_domain = strdup(entry.val1);                                        /* TODO: free() */
+                    c_sect->nit_domain = strdup(entry.val1);
                     c_sect->nit_ipaddr = *(str2inet(entry.mod1, NULL, &res, NULL));
                     c_sect->nit_ipmask = *(str2inet(entry.val2, NULL, &res, NULL));
             } else {
@@ -204,7 +204,7 @@ ini_section *read_ini(char *ifile_name) {
                     if (target_type == INI_TARGET_DOMAIN) {
                         d = entry.val;
                         strsep(&d, "±§!@#$%^&*()_+=`~,<>/\\|{}[]:\"'");         /* Delete unwanted chars from domain */
-                        c_targ->name = strdup(entry.val);                       /* Domain */        /* TODO: free() */
+                        c_targ->name = strdup(entry.val);                       /* Domain */
                     } else {
                         c_targ->name = NULL;
                         c_targ->ip1 = *(str2inet(entry.val1, entry.mod1, &res, NULL));
@@ -266,7 +266,10 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
         }
         cc = c;
         c = c->next;
-        free(cc);               /* Delete processed element from the list */
+        /* Delete processed element from the list */
+        if (cc->txt_chain && cc->txt_chain[0]) free(cc->txt_chain);
+        if (cc->txt_section && cc->txt_section[0]) free(cc->txt_section);
+        free(cc);
     }
 
     return 0;
@@ -365,7 +368,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
         } else 
             printl(LOG_VERB, "No SOCKS Chain detected");
         
-        /* Delete target entries */
+        /* Delete target_* entries */
         t = ini->target_entry;
         while (t) {
             printl(LOG_VERB, "DELETE IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
@@ -374,11 +377,16 @@ struct ini_section *delete_ini(struct ini_section *ini) {
                 t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
                 t->name ? t->name : "", t->target_type);
             tt = t->next;
+            if (t->name && t->name[0]) free(t->name);    
             free(t);
             t = tt;
         }
 
+        /* Delete socks_* entries */
         s = ini->next;
+        if (ini->socks_user && ini->socks_user[0]) free(ini->socks_user);
+        if (ini->socks_password && ini->socks_password[0]) free(ini->socks_password);
+        if (ini->nit_domain && ini->nit_domain[0]) free(ini->nit_domain);
         free(ini);
         ini = s;
     }
