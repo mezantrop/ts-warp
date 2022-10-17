@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.10.17  Current
+  * `Makefile`: `make release` target to build releases
   * `version.sh`: Compatibility with gawk
 
 * 2022.10.17    ts-warp-1.0.12, gui-warp-1.0, ns-warp-1.0.0
