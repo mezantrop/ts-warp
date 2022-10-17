@@ -22,17 +22,10 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-/* Program name and version */
-#define PROG_NAME          "TS-Warp"
-#define PROG_NAME_SHORT    "TSW"
-#define PROG_VERSION       "1.0.11"
-#define PROG_NAME_FULL     PROG_NAME " " PROG_VERSION
-#define PROG_NAME_CODE     PROG_NAME_SHORT PROG_VERSION
-
+/* -----------------------------------------------------------------------------------------------------------------  */
 #define BUF_SIZE           1024 * 1024
 #define STR_SIZE           255
+
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 long toint(char *str);

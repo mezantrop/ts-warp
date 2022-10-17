@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.10.17    Current
+* 2022.10.17    ts-warp-1.0.12, gui-warp-1.0, ns-warp-1.0.0
+  * `version.h`, `version.sh`: Autoincrement build number for the release or skip for normal build
   * `inifile.c`: C99 compatibility, thanks [@alitalaghat](https://github.com/alitalaghat)
   * `inifile.c`: `free()` INI-entries on `reload` initiated by `SIGHUP`
   * `WITH_TCP_NODELAY` option to speedup connections

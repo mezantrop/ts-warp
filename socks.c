@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "socks.h"
 #include "logfile.h"
 #include "utility.h"
+#include "version.h"
 
 extern char *pfile_name;
 

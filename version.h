@@ -22,24 +22,12 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-#include "version.h"
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-#if !defined (PREFIX)
-   #define PREFIX "/usr/local"
-#endif
-
-#if !defined (WITH_TCP_NODELAY)
-   #define WITH_TCP_NODELAY 1
-#endif
-
-#define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
-#define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
-#define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
-
-#define RUNAS_USER      "nobody"
-
-/* -- Function prototypes ------------------------------------------------------------------------------------------- */
-void trap_signal(int sig);
-void usage(int ecode);
+/* -- Program name and version -------------------------------------------------------------------------------------- */
+#define PROG_NAME          "TS-Warp"
+#define PROG_NAME_SHORT    "TSW"
+#define PROG_VERSION_MAJOR "1"
+#define PROG_VERSION_MINOR "0"
+#define PROG_VERSION_BUILD "12"
+#define PROG_VERSION       PROG_VERSION_MAJOR "." PROG_VERSION_MINOR "." PROG_VERSION_BUILD
+#define PROG_NAME_FULL     PROG_NAME " " PROG_VERSION
+#define PROG_NAME_CODE     PROG_NAME_SHORT PROG_VERSION

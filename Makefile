@@ -23,6 +23,7 @@
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+BUILD_TYPE ?= "BUILD"
 PREFIX ?= /usr/local
 
 CC = cc
@@ -32,7 +33,10 @@ PASS_OBJS = ts-pass.o xedec.o
 
 .PHONY:	all clean install
 
-all:	ts-warp ts-pass
+all:	version ts-warp ts-pass
+
+version:
+	./version.sh $(BUILD_TYPE)
 
 ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
