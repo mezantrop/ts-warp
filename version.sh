@@ -31,9 +31,8 @@
 [ -n "$1" -a "$1" = "RELEASE" ] || exit 0
 [ -z "$2" ] && vf="version.h" || vf="$2" 
 
-awk -v vf="$vf" '
+awk -F '"' -v vf="$vf" '
     /#define PROG_VERSION_BUILD/    {
-        FS="\"";
         printf("%s\"%d\"%s\n", $1, $2 + 1, $3)> vf; 
         next
     }; 
