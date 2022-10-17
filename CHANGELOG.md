@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.10.12    Current
+* 2022.10.17    Current
+  * `inifile.c`: C99 compatibility, thanks [@alitalaghat](https://github.com/alitalaghat)
   * `inifile.c`: `free()` INI-entries on `reload` initiated by `SIGHUP`
   * `WITH_TCP_NODELAY` option to speedup connections
   * `ns-warp.c` `usage()` update

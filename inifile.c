@@ -456,7 +456,8 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                         }
                     } else if (ip.sa_family == AF_INET6) {
                         /* IPv6 & MASK_from_ini vs IPv6_from_ini & MASK_from_ini */
-                        for (int b = 0; b < 16; ++b)
+                        int b;
+                        for (b = 0; b < 16; ++b)
                             if ((S6_ADDR(ip)[b] & S6_ADDR(t->ip2)[b]) != (S6_ADDR(t->ip1)[b] & S6_ADDR(t->ip2)[b]))
                                 break;
 
@@ -512,6 +513,7 @@ int chk_inivar(void *v, char *vi, int ln) {
 int socks5_atype(ini_section *ini, struct sockaddr daddr) {
     /* Return the SOCKS5 address type based on the address family and presence in NIT */
     int sat = SOCKS5_ATYPE_IPV4;
+    int b = 0;
 
     if (daddr.sa_family == AF_INET && S4_ADDR(ini->socks_server) != S4_ADDR(daddr)) {
         if (ini->nit_domain && 
@@ -520,7 +522,7 @@ int socks5_atype(ini_section *ini, struct sockaddr daddr) {
     } else {
         /* AF_INET6 */
         sat = SOCKS5_ATYPE_NAME;
-        for (int b = 0; b < 16; ++b)
+        for (b = 0; b < 16; ++b)
             if ((S6_ADDR(ini->nit_ipaddr)[b] & S6_ADDR(ini->nit_ipmask)[b]) != (S6_ADDR(daddr)[b] & S6_ADDR(ini->nit_ipmask)[b])) {
                 sat = SOCKS5_ATYPE_IPV6;
                 break;
