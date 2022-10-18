@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.10.17  Current
+  * `TCP_NODELAY`: enabled for macOS
   * `Makefile`: `make release` target to build releases
   * `version.sh`: Compatibility with gawk
 

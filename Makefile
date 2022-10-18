@@ -37,7 +37,7 @@ all: ts-warp ts-pass
 release: version all
 
 version:
-	./version.sh RELEASE
+	sh ./version.sh RELEASE
 
 ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)

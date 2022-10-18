@@ -31,6 +31,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <arpa/inet.h>
 
 
+#if !defined (WITH_TCP_NODELAY)
+   #define WITH_TCP_NODELAY 1
+#endif
+
 /* Used ports */
 #define LISTEN_IPV4     "127.0.0.1"                                     /* We listen on this IPv4 address or */
 #define LISTEN_IPV6     "::1"                                           /* on this IPv6 address */

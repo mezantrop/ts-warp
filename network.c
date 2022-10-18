@@ -44,8 +44,8 @@ int connect_desnation(struct sockaddr dest) {
     }
 
     #if (WITH_TCP_NODELAY)
-        unsigned char tpc_ndelay = 1;
-        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (unsigned char *)&tpc_ndelay, sizeof(tpc_ndelay)) == -1)
+        int tpc_ndelay = 1;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (int *)&tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for outgoing connections");
     #endif
     
