@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.10.18    Current
+* 2022.10.19    ts-warp-1.0.14, gui-warp-1.0, ns-warp-1.0.0
+  * The first Github Release
   * `examples/ts-warp_pf*.conf`: PF-rules optimization, thanks Marcin Biczan
   * `TCP_NODELAY`: enabled for macOS
   * `Makefile`: `make release` target to build releases
