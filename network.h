@@ -35,6 +35,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
    #define WITH_TCP_NODELAY 1
 #endif
 
+#define TCP_KEEPIDLE_S  120                                 /* Wait 2 minutes in sec before sending keep_alives */
+#define TCP_KEEPINTVL_S 30                                  /* Interval between keep_alives probes in seconds */
+#define TCP_KEEPCNT_N   8                                   /* A number of probes before marking a session broken */              
+
 /* Used ports */
 #define LISTEN_IPV4     "127.0.0.1"                                     /* We listen on this IPv4 address or */
 #define LISTEN_IPV6     "::1"                                           /* on this IPv6 address */

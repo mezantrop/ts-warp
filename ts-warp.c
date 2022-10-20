@@ -254,19 +254,36 @@ All parameters are optional:
     }
     printl(LOG_VERB, "Our socket for incoming connections created");
 
+    /* -- Apply socket options -------------------------------------------------------------------------------------- */
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
-        if (setsockopt(isock, IPPROTO_TCP, TCP_NODELAY, (int *)&tpc_ndelay, sizeof(int)) == -1)
+        if (setsockopt(isock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for incoming connections");
     #endif
 
-    /* -- Bind incoming connections socket -------------------------------------------------------------------------- */
+    int keepalive_opt = 1;
+    if (setsockopt(isock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for incoming connections");
+
+    #if !defined(__APPLE__)
+        keepalive_opt = TCP_KEEPIDLE_S;
+        if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for incoming connections");
+    #endif 
+
+    keepalive_opt = TCP_KEEPCNT_N;
+    if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for incoming connections");
+ 
+    keepalive_opt = TCP_KEEPINTVL_S;
+    if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for incoming connections");
+
     int raddr = 1;
-    if (setsockopt(isock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(raddr))) {
-        printl(LOG_CRIT, "Error setting incomming socket to be reusable");
-        close(isock);
-        mexit(1, pfile_name);
-    }
+    if (setsockopt(isock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting incomming socket to be reusable");
+
+    /* -- Bind incoming connections socket -------------------------------------------------------------------------- */
     if (bind(isock, ires->ai_addr, ires->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding socket for the incoming connections");
         close(isock);

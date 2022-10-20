@@ -45,10 +45,20 @@ int connect_desnation(struct sockaddr dest) {
 
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
-        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (int *)&tpc_ndelay, sizeof(int)) == -1)
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for outgoing connections");
     #endif
-    
+
+    int keepalive = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for outgoing connections");
+
+    #if !defined(__APPLE__)
+        int keepidle = TCP_KEEPIDLE_S;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(int)))
+            printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for outgoing connections");
+    #endif
+
     printl(LOG_VERB, "Socket to connect with destination address created");
 
     if ((connect(sock, &dest, sizeof dest)) < 0) {

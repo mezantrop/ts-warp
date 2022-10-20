@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.10.20    Current
+  * `TCP_KEEPALIVE` enabled and respective options added where possible
+
 * 2022.10.19    ts-warp-1.0.14, gui-warp-1.0, ns-warp-1.0.0
   * The first Github Release
   * `examples/ts-warp_pf*.conf`: PF-rules optimization, thanks Marcin Biczan
