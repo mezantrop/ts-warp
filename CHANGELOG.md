@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2022.10.20    Current
+* 2022.10.21    Current
   * `socks.c`, `socks.h`: Drop connection (not exit) if a SOCKS server replies an error
   * `TCP_KEEPALIVE` enabled and respective options added where possible
 
