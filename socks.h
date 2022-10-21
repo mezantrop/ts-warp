@@ -221,6 +221,17 @@ typedef struct {
     uint8_t atype;                                  /* Server bound address type 0x01: IPv4 address */
 } s5_reply_short;
 
+/* SOCKS5 reply statuses */
+#define SOCKS5_REPLY_OK             0x00            /* Request granted */
+#define SOCKS5_REPLY_KO             0x01            /* General failure */
+#define SOCKS5_REPLY_DENIED         0x02            /* Connection not allowed by ruleset */
+#define SOCKS5_REPLY_NET_UNREACH    0x03            /* Network unreacheable */
+#define SOCKS5_REPLY_HOST_UNREACH   0x04            /* Host unreacheable */
+#define SOCKS5_REPLY_CONN_REFUSED   0x05            /* Connection refused by target host */
+#define SOCKS5_REPLY_TTL_EXPIRED    0x06            /* TTL expired */
+#define SOCKS5_REPLY_UNSUPPORTED    0x07            /* Command unsupported / protocol error */
+#define SOCKS5_REPLY_ATYPE_ERROR    0x08            /* Address type is not supported */
+
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
 int socks5_hello(int socket, unsigned int auth_method, ...);

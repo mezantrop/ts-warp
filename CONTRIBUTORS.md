@@ -8,3 +8,4 @@
 * Juha Nurmela
 * Mohammad Ali Talaghat <ali@talaghat.ir>, [@alitalaghat](https://github.com/alitalaghat)
 * Philip Smith @ Kyndryl
+* Sandor Forbauer <sandor@forbauer.com>

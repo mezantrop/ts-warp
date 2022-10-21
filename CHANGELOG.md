@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.10.20    Current
+  * `socks.c`, `socks.h`: Drop connection (not exit) if a SOCKS server replies an error
   * `TCP_KEEPALIVE` enabled and respective options added where possible
 
 * 2022.10.19    ts-warp-1.0.14, gui-warp-1.0, ns-warp-1.0.0
