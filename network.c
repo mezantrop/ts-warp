@@ -53,7 +53,7 @@ int connect_desnation(struct sockaddr dest) {
     if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for outgoing connections");
 
-    #if !defined(__APPLE__)
+    #if !defined(__APPLE__) && !defined(__OpenBSD__)
         int keepidle = TCP_KEEPIDLE_S;
         if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(int)))
             printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for outgoing connections");

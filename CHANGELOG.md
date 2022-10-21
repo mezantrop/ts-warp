@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.10.21    Current
+  * `TCP_KEEPALIVE`: with defaults for OpenBSD
   * `socks.c`, `socks.h`: Drop connection (not exit) if a SOCKS server replies an error
   * `TCP_KEEPALIVE` enabled and respective options added where possible
 
