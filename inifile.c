@@ -53,7 +53,6 @@ ini_section *read_ini(char *ifile_name) {
     ini_target *c_targ = NULL, *l_targ = NULL;
     chain_list *chain_root = NULL, *chain_this = NULL, *chain_temp = NULL;
     int target_type = INI_TARGET_NOTSET;
-    struct addrinfo res;
     int ln = 0;
 
 
@@ -132,7 +131,7 @@ ini_section *read_ini(char *ifile_name) {
             /* Parse socks_* entries */
             if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
                 chk_inivar(&c_sect->socks_server, INI_ENTRY_SOCKS_SERVER, ln);
-                c_sect->socks_server = *(str2inet(entry.val1, entry.mod1 ? entry.mod1 : "1080", &res, NULL));
+                c_sect->socks_server = str2inet(entry.val1, entry.mod1 ? entry.mod1 : "1080");
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_VERSION)) {
                     chk_inivar(&c_sect->socks_version, INI_ENTRY_SOCKS_VERSION, ln);
@@ -182,8 +181,8 @@ ini_section *read_ini(char *ifile_name) {
                 /* Parse nit_* entries */
                 if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
                     c_sect->nit_domain = strdup(entry.val1);
-                    c_sect->nit_ipaddr = *(str2inet(entry.mod1, NULL, &res, NULL));
-                    c_sect->nit_ipmask = *(str2inet(entry.val2, NULL, &res, NULL));
+                    c_sect->nit_ipaddr = str2inet(entry.mod1, NULL);
+                    c_sect->nit_ipmask = str2inet(entry.val2, NULL);
             } else {
                 target_type = INI_TARGET_NOTSET;
                 /* Parse target_* entries: var=val1[:mod1[-mod2]]/val2 */
@@ -207,8 +206,8 @@ ini_section *read_ini(char *ifile_name) {
                         c_targ->name = strdup(entry.val);                       /* Domain */
                     } else {
                         c_targ->name = NULL;
-                        c_targ->ip1 = *(str2inet(entry.val1, entry.mod1, &res, NULL));
-                        if (entry.val2) c_targ->ip2 = *(str2inet(entry.val2, entry.mod2, &res, NULL));
+                        c_targ->ip1 = str2inet(entry.val1, entry.mod1);
+                        if (entry.val2) c_targ->ip2 = str2inet(entry.val2, entry.mod2);
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
@@ -387,6 +386,9 @@ struct ini_section *delete_ini(struct ini_section *ini) {
         if (ini->socks_user && ini->socks_user[0]) free(ini->socks_user);
         if (ini->socks_password && ini->socks_password[0]) free(ini->socks_password);
         if (ini->nit_domain && ini->nit_domain[0]) free(ini->nit_domain);
+
+        /* Delete the section name */
+        if (ini->section_name && ini->section_name[0]) free(ini->section_name);
         free(ini);
         ini = s;
     }

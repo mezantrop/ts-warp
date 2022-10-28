@@ -30,7 +30,7 @@ CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_OBJS = inifile.o logfile.o natlook.o network.o pidfile.o socks.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean install
+.PHONY:	all clean install uninstall
 
 all: ts-warp ts-pass
 
@@ -77,9 +77,10 @@ clean:
 
 inifile.o: inifile.h
 natlook.o: natlook.h
-network.c: network.h
-logfile.c: logfile.h 
+network.o: network.h
+logfile.o: logfile.h 
 pidfile.o: pidfile.h
 socks.o: socks.h
 ts-warp.o: ts-warp.h
 utility.o: utility.h
+xedec.o: xedec.h

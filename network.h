@@ -79,4 +79,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int connect_desnation(struct sockaddr dest);
 char *inet2str(struct sockaddr *ai_addr, char *str_addr);
-struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, struct addrinfo *hints);
+struct sockaddr str2inet(char *str_addr, char *str_port);

@@ -93,24 +93,21 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct sockaddr *str2inet(char *str_addr, char *str_port, struct addrinfo *res, struct addrinfo *hints) {
-    
-    int free_mem = 0;
+struct sockaddr str2inet(char *str_addr, char *str_port) {
+    struct addrinfo hints, *res = NULL;
+    struct sockaddr a_ret;
     int ret;
 
-    if (!hints) {
-        hints = (struct addrinfo *)malloc(sizeof(struct addrinfo));
-        memset(hints, 0, sizeof(struct addrinfo));
-        hints->ai_family = PF_UNSPEC;
-        hints->ai_socktype = SOCK_STREAM;
-        free_mem = 1;
-    }
-
-    if ((ret = getaddrinfo(str_addr, str_port, hints, &res)) > 0) {
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if ((ret = getaddrinfo(str_addr, str_port, &hints, &res)) > 0) {
         printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]", str_addr, str_port, gai_strerror(ret));
         mexit(1, pfile_name);
     }
-        
-    if (free_mem) free(hints);
-    return res->ai_addr;
+
+    a_ret = *res->ai_addr;
+    freeaddrinfo(res);
+    
+    return a_ret;
 }
