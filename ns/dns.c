@@ -96,7 +96,6 @@ struct sockaddr forward_ip(char *rev_ip) {
     /* Make normal forward IP address from a reversed one */
 
     char *suff = NULL;
-    struct addrinfo *res = NULL;
     struct sockaddr sa;
     char buf[HOST_NAME_MAX];
 
@@ -105,7 +104,7 @@ struct sockaddr forward_ip(char *rev_ip) {
         (suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV6))))
             strncpy(buf, rev_ip, suff - rev_ip);
 
-    sa = *str2inet(buf, NULL, res, NULL);
+    sa = str2inet(buf, NULL);
     sa = rev_addr(&sa);
 
     printl(LOG_VERB, "Forward IP: [%s]", inet2str(&sa, buf));

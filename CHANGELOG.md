@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.10.28    Current
+* 2022.10.29    Current
+  * `ns-warp`: `str2inet():`: updated; `malloc` issues fixed
   * `network.c/str2inet():` simplified; `inifile.c` memory optimization; `CHANGELOG.md` minor changes
   * `TCP_KEEPALIVE`: with defaults for OpenBSD
   * `socks.c`, `socks.h`: Drop connection (not exit) if a SOCKS server replies an error

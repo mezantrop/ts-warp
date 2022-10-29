@@ -307,6 +307,8 @@ int main (int argc, char* argv[]) {
                                         dnsq.name, inet2str(&q_ip, str_buf));
                                     if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
                                         continue;
+                                    free(dnsq.name);
+                                    free(dnsq_raw);
                                     goto snd_client;
                                 } else
                                     printl(LOG_VERB, "[%s] is not found in NIT", dnsq.name);
@@ -319,6 +321,8 @@ int main (int argc, char* argv[]) {
                                     
                                     if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
                                         continue;
+                                    free(dnsq.name);
+                                    free(dnsq_raw);
                                     goto snd_client;
                                 } else
                                     printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
@@ -331,11 +335,15 @@ int main (int argc, char* argv[]) {
                                         printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
                                             q_name, inet2str(&q_ip, str_buf));
                                         rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
                                         goto snd_client;
                                         break;
                                     case 2:
                                         printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
                                         rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
                                         goto snd_client;
                                         break;
                                     case 1:

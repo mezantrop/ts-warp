@@ -45,7 +45,6 @@ nit *read_ini(char *ifile_name) {
     char buffer[BUF_SIZE];
     char *s = NULL, *d = NULL;                                          /* String manipulation pointers */
     ns_ini_entry entry = {NULL, NULL, NULL, NULL, NULL};
-    struct addrinfo res;
     int ln = 0, i = 0;                                                  /* INI-file line count, misc counter */
     struct nit *nit_root = NULL, *c_nit = NULL, *l_nit = NULL;
     unsigned int nit_size = 0;                                          /* NIT pool length */
@@ -92,8 +91,8 @@ nit *read_ini(char *ifile_name) {
         if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
             c_nit = (struct nit *)malloc(sizeof(struct nit));
             c_nit->domain = strdup(entry.val1);
-            c_nit->ip_addr = *(str2inet(entry.val2, NULL, &res, NULL));
-            c_nit->ip_mask = *(str2inet(entry.mod1, NULL, &res, NULL));
+            c_nit->ip_addr = str2inet(entry.val2, NULL);
+            c_nit->ip_mask = str2inet(entry.mod1, NULL);
             c_nit->next = NULL;
             c_nit->iname = 0;
 
