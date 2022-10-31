@@ -78,31 +78,17 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
     memset(daddr, 0, sizeof *daddr);
     switch (pfnl.af) {
         case AF_INET:
-            #if defined(__APPLE__)
-                pfnl.saddr.v4addr = SIN4_ADDR(*caddr);
-                pfnl.daddr.v4addr = SIN4_ADDR(*iaddr);
-                pfnl.sxport.port = SIN4_PORT(*caddr);
-                pfnl.dxport.port = SIN4_PORT(*iaddr);
-            #else
-                pfnl.saddr.v4 = SIN4_ADDR(*caddr);
-                pfnl.daddr.v4 = SIN4_ADDR(*iaddr);
-                pfnl.sport = SIN4_PORT(*caddr);
-                pfnl.dport = SIN4_PORT(*iaddr);
-            #endif
+            pfnl.saddr.v4 = SIN4_ADDR(*caddr);
+            pfnl.daddr.v4 = SIN4_ADDR(*iaddr);
+            pfnl.sport = SIN4_PORT(*caddr);
+            pfnl.dport = SIN4_PORT(*iaddr);
             break;
 
         case AF_INET6:
-            #if defined(__APPLE__)
-                pfnl.saddr.v6addr = SIN6_ADDR(*caddr);
-                pfnl.daddr.v6addr = SIN6_ADDR(*iaddr);
-                pfnl.sxport.port = SIN6_PORT(*caddr);
-                pfnl.dxport.port = SIN6_PORT(*iaddr);
-            #else
-                pfnl.saddr.v6 = SIN6_ADDR(*caddr);
-                pfnl.daddr.v6 = SIN6_ADDR(*iaddr);
-                pfnl.sport = SIN6_PORT(*caddr);
-                pfnl.dport = SIN6_PORT(*iaddr);
-            #endif
+            pfnl.saddr.v6 = SIN6_ADDR(*caddr);
+            pfnl.daddr.v6 = SIN6_ADDR(*iaddr);
+            pfnl.sport = SIN6_PORT(*caddr);
+            pfnl.dport = SIN6_PORT(*iaddr);
             break;
 
         default:
@@ -110,13 +96,8 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             return 1;
     }
 
-    #if defined(__APPLE__)
-        printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sxport.port));
-        printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dxport.port));
-    #else
-        printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sport));
-        printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dport));
-    #endif
+    printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sport));
+    printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dport));
  
     if (ioctl(pfd, DIOCNATLOOK, &pfnl) == -1) {
         if (errno == ENOENT) {
@@ -134,25 +115,15 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
 
     switch (pfnl.af) {
         case AF_INET:
-            #if defined(__APPLE__)
-                SIN4_ADDR(*daddr) = pfnl.rdaddr.v4addr;
-                SIN4_PORT(*daddr) = pfnl.rdxport.port;
-            #else
-                SIN4_ADDR(*daddr) = pfnl.rdaddr.v4;
-                SIN4_PORT(*daddr) = pfnl.rdport;
-            #endif
+            SIN4_ADDR(*daddr) = pfnl.rdaddr.v4;
+            SIN4_PORT(*daddr) = pfnl.rdport;
             SIN4_FAMILY(*daddr) = pfnl.af;
             SIN4_LENGTH(*daddr) = sizeof(struct sockaddr_in);
             break;
         
         case AF_INET6:
-            #if defined(__APPLE__)
-                SIN6_ADDR(*daddr) = pfnl.rdaddr.v6addr;
-                SIN6_PORT(*daddr) = pfnl.rdxport.port;
-            #else
-                SIN6_ADDR(*daddr) = pfnl.rdaddr.v6;
-                SIN6_PORT(*daddr) = pfnl.rdport;
-            #endif
+            SIN6_ADDR(*daddr) = pfnl.rdaddr.v6;
+            SIN6_PORT(*daddr) = pfnl.rdport;
             SIN6_FAMILY(*daddr) = pfnl.af;
             SIN6_LENGTH(*daddr) = sizeof(struct sockaddr_in6);
             break;
@@ -161,11 +132,7 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             printl(LOG_CRIT, "Unsupported Address family in nat_lookup() response: [%d]", pfnl.af);
             return 1;
     }
-    #if defined(__APPLE__)
-        printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdxport.port));
-    #else
-        printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
-    #endif
+    printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
 
     return 0;
 }
