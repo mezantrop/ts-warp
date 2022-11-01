@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.11.01  Current
+  * `ts-warp.c`: Offer `AUTH_METHOD_UNAME` only if the section contains `socks_user` value
+
 * 2022.10.31    ts-warp-1.0.15, gui-warp-1.0, ns-warp-1.0.1
   * `natlook.c`, `natlook.h`: Unified *BSD data structures
   * `ns-warp`: `str2inet():`: updated; `malloc` issues fixed

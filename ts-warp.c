@@ -406,7 +406,11 @@ All parameters are optional:
 
                     while (sc) {
                         if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V5) {
-                            switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
+                            if (sc->chain_member->socks_user)
+                                auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                            else
+                                auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
+                            switch (auth_method) {
                                 case AUTH_METHOD_NOAUTH:
                                     /* No authentication required */
                                     break;
@@ -517,7 +521,11 @@ single_server:
 
                         printl(LOG_VERB, "Initiate SOCKS5 protocol: hello: [%s]", inet2str(&s_ini->socks_server, buf));
 
-                        switch (auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT)) {
+                        if (s_ini->socks_user)
+                            auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                        else
+                            auth_method = socks5_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
+                        switch (auth_method) {
                             case AUTH_METHOD_NOAUTH:                    /* No authentication required */
                                 break;
                             case AUTH_METHOD_UNAME:                     /* Perform user/password auth */

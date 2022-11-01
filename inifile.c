@@ -66,7 +66,7 @@ ini_section *read_ini(char *ifile_name) {
 
         /* Chop remarks and newlines */
         s = buffer;
-        strsep(&s, "#;\n");
+        strsep(&s, "#;\n\r");
 
         /* Get section */
         if (sscanf(buffer, "[%[a-zA-Z \t0-9]]", section) == 1) {
