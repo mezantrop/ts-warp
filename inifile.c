@@ -89,37 +89,45 @@ ini_section *read_ini(char *ifile_name) {
             c_sect->next = NULL;
 
             if (!ini_root) ini_root = c_sect; else l_sect->next = c_sect;
-            l_sect = c_sect;                                            /* lsect always points to the last section */
-        } else {                                                        /* Entries within sections */
-            /* Remove whitespaces */
-            s = d = buffer; do while(isspace(*s)) s++; while((*d++ = *s++));
+            l_sect = c_sect;                                        /* lsect always points to the last section */
+        } else {                                                    /* Entries within sections */
+            s = d = buffer; 
+            do {
+                while(isspace(*s)) s++;                             /* Remove whitespaces */
+                if ((!isascii(*s) || iscntrl(*s)) && *s != '\0') {  /* Ignore lines with non-ASCII or Control chars */
+                    printl(LOG_WARN, "LN: %d IGNORED: Contains non-ASCII or Control character: [%#x]!", 
+                        ln, (unsigned char)*s);
+                    *buffer = '\0';
+                    break;
+                }
+            } while((*d++ = *s++));
 
-            if (!*buffer) continue;                                     /* Skip an empty line */
-            if (strchr(buffer, '=') == NULL) {                          /* Skip variables without vals */
-                printl(LOG_VERB, "LN: %d IGNORED: The variable must be assigned a value", ln);
+            if (!*buffer) continue;                                 /* Skip an empty line */
+            if (strchr(buffer, '=') == NULL) {                      /* Skip variables without vals */
+                printl(LOG_WARN, "LN: %d IGNORED: The variable must be assigned a value", ln);
                 continue;
             }
             s = buffer;
             /* Get entry fields or NULLs */
-            entry.var = strsep(&s, "=");                                /* var */
-            entry.val = strdup(s);                                      /* The raw value */
-            entry.val1 = strsep(&s, "/");                               /* val1 w opt. mod1/mod2 */
-            entry.val2 = strsep(&s, "/");                               /* val2 */
+            entry.var = strsep(&s, "=");                            /* var */
+            entry.val = strdup(s);                                  /* The raw value */
+            entry.val1 = strsep(&s, "/");                           /* val1 w opt. mod1/mod2 */
+            entry.val2 = strsep(&s, "/");                           /* val2 */
             /* val1 token round two parsing */
             s = entry.val1;
-            entry.val1 = strsep(&s, ":-");                              /* val1 clean */
-            entry.mod1 = strsep(&s, ":-");                              /* mod1 optional */
-            entry.mod2 = strsep(&s, ":-");                              /* mod2 optional */
+            entry.val1 = strsep(&s, ":-");                          /* val1 clean */
+            entry.mod1 = strsep(&s, ":-");                          /* mod1 optional */
+            entry.mod2 = strsep(&s, ":-");                          /* mod2 optional */
 
             if (!l_sect && entry.var) {
                 /* A line is not in a section */
-                printl(LOG_VERB, "LN: %d IGNORED: The variable is not in a section", ln);
+                printl(LOG_WARN, "LN: %d IGNORED: The variable is not in a section", ln);
                 free(entry.val);
                 continue;
             }
 
             if (!entry.val1 || !entry.val1[0]) {
-                printl(LOG_VERB, "LN: %d IGNORED: The variable must be assigned a value", ln);
+                printl(LOG_WARN, "LN: %d IGNORED: The variable must be assigned a value", ln);
                 free(entry.val);
                 continue;
             }

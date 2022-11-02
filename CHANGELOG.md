@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.11.01  Current
+* 2022.11.02  Current
+  * `inifile.c`: String filter for non-ASCII, control characters
   * `ts-warp.c`: Offer `AUTH_METHOD_UNAME` only if the section contains `socks_user` value
 
 * 2022.10.31    ts-warp-1.0.15, gui-warp-1.0, ns-warp-1.0.1
