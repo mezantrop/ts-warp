@@ -6,6 +6,7 @@
 * Bart Couvreur <bart.couvreur@kyndryl.com>
 * Gleb Reys <gleb@reys.net>
 * Juha Nurmela
+* Matt Reba
 * Mohammad Ali Talaghat <ali@talaghat.ir>, [@alitalaghat](https://github.com/alitalaghat)
 * Philip Smith @ Kyndryl
 * Sandor Forbauer <sandor@forbauer.com>
