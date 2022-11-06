@@ -2,24 +2,26 @@
 /* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-/* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the 
-following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following 
-   disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following 
-   disclaimer in the documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
+/*
+* Copyright (c) 2021, 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+*
+* Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+* following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+*    disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+*    the following disclaimer in the documentation and/or other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 
 /* -- INI-file processing ------------------------------------------------------------------------------------------- */
@@ -95,7 +97,7 @@ ini_section *read_ini(char *ifile_name) {
             do {
                 while(isspace(*s)) s++;                             /* Remove whitespaces */
                 if ((!isascii(*s) || iscntrl(*s)) && *s != '\0') {  /* Ignore lines with non-ASCII or Control chars */
-                    printl(LOG_WARN, "LN: %d IGNORED: Contains non-ASCII or Control character: [%#x]!", 
+                    printl(LOG_WARN, "LN: %d IGNORED: Contains non-ASCII or Control character: [%#x]!",
                         ln, (unsigned char)*s);
                     *buffer = '\0';
                     break;
@@ -416,7 +418,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
 
     host[0] = 0;
     if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
-        printl(LOG_VERB, "Error resolving host: [%s]", inet2str(&ip, buf1));
+        printl(LOG_VERB, "Unable to resolve hostname: [%s] into IP", inet2str(&ip, buf1));
     else
         if ((domain = strchr(host, '.'))) {
             domain++;
