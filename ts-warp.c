@@ -59,6 +59,7 @@
 #include "inifile.h"
 #include "logfile.h"
 #include "pidfile.h"
+#include "pidlist.h"
 #include "natlook.h"
 
 
@@ -69,13 +70,14 @@ char *ifile_name = INI_FILE_NAME;
 char *lfile_name = LOG_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
-int cn = 1;                                                             /* Active clients number */
-pid_t pid, mpid;                                                        /* Current and main daemon PID */
-int isock, ssock, csock;                                                /* Sockets for in/out/clients */
-ini_section *ini_root;                                                  /* Root section of the INI-file */
+int cn = 1;                                                         /* Active clients number */
+pid_t pid, mpid;                                                    /* Current and main daemon PID */
+struct pid_list *pids;                                              /* List of active clients with PIDs and Sections */
+int isock, ssock, csock;                                            /* Sockets for in/out/clients */
+ini_section *ini_root;                                              /* Root section of the INI-file */
  
 #if !defined(linux)
-    int pfd;                                                            /* PF device-file on *BSD */
+    int pfd;                                                        /* PF device-file on *BSD */
 #endif
 
 
@@ -314,16 +316,38 @@ All parameters are optional:
 
         printl(LOG_INFO, "Client: [%d], IP: [%s] accepted",
             cn++, inet2str(&caddr, buf));
-        
+
+        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
+        socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
+#if defined(linux)
+        /* On Linux && IPTABLES */
+        memset(&daddr, 0, daddrlen); 
+        daddr.sa_family = caddr.sa_family;
+        ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
+#else
+        /* On *BSD with PF */
+        ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
+#endif
+        if (ret != 0) {
+            printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
+            getpeername(csock, &daddr, &daddrlen);
+        }
+
+        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
+
+        /* Find SOCKS server to serve the destination address in INI file */
+        s_ini = ini_look_server(ini_root, daddr);
+
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Failed fork() to serve a client request");
             mexit(1, pfile_name);
         }
         if (pid > 0) {                                                  /* Main (parent process) */
             setpgid(pid, mpid);
+            pids = pidlist_add(pids, s_ini, pid);                       /* Save the client into the list */
+            pidlist_show(pids);
             close(csock);
         }
-
         if (pid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
             close(isock);
@@ -331,26 +355,6 @@ All parameters are optional:
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
-            /* Get the client original destination from NAT --------------------------------------------------------- */
-            socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
-#if defined(linux)
-            /* On Linux && IPTABLES */
-            memset(&daddr, 0, daddrlen); 
-            daddr.sa_family = caddr.sa_family;
-            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
-#else
-            /* On *BSD with PF */
-            ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
-#endif
-            if (ret != 0) {
-                printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-                getpeername(csock, &daddr, &daddrlen);
-            }
-
-            printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
-
-            /* Find SOCKS server to serve the destination address in INI file */
-            s_ini = ini_look_server(ini_root, daddr);
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_WARN, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
@@ -403,7 +407,7 @@ All parameters are optional:
                         printl(LOG_WARN, "Unable to connect with CHAIN SOCKS server: [%s]", 
                             inet2str(&sc->chain_member->socks_server, buf));
                         close(csock);
-                        exit(1);
+                        exit(2);
                     }
 
                     while (sc) {
@@ -421,7 +425,7 @@ All parameters are optional:
                                     if (socks5_auth(ssock, sc->chain_member->socks_user, sc->chain_member->socks_password)) {
                                         printl(LOG_WARN, "CHAIN SOCKS5 server rejected user: [%s]", sc->chain_member->socks_user);
                                         close(csock);
-                                        exit(1);
+                                        exit(2);
                                     }
                                     break;
                                 case AUTH_METHOD_GSSAPI:
@@ -433,12 +437,12 @@ All parameters are optional:
                                 case AUTH_METHOD_JPB:
                                     printl(LOG_CRIT, "CHAIN SOCKS5 server accepted unsupported auth-method: [%d]", auth_method);
                                     close(csock);
-                                    exit(1);
+                                    exit(2);
                                 case AUTH_METHOD_NOACCEPT:
                                 default:
                                     printl(LOG_WARN, "No auth methods were accepted by CHAIN SOCKS5 server");
                                     close(csock);
-                                    exit(1);
+                                    exit(2);
                             }
 
                             if (sc->next) {
@@ -452,7 +456,7 @@ All parameters are optional:
                                     &sc->next->chain_member->socks_server) > 0) {
                                         printl(LOG_WARN, "CHAIN SOCKS5 server returned an error");
                                         close(csock);
-                                        exit(1);
+                                        exit(2);
                                 }
                             } else {
                                 /* We are at the end of the chain, so connect with the section server */
@@ -466,7 +470,7 @@ All parameters are optional:
                                         printl(LOG_WARN, "SOCKS5 server returned an error");
                                         printl(LOG_WARN, "CHAIN SOCKS5 server returned an error");
                                         close(csock);
-                                        exit(1);
+                                        exit(2);
                                 }
                                 goto single_server;
                             }
@@ -477,11 +481,12 @@ All parameters are optional:
                                     inet2str(&sc->chain_member->socks_server, suf),
                                     inet2str(&sc->next->chain_member->socks_server, buf));
 
-                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT, (struct sockaddr_in *)&sc->next->chain_member->socks_server,
+                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                        (struct sockaddr_in *)&sc->next->chain_member->socks_server,
                                         sc->next->chain_member->socks_user) > 0) {
                                             printl(LOG_WARN, "CHAIN SOCKS4 server returned an error");
                                             close(csock);
-                                            exit(1);
+                                            exit(2);
                                 }
                             } else {
                                 /* We are at the end of the chain, so connect with the section server */
@@ -489,12 +494,13 @@ All parameters are optional:
                                     inet2str(&sc->chain_member->socks_server, buf),
                                     inet2str(&s_ini->socks_server, buf));
 
-                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT, (struct sockaddr_in *)&s_ini->socks_server,
+                                if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                        (struct sockaddr_in *)&s_ini->socks_server,
                                         s_ini->socks_user) > 0) {
                                             printl(LOG_WARN, "SOCKS4 server returned an error");
                                             printl(LOG_WARN, "CHAIN SOCKS4 server returned an error");
                                             close(csock);
-                                            exit(1);
+                                            exit(2);
                                 }
                                 goto single_server;
                             }
@@ -503,7 +509,7 @@ All parameters are optional:
                             printl(LOG_WARN, "Detected unsupported CHAIN SOCKS version: [%d]",
                                 s_ini->proxy_chain->chain_member->socks_version);
                             close(csock);
-                            exit(1);
+                            exit(2);
                         }
                         sc = sc->next;
                     }
@@ -514,7 +520,7 @@ All parameters are optional:
                     if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
                         printl(LOG_WARN, "Unable to connect with SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
                         close(csock);
-                        exit(1);
+                        exit(2);
                     }
 
                     printl(LOG_INFO, "Succesfully connected with the SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
@@ -534,7 +540,7 @@ single_server:
                                 if (socks5_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
                                     printl(LOG_WARN, "SOCKS rejected user: [%s]", s_ini->socks_user);
                                     close(csock);
-                                    exit(1);
+                                    exit(2);
                                 }
                                 break;
                             case AUTH_METHOD_GSSAPI:
@@ -546,12 +552,12 @@ single_server:
                             case AUTH_METHOD_JPB:
                                 printl(LOG_WARN, "SOCKS server accepted unsupported auth-method: [%d]", auth_method);
                                 close(csock);
-                                exit(1);
+                                exit(2);
                             case AUTH_METHOD_NOACCEPT:
                             default:
                                 printl(LOG_WARN, "No auth methods were accepted by SOCKS server");
                                 close(csock);
-                                exit(1);
+                                exit(2);
                         }
 
                         printl(LOG_VERB, "Initiate SOCKS5 protocol: request [%s] -> [%s]", 
@@ -560,23 +566,22 @@ single_server:
                         if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT, socks5_atype(s_ini, daddr), &daddr) > 0) {
                             printl(LOG_CRIT, "SOCKS server returned an error");
                             close(csock);
-                            exit(1);
+                            exit(2);
                         }
                     } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
-
                         printl(LOG_VERB, "Initiate SOCKS4 protocol: request: [%s] -> [%s]",
                             inet2str(&s_ini->socks_server, suf), inet2str(&daddr, buf));
                         if (socks4_request(ssock, SOCKS4_CMD_TCPCONNECT,  
-                            (struct sockaddr_in *)&daddr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
-                                printl(LOG_WARN, "SOCKS4 server returned an error");
-                                close(csock);
-                                exit(1);
+                                (struct sockaddr_in *)&daddr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
+                                    printl(LOG_WARN, "SOCKS4 server returned an error");
+                                    close(csock);
+                                    exit(2);
                         }
                     } else {
                         /* Must be cleared already by read_ini() */
                         printl(LOG_WARN, "Detected unsupported SOCKS version: [%d]", s_ini->socks_version);
                         close(csock);
-                        exit(1);
+                        exit(2);
                     }
                 }
             }
@@ -654,7 +659,6 @@ single_server:
             close(ssock);
             exit(0);
         }
-
     }
     freeaddrinfo(ires);
     return 0;
@@ -665,6 +669,7 @@ void trap_signal(int sig) {
     /* Signal handler */
 
     int	status;                                                         /* Client process status */
+    pid_t pid;
 
     switch (sig) {
             case SIGHUP:
@@ -692,7 +697,10 @@ void trap_signal(int sig) {
                 }
             case SIGCHLD:
                 /* Never use printf() in SIGCHLD processor, it causes SIGILL */
-                while (wait3(&status, WNOHANG, 0) > 0) cn--;
+                while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
+                    pidlist_del(&pids, pid);
+                    cn--;
+                }
                 break;
 
             default:
