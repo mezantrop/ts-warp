@@ -1,7 +1,7 @@
 # CHANGELOG
 
-* 2022.11.08    Current
-  * Section names allowed characters are: [a-zA-Z -_\t0-9]
+* 2022.11.10    Current
+  * Filally section names allowed characters are: a-zA-Z0-9_\t -
   * Client's processes tracking - for future usage
   * `inifile.c`: String filter for non-ASCII, control characters
   * `ts-warp.c`: Offer `AUTH_METHOD_UNAME` only if the section contains `socks_user` value

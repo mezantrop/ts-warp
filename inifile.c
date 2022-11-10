@@ -71,7 +71,7 @@ ini_section *read_ini(char *ifile_name) {
         strsep(&s, "#;\n\r");
 
         /* Get section */
-        if (sscanf(buffer, "[%[a-zA-Z -_\t0-9]]", section) == 1) {
+        if (sscanf(buffer, "[%[a-zA-Z0-9_\t -]]", section) == 1) {
             printl(LOG_VERB, "LN: %d S: %s", ln, section);
 
             /* Current section to use */
