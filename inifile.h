@@ -90,7 +90,7 @@ typedef struct chain_list {                                 /* Chains as they de
 } chain_list;
 
 /* INI-file entries */
-#define INI_ENTRY_SECTION_BALANCE               "socks_balance"     /* Socks section balance policy */
+#define INI_ENTRY_SECTION_BALANCE               "section_balance"   /* Socks section balance policy */
 #define INI_ENTRY_SECTION_BALANCE_NONE          "none"              /* 0 */
 #define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
 #define INI_ENTRY_SECTION_BALANCE_ROUNDROBIN    "roundrobin"        /* 2 */

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 2022.11.13    ts-warp-1.1.1, gui-warp-1.0, ns-warp-1.0.1
+  * `examples\ts-warp.ini`: Failover/Roundrobin/None modes
+  * Minor text/typos fixes
+
 * 2022.11.13    ts-warp-1.1.0, gui-warp-1.0, ns-warp-1.0.1
   * SOCKS servers section Failover/Roundrobin/None modes
   * Minor description changes
