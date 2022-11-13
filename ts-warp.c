@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -670,11 +670,12 @@ void trap_signal(int sig) {
 
     int	status;                                                         /* Client process status */
     pid_t pid;
+    ini_section *push_ini = NULL;
 
     switch (sig) {
             case SIGHUP:
-                ini_root = delete_ini(ini_root);
-                ini_root = read_ini(ifile_name);
+/*                ini_root = delete_ini(ini_root);
+                ini_root = read_ini(ifile_name);*/
                 show_ini(ini_root);
                 break;
             case SIGINT:                                                /* Exit processes */
@@ -698,7 +699,13 @@ void trap_signal(int sig) {
             case SIGCHLD:
                 /* Never use printf() in SIGCHLD processor, it causes SIGILL */
                 while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
-                    pidlist_del(&pids, pid);
+                    push_ini = pidlist_del(&pids, pid);
+                    if (push_ini) {
+                        if (push_ini->section_balance == SECTION_BALANCE_ROUNDROBIN)
+                            pushback_ini(&ini_root, push_ini);
+                        else if (status && push_ini->section_balance == SECTION_BALANCE_FAILOVER)
+                            pushback_ini(&ini_root, push_ini);
+                       }
                     cn--;
                 }
                 break;

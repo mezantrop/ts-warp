@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -34,6 +34,7 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct ini_section {
     char *section_name;                                                 /* Section name */
+    uint8_t section_balance;                                            /* Balance SOCKS server on accessibility */
     struct sockaddr socks_server;                                       /* SOCKS server IP-address and Port */
     uint8_t socks_version;                                              /* SOCKS version: 4 | 5 */
     char *socks_user;                                                   /* SOCKS server username */
@@ -48,6 +49,10 @@ typedef struct ini_section {
 
     struct ini_section *next;                                           /* The next INI-section */
 } ini_section;
+
+#define SECTION_BALANCE_NONE        0
+#define SECTION_BALANCE_FAILOVER    1                                   /* Default */
+#define SECTION_BALANCE_ROUNDROBIN  2
 
 typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] */
     char *var; 
@@ -85,11 +90,17 @@ typedef struct chain_list {                                 /* Chains as they de
 } chain_list;
 
 /* INI-file entries */
+#define INI_ENTRY_SECTION_BALANCE               "socks_balance"     /* Socks section balance policy */
+#define INI_ENTRY_SECTION_BALANCE_NONE          "none"              /* 0 */
+#define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
+#define INI_ENTRY_SECTION_BALANCE_ROUNDROBIN    "roundrobin"        /* 2 */
+
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"
 #define INI_ENTRY_SOCKS_CHAIN       "socks_chain"
 #define INI_ENTRY_SOCKS_VERSION     "socks_version"
 #define INI_ENTRY_SOCKS_USER        "socks_user"
 #define INI_ENTRY_SOCKS_PASSWORD    "socks_password"
+
 #define INI_ENTRY_TARGET_HOST       "target_host"
 #define INI_ENTRY_TARGET_DOMAIN     "target_domain"
 #define INI_ENTRY_TARGET_NETWORK    "target_network"
@@ -102,6 +113,7 @@ typedef struct chain_list {                                 /* Chains as they de
 ini_section *read_ini(char *ifile_name);
 void show_ini(struct ini_section *ini);
 struct ini_section *delete_ini(struct ini_section *ini);
+int pushback_ini(struct ini_section **ini, struct ini_section *target);
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip);
 int create_chains(struct ini_section *ini, struct chain_list *chain);
 struct ini_section *getsection(struct ini_section *ini, char *name);

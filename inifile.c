@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -77,13 +77,13 @@ ini_section *read_ini(char *ifile_name) {
             /* Current section to use */
             c_sect = (struct ini_section *)malloc(sizeof(struct ini_section));
             c_sect->section_name = strndup(section, sizeof section);
+            c_sect->section_balance = SECTION_BALANCE_FAILOVER;
             memset(&c_sect->socks_server, 0, sizeof(struct sockaddr));
             c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
             c_sect->socks_user = NULL;
             c_sect->socks_password = NULL;
             c_sect->proxy_chain = NULL;
             c_sect->target_entry = NULL;
-
             c_sect->nit_domain = NULL;
             memset(&c_sect->nit_ipaddr, 0, sizeof(struct sockaddr));
             memset(&c_sect->nit_ipmask, 0, sizeof(struct sockaddr));
@@ -188,6 +188,18 @@ ini_section *read_ini(char *ifile_name) {
                             mexit(1, pfile_name);
                         }                        
             } else
+                if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {
+                    if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_NONE))
+                        c_sect->section_balance = SECTION_BALANCE_NONE;
+                    else if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_FAILOVER))
+                        c_sect->section_balance = SECTION_BALANCE_FAILOVER;
+                    else if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_ROUNDROBIN))
+                        c_sect->section_balance = SECTION_BALANCE_ROUNDROBIN;
+                    else {
+                        printl(LOG_WARN, "Unknown section balance mode: [%s], setting default: Failover", entry.val);
+                        c_sect->section_balance = SECTION_BALANCE_FAILOVER;
+                    }
+            } else
                 /* Parse nit_* entries */
                 if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
                     c_sect->nit_domain = strdup(entry.val1);
@@ -251,7 +263,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
     struct socks_chain *sc, *st;
     struct chain_list *c, *cc;
     char *chain_section, *p;
-    
+
     c = chain;
     while (c) {
         if (c->txt_section[0]) {
@@ -287,7 +299,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
 /* ------------------------------------------------------------------------------------------------------------------ */
 struct ini_section *getsection(struct ini_section *ini, char *name) {
     /* Get reference to the INI section by it's name */
-    
+
     struct ini_section *s;
     
     s = ini;
@@ -305,7 +317,7 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
 /* ------------------------------------------------------------------------------------------------------------------ */
 void show_ini(struct ini_section *ini) {
     /* Debug only function to print parsed INI-file. TODO: Remove in release? */
-    
+
     struct ini_section *s;
     struct socks_chain *c;
     struct ini_target *t;
@@ -316,9 +328,9 @@ void show_ini(struct ini_section *ini) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(LOG_VERB, "SHOW Section: [%s] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
-            s->section_name, inet2str(&s->socks_server, ip1), ntohs(SIN4_PORT(s->socks_server)), s->socks_version,
-            s->socks_user,  s->socks_password ? "********" : "(null)");
+        printl(LOG_VERB, "SHOW Section: [%s] Balancing: [%d] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
+            s->section_name, s->section_balance, inet2str(&s->socks_server, ip1), ntohs(SIN4_PORT(s->socks_server)),
+            s->socks_version, s->socks_user,  s->socks_password ? "********" : "(null)");
 
         /* Display SOCKS chain */
         if (s->proxy_chain) {
@@ -360,10 +372,10 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
 
     printl(LOG_VERB, "Delete INI-configuration");
-    
+
     while (ini) {
         printl(LOG_VERB, "DELETE Section: [%s]", ini->section_name);
-        
+
         /* Delete socks chain */
         if (ini->proxy_chain) {
             printl(LOG_VERB, "DELETE SOCKS Chain:");
@@ -374,9 +386,9 @@ struct ini_section *delete_ini(struct ini_section *ini) {
                 free(c);
                 c = cc;
             }
-        } else 
+        } else
             printl(LOG_VERB, "No SOCKS Chain detected");
-        
+
         /* Delete target_* entries */
         t = ini->target_entry;
         while (t) {
@@ -386,7 +398,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
                 t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
                 t->name ? t->name : "", t->target_type);
             tt = t->next;
-            if (t->name && t->name[0]) free(t->name);    
+            if (t->name && t->name[0]) free(t->name);
             free(t);
             t = tt;
         }
@@ -406,9 +418,26 @@ struct ini_section *delete_ini(struct ini_section *ini) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+int pushback_ini(struct ini_section **ini, struct ini_section *target) {
+    struct ini_section *c = *ini;
+
+    if (!c || !target->next) return 1;                  /* We don't need to move anything */
+    
+    if (c == target) *ini = c->next;
+    while (c->next) {
+        if (c->next == target) c->next = c->next->next;
+        c = c->next;
+    }
+    c->next = target;
+    target->next = NULL;
+
+    return 0;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip) {
     /* Lookup a SOCKS server ip in the list referred by ini */
-    
+
     struct ini_section *s;
     struct ini_target *t;
     char buf1[INET6_ADDRSTRLEN], buf2[INET6_ADDRSTRLEN];
@@ -502,7 +531,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
         }
         s = s->next;
     }
-    
+
     return NULL;
 }
 

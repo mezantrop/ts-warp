@@ -53,27 +53,30 @@ struct pid_list *pidlist_add(struct pid_list *root, struct ini_section *section,
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int pidlist_del(struct pid_list **root, pid_t pid) {
+ini_section *pidlist_del(struct pid_list **root, pid_t pid) {
 
     struct pid_list *d = NULL, *c = NULL;
+    ini_section *ini = NULL;
 
     c = *root;
     if (c->pid == pid) {
         *root = c->next;
+        ini = c->section;
         free(c);
     } else {
         while (c->next) {
             if (c->next->pid == pid) {
                 d = c->next;
                 c->next = d->next;
+                ini = d->section;
                 free(d);
-                return 0;
+                return ini;
             }
             c = c->next;
         }
-        return 1;
+        return NULL;
     }
-    return 0;
+    return ini;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

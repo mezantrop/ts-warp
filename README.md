@@ -26,6 +26,7 @@
 - [ ] UDP support
 - [x] Resolve remote names via SOCKS (Early development stage)
 - [ ] (optional) HTTP proxy
+- [x] SOCKS servers section Failover/Roundrobin/None modes
 
 ### Changelog
 

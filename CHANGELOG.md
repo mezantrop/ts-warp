@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2022.11.10    Current
+* 2022.11.13    ts-warp-1.1.0, gui-warp-1.0, ns-warp-1.0.1
+  * SOCKS servers section Failover/Roundrobin/None modes
+  * Minor description changes
   * Filally section names allowed characters are: a-zA-Z0-9_\t -
   * Client's processes tracking - for future usage
   * `inifile.c`: String filter for non-ASCII, control characters

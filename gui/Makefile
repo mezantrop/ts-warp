@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# GUI frontend for TS-Warp - Transparent SOCKS protocol Wrapper
+# GUI frontend for TS-Warp - Transparent SOCKS proxy Wrapper
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Copyright (c) 2022, Mikhail Zakharov <zmey20000@yahoo.com>

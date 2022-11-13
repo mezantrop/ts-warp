@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS protocol Wrapper                                                                       */
+/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -38,5 +38,5 @@ typedef struct pid_list {
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 struct pid_list *pidlist_add(struct pid_list *root, struct ini_section *section, pid_t pid);
-int pidlist_del(struct pid_list **root, pid_t pid);
+ini_section *pidlist_del(struct pid_list **root, pid_t pid);
 void pidlist_show(struct pid_list *root);
