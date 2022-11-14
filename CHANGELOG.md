@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.11.14    Current
+  * `examples\ts-warp.ini`: updated for section Failover mode
   * `ts-warp.c`: Return configuration reload on SIGHUP
 
 * 2022.11.13    ts-warp-1.1.1, gui-warp-1.0, ns-warp-1.0.1
