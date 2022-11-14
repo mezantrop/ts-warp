@@ -674,8 +674,8 @@ void trap_signal(int sig) {
 
     switch (sig) {
             case SIGHUP:
-/*                ini_root = delete_ini(ini_root);
-                ini_root = read_ini(ifile_name);*/
+                ini_root = delete_ini(ini_root);
+                ini_root = read_ini(ifile_name);
                 show_ini(ini_root);
                 break;
             case SIGINT:                                                /* Exit processes */
