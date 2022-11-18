@@ -26,7 +26,7 @@
 - [ ] UDP support
 - [x] Resolve remote names via SOCKS (Early development stage)
 - [ ] (optional) HTTP proxy
-- [x] Workload balance modes: Failover/Roundrobin/None
+- [ ] SOCKS workload balance modes: Failover/Roundrobin/None
 
 ### Changelog
 

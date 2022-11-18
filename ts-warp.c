@@ -318,25 +318,25 @@ All parameters are optional:
             cn++, inet2str(&caddr, buf));
 
         /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-        socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
-#if defined(linux)
+/*        socklen_t daddrlen = sizeof daddr; */                         /* Client dest address len */
+/*    #if defined(linux) */
         /* On Linux && IPTABLES */
-        memset(&daddr, 0, daddrlen); 
+/*        memset(&daddr, 0, daddrlen); 
         daddr.sa_family = caddr.sa_family;
         ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
-#else
+    #else */
         /* On *BSD with PF */
-        ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
-#endif
+/*        ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
+    #endif
         if (ret != 0) {
             printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
             getpeername(csock, &daddr, &daddrlen);
         }
 
         printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
-
+*/
         /* Find SOCKS server to serve the destination address in INI file */
-        s_ini = ini_look_server(ini_root, daddr);
+/*        s_ini = ini_look_server(ini_root, daddr); */
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Failed fork() to serve a client request");
@@ -344,7 +344,7 @@ All parameters are optional:
         }
         if (pid > 0) {                                                  /* Main (parent process) */
             setpgid(pid, mpid);
-            pids = pidlist_add(pids, s_ini, pid);                       /* Save the client into the list */
+/*            pids = pidlist_add(pids, s_ini, pid); */                      /* Save the client into the list */
             pidlist_show(pids);
             close(csock);
         }
@@ -355,6 +355,26 @@ All parameters are optional:
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
+        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
+            socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
+        #if defined(linux)
+            /* On Linux && IPTABLES */
+            memset(&daddr, 0, daddrlen); 
+            daddr.sa_family = caddr.sa_family;
+            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
+        #else
+            /* On *BSD with PF */
+            ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
+        #endif
+            if (ret != 0) {
+                printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
+                getpeername(csock, &daddr, &daddrlen);
+            }
+
+            printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
+
+            /* Find SOCKS server to serve the destination address in INI file */
+            s_ini = ini_look_server(ini_root, daddr);
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_WARN, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
@@ -670,7 +690,7 @@ void trap_signal(int sig) {
 
     int	status;                                                         /* Client process status */
     pid_t pid;
-    ini_section *push_ini = NULL;
+/*    ini_section *push_ini = NULL; */
 
     switch (sig) {
             case SIGHUP:
@@ -699,13 +719,13 @@ void trap_signal(int sig) {
             case SIGCHLD:
                 /* Never use printf() in SIGCHLD processor, it causes SIGILL */
                 while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
-                    push_ini = pidlist_del(&pids, pid);
+/*                    push_ini = pidlist_del(&pids, pid);
                     if (push_ini) {
                         if (push_ini->section_balance == SECTION_BALANCE_ROUNDROBIN)
                             pushback_ini(&ini_root, push_ini);
                         else if (status && push_ini->section_balance == SECTION_BALANCE_FAILOVER)
                             pushback_ini(&ini_root, push_ini);
-                       }
+                       } */
                     cn--;
                 }
                 break;

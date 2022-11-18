@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.11.14    Current
+* 2022.11.18    ts-warp-1.1.2, gui-warp-1.0, ns-warp-1.0.1
+  * Workload balance crashes ts-warp under high workload. The option is disabled now.
   * `examples\ts-warp.ini`: updated for section Failover mode
   * `ts-warp.c`: Return configuration reload on SIGHUP
 
