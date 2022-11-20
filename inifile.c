@@ -417,22 +417,6 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     return (ini); 
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-int pushback_ini(struct ini_section **ini, struct ini_section *target) {
-    struct ini_section *c = *ini;
-
-    if (!c || !target->next) return 1;                  /* We don't need to move anything */
-    
-    if (c == target) *ini = c->next;
-    while (c->next) {
-        if (c->next == target) c->next = c->next->next;
-        c = c->next;
-    }
-    c->next = target;
-    target->next = NULL;
-
-    return 0;
-}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip) {

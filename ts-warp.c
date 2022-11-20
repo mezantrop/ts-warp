@@ -59,7 +59,6 @@
 #include "inifile.h"
 #include "logfile.h"
 #include "pidfile.h"
-#include "pidlist.h"
 #include "natlook.h"
 
 
@@ -71,8 +70,8 @@ char *lfile_name = LOG_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                                         /* Active clients number */
-pid_t pid, mpid;                                                    /* Current and main daemon PID */
-struct pid_list *pids;                                              /* List of active clients with PIDs and Sections */
+pid_t pid;                                                          /* Current and main daemon PID */
+int pid_list_lock = 0;
 int isock, ssock, csock;                                            /* Sockets for in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
  
@@ -130,6 +129,7 @@ All parameters are optional:
     char suf[STR_SIZE];                                                 /* String buffer */
     int ret;                                                            /* Various function return codes */
     int rec, snd;                                                       /* received/sent bytes */
+    pid_t cpid;                                                         /* Child PID */
 
 
     while ((flg = getopt(argc, argv, "i:c:l:v:dp:fu:h")) != -1)
@@ -223,9 +223,9 @@ All parameters are optional:
 
         printl(LOG_CRIT, "%s-%s daemon started", PROG_NAME, PROG_VERSION);
         #if defined(__APPLE__)
-            mpid = mk_pidfile(pfile_name, f_flg, 0, 0);
+            pid = mk_pidfile(pfile_name, f_flg, 0, 0);
         #else
-            mpid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
+            pid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
         #endif
     }
 
@@ -314,49 +314,25 @@ All parameters are optional:
             return 1;
         }
 
-        printl(LOG_INFO, "Client: [%d], IP: [%s] accepted",
-            cn++, inet2str(&caddr, buf));
+        printl(LOG_INFO, "Client: [%d], IP: [%s] accepted", cn++, inet2str(&caddr, buf));
 
-        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-/*        socklen_t daddrlen = sizeof daddr; */                         /* Client dest address len */
-/*    #if defined(linux) */
-        /* On Linux && IPTABLES */
-/*        memset(&daddr, 0, daddrlen); 
-        daddr.sa_family = caddr.sa_family;
-        ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
-    #else */
-        /* On *BSD with PF */
-/*        ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
-    #endif
-        if (ret != 0) {
-            printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-            getpeername(csock, &daddr, &daddrlen);
-        }
-
-        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
-*/
-        /* Find SOCKS server to serve the destination address in INI file */
-/*        s_ini = ini_look_server(ini_root, daddr); */
-
-        if ((pid = fork()) == -1) {
+        if ((cpid = fork()) == -1) {
             printl(LOG_CRIT, "Failed fork() to serve a client request");
             mexit(1, pfile_name);
         }
-        if (pid > 0) {                                                  /* Main (parent process) */
-            setpgid(pid, mpid);
-/*            pids = pidlist_add(pids, s_ini, pid); */                      /* Save the client into the list */
-            pidlist_show(pids);
+        if (cpid > 0) {                                                  /* Main (parent process) */
+            setpgid(cpid, pid);
             close(csock);
         }
-        if (pid == 0) {
+        if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
             close(isock);
 
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
-        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-            socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
+            /* -- Get the client original destination from NAT ------------------------------------------------------ */
+            socklen_t daddrlen = sizeof daddr;                              /* Client dest address len */
         #if defined(linux)
             /* On Linux && IPTABLES */
             memset(&daddr, 0, daddrlen); 
@@ -689,8 +665,8 @@ void trap_signal(int sig) {
     /* Signal handler */
 
     int	status;                                                         /* Client process status */
-    pid_t pid;
-/*    ini_section *push_ini = NULL; */
+    pid_t cpid;
+
 
     switch (sig) {
             case SIGHUP:
@@ -701,7 +677,7 @@ void trap_signal(int sig) {
             case SIGINT:                                                /* Exit processes */
             case SIGQUIT:
             case SIGTERM:
-                if (getpid() == mpid) {                                 /* Main daemon */
+                if (getpid() == pid) {                                  /* Main daemon */
                     shutdown(isock, SHUT_RDWR);
                     close(isock);
                     #if !defined(linux)
@@ -718,16 +694,7 @@ void trap_signal(int sig) {
                 }
             case SIGCHLD:
                 /* Never use printf() in SIGCHLD processor, it causes SIGILL */
-                while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
-/*                    push_ini = pidlist_del(&pids, pid);
-                    if (push_ini) {
-                        if (push_ini->section_balance == SECTION_BALANCE_ROUNDROBIN)
-                            pushback_ini(&ini_root, push_ini);
-                        else if (status && push_ini->section_balance == SECTION_BALANCE_FAILOVER)
-                            pushback_ini(&ini_root, push_ini);
-                       } */
-                    cn--;
-                }
+                while ((cpid = wait3(&status, WNOHANG, 0)) > 0) cn--;
                 break;
 
             default:

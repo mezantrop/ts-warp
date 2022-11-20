@@ -45,7 +45,7 @@ char *rd_pidfile(char *file_name) {
             fclose(pfile);
             return pid;
         }
-    printl(LOG_VERB, "Daemon is not running");
+    printl(LOG_VERB, "No PID-file found");
     if (pfile) fclose(pfile);
     return NULL;
 }

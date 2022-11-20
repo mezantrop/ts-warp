@@ -78,7 +78,7 @@ _stop() {
         [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
         ps -ax | 
             awk '$4 ~ /ts-warp/ || $5 ~ /ts-warp/ && !/awk/ \
-                {system("kill -KILL " $1)}'
+                {system("kill -KILL " $1)}' 2> /dev/null
     else
         _status && {
             _check_root
@@ -87,7 +87,7 @@ _stop() {
                 cat "$tswarp_pidfile" | xargs kill -TERM ||
                     ps -ax | 
                         awk '$4 ~ /ts-warp/ || $5 ~ /ts-warp/ && !/awk/ \
-                            {system("kill -TERM " $1)}'
+                            {system("kill -TERM " $1)}' 2> /dev/null
             }
             while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
         } || 
