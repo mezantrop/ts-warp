@@ -229,7 +229,15 @@ ini_section *read_ini(char *ifile_name) {
                     } else {
                         c_targ->name = NULL;
                         c_targ->ip1 = str2inet(entry.val1, entry.mod1);
-                        if (entry.val2) c_targ->ip2 = str2inet(entry.val2, entry.mod2);
+                        if (entry.val2) {
+                            int m;
+                            /* Build IPv4 address netmask based on CIDR */
+                            if ((m = strtol(entry.val2, NULL, 10)) && m < 33 && target_type == INI_TARGET_NETWORK) {
+                                SIN4_FAMILY(c_targ->ip2) = AF_INET;
+                                S4_ADDR(c_targ->ip2) = htonl(~(0xFFFFFFFF >> m));
+                            } else
+                                c_targ->ip2 = str2inet(entry.val2, entry.mod2);
+                        }
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
