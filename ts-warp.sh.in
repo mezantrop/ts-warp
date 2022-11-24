@@ -76,18 +76,13 @@ _stop() {
     if [ $FORCE -eq 1 ]; then 
         printf "Stopping ts-warp with force: "
         [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
-        ps -ax | 
-            awk '$4 ~ /ts-warp/ || $5 ~ /ts-warp/ && !/awk/ \
-                {system("kill -KILL " $1)}' 2> /dev/null
+        pkill ts-warp
     else
         _status && {
             _check_root
             printf "Stopping ts-warp: "
             [ -f "$tswarp_pidfile" ] &&  { 
-                cat "$tswarp_pidfile" | xargs kill -TERM ||
-                    ps -ax | 
-                        awk '$4 ~ /ts-warp/ || $5 ~ /ts-warp/ && !/awk/ \
-                            {system("kill -TERM " $1)}' 2> /dev/null
+                cat "$tswarp_pidfile" | xargs kill -TERM || pkill ts-warp
             }
             while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
         } || 

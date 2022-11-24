@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.11.20    Current
+* 2022.11.24    Current
+  * `ts-warp.sh`: pkill when stop -f
   * Proper PID logging
   * `ts-warp.sh stop`: no redundant messages when autodetecting PID
 
