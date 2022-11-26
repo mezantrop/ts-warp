@@ -26,7 +26,7 @@
 - [ ] UDP support
 - [x] Resolve remote names via SOCKS (Early development stage)
 - [ ] (optional) HTTP proxy
-- [ ] SOCKS workload balance modes: Failover/Roundrobin/None
+- [x] SOCKS workload balance modes: Failover/Roundrobin/None
 
 ### Changelog
 
@@ -101,7 +101,7 @@ Usage:
   ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
 
 Version:
-  TS-Warp-1.0.X
+  TS-Warp-1.X.Y
 
 All parameters are optional:
   -i IP:Port        Incoming local IP address and port
@@ -126,7 +126,8 @@ For example, to temporary enable more verbose logs, restart ts-warp with `-v 4` 
 # sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
-ts-warp understands `SIGHUP` signal as the command to reload configuration and `SIGINT` to stop the daemon.
+ts-warp understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
+and clients connection status and `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 

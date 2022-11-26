@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                       */
+/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                          */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -59,6 +59,7 @@
 #include "inifile.h"
 #include "logfile.h"
 #include "pidfile.h"
+#include "pidlist.h"
 #include "natlook.h"
 
 
@@ -71,7 +72,7 @@ char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                                         /* Active clients number */
 pid_t pid;                                                          /* Current and main daemon PID */
-int pid_list_lock = 0;
+struct pid_list *pids;                                              /* List of active clients with PIDs and Sections */
 int isock, ssock, csock;                                            /* Sockets for in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
  
@@ -205,6 +206,7 @@ All parameters are optional:
         signal(SIGQUIT, trap_signal);
         signal(SIGTERM, trap_signal);
         signal(SIGCHLD, trap_signal);
+        signal(SIGUSR1, trap_signal);
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
@@ -316,23 +318,8 @@ All parameters are optional:
 
         printl(LOG_INFO, "Client: [%d], IP: [%s] accepted", cn++, inet2str(&caddr, buf));
 
-        if ((cpid = fork()) == -1) {
-            printl(LOG_CRIT, "Failed fork() to serve a client request");
-            mexit(1, pfile_name);
-        }
-        if (cpid > 0) {                                                  /* Main (parent process) */
-            setpgid(cpid, pid);
-            close(csock);
-        }
-        if (cpid == 0) {
-            /* -- Client processing (child) ------------------------------------------------------------------------- */
-            close(isock);
-
-            pid = getpid();
-            printl(LOG_VERB, "A new client process started");
-
-            /* -- Get the client original destination from NAT ------------------------------------------------------ */
-            socklen_t daddrlen = sizeof daddr;                              /* Client dest address len */
+        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
+        socklen_t daddrlen = sizeof daddr;                              /* Client dest address len */
         #if defined(linux)
             /* On Linux && IPTABLES */
             memset(&daddr, 0, daddrlen); 
@@ -342,15 +329,62 @@ All parameters are optional:
             /* On *BSD with PF */
             ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
         #endif
-            if (ret != 0) {
-                printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-                getpeername(csock, &daddr, &daddrlen);
+        if (ret != 0) {
+            printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
+            getpeername(csock, &daddr, &daddrlen);
+        }
+
+        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
+
+        /* Find SOCKS server to serve the destination address in INI file */
+        s_ini = ini_look_server(ini_root, daddr);
+        if (s_ini && s_ini->section_balance == SECTION_BALANCE_ROUNDROBIN) pushback_ini(&ini_root, s_ini);
+
+        if ((cpid = fork()) == -1) {
+            printl(LOG_CRIT, "Failed fork() to serve a client request");
+            mexit(1, pfile_name);
+        }
+        if (cpid > 0) {                                                 /* Main (parent process) */
+            setpgid(cpid, pid);
+            close(csock);
+
+            pids = pidlist_add(pids, s_ini->section_name, cpid);        /* Save the client into the list */
+
+            /* Process the PIDs list: remove exitted clients and execute workload balance functions */
+            struct pid_list *d = NULL, *c = NULL;
+            struct ini_section *push_ini = NULL;
+
+            c = pids;
+            while (c) {
+                if (c == pids && c->status >= 0) {                      /* Remove pidlist root entry */
+                    pids = c->next;
+                    if (c->status && (push_ini = getsection(ini_root, c->section_name)))
+                        if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
+                            pushback_ini(&ini_root, push_ini);
+                    free(c->section_name);
+                    free(c);
+                    c = pids;
+                }  
+                
+                if (c->next && c->next->status >= 0) {                  /* Remove a pidlist entry */
+                    d = c->next;
+                    c->next = d->next;
+                    if (d->status && (push_ini = getsection(ini_root, d->section_name)))
+                        if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
+                            pushback_ini(&ini_root, push_ini);
+                    free(d->section_name);
+                    free(d);
+                }
+                c = c->next;
             }
+        }
+        if (cpid == 0) {
+            /* -- Client processing (child) ------------------------------------------------------------------------- */
+            close(isock);
 
-            printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
+            pid = getpid();
+            printl(LOG_VERB, "A new client process started");
 
-            /* Find SOCKS server to serve the destination address in INI file */
-            s_ini = ini_look_server(ini_root, daddr);
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_WARN, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
@@ -664,42 +698,52 @@ single_server:
 void trap_signal(int sig) {
     /* Signal handler */
 
-    int	status;                                                         /* Client process status */
+    int	status;                                                     /* Client process status */
     pid_t cpid;
 
 
     switch (sig) {
-            case SIGHUP:
-                ini_root = delete_ini(ini_root);
-                ini_root = read_ini(ifile_name);
-                show_ini(ini_root);
-                break;
-            case SIGINT:                                                /* Exit processes */
-            case SIGQUIT:
-            case SIGTERM:
-                if (getpid() == pid) {                                  /* Main daemon */
-                    shutdown(isock, SHUT_RDWR);
-                    close(isock);
-                    #if !defined(linux)
-                        pf_close(pfd);
-                    #endif
-                    mexit(0, pfile_name);
-                } else {                                                /* Client process */
-                    shutdown(csock, SHUT_RDWR);
-                    shutdown(ssock, SHUT_RDWR);
-                    close(ssock);
-                    close(csock);
-                    printl(LOG_INFO, "Client exited");
-                    exit(0);
-                }
-            case SIGCHLD:
-                /* Never use printf() in SIGCHLD processor, it causes SIGILL */
-                while ((cpid = wait3(&status, WNOHANG, 0)) > 0) cn--;
-                break;
+        case SIGHUP:                                                /* Reload configuration from the INI-file */
+            ini_root = delete_ini(ini_root);
+            ini_root = read_ini(ifile_name);
+            show_ini(ini_root);
+            break;
 
-            default:
-                printl(LOG_INFO, "Got unhandled signal: %d", sig);
-                break;
+        case SIGINT:                                                /* Exit processes */
+        case SIGQUIT:
+        case SIGTERM:
+            if (getpid() == pid) {                                  /* The main daemon */
+                shutdown(isock, SHUT_RDWR);
+                close(isock);
+                #if !defined(linux)
+                    pf_close(pfd);
+                #endif
+                mexit(0, pfile_name);
+            } else {                                                /* A client process */
+                shutdown(csock, SHUT_RDWR);
+                shutdown(ssock, SHUT_RDWR);
+                close(ssock);
+                close(csock);
+                printl(LOG_INFO, "Client exited");
+                exit(0);
+            }
+
+        case SIGCHLD:
+            /* Never use printf() in SIGCHLD processor, it causes SIGILL */
+            while ((cpid = wait3(&status, WNOHANG, 0)) > 0) {
+                pidlist_update(pids, cpid, status);
+                cn--;
+            }
+            break;
+
+        case SIGUSR1:                                               /* Display: */
+            show_ini(ini_root);                                     /* current configuration */
+            pidlist_show(pids);                                     /* Client's PIDs list */
+            break;
+
+        default:
+            printl(LOG_INFO, "Got an unhandled signal: %d", sig);
+            break;
     }
 }
 

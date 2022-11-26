@@ -24,12 +24,66 @@
 */
 
 
+/* -- Managing list of active clients ------------------------------------------------------------------------------- */
+#include <stdlib.h>
+#include <string.h>
+
+#include "inifile.h"
+#include "logfile.h"
+#include "pidlist.h"
+
+
 /* ------------------------------------------------------------------------------------------------------------------ */
-#define BUF_SIZE           1024 * 1024
-#define STR_SIZE           255
+struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid) {
+
+    struct pid_list *n = NULL, *c = NULL;
 
 
-/* -- Function prototypes ------------------------------------------------------------------------------------------- */
-long toint(char *str);
-char *init_xcrypt(int xkey_len);
-void mexit(int status, char *pid_file);
+    /* Create a new pidlist record structure */
+    n = (struct pid_list *)malloc(sizeof(struct pid_list)); 
+    n->pid = pid;
+    n->status = -1;
+    n->section_name = strdup(section_name);
+    n->next = NULL;
+    
+    c = root;
+    if (!root)
+        root = n;
+    else {
+        while (c->next) c = c->next;
+        c->next = n;
+    }
+
+    printl(LOG_INFO, "Clients list. Added PID: [%d], Section: [%s]", n->pid, n->section_name);
+    return root;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+int pidlist_update(struct pid_list *root, pid_t pid, int status) {
+
+    struct pid_list *c = NULL;
+
+    c = root;
+    while (c) {
+        if (c && c->pid == pid) {
+            c->status = status;
+            return 0;
+        }
+        c = c->next;
+    }
+
+    return 1;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void pidlist_show(struct pid_list *root) {
+
+    struct pid_list *c = NULL;
+
+    printl(LOG_VERB, "Show clients table");
+    c = root;
+    while (c) {
+        printl(LOG_VERB, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
+        c = c->next;
+    }
+}

@@ -1,8 +1,13 @@
 # CHANGELOG
 
-* 2022.11.24    Current
+* 2022.11.26    ts-warp-1.1.3, gui-warp-1.0, ns-warp-1.0.1
+  * SOCKS servers section Failover/Roundrobin/None modes enabled
+  * `README.md`, `examples\ts-warp.ini`: updated
+  * Minor decorative formatting
+  * `ts-warp.c`: Accepts `SIGUSR1` to show configuration and clients
+  * `pidlist.c`, `pidlist.h`: Clients processes monitoring
   * `inifile.c`: `target_network` IPv4 addresses in CIDR notation
-  * `ts-warp.sh`: pkill when stop -f
+  * `ts-warp.sh`: `pkill` utilized in `stop -f` routine
   * Proper PID logging
   * `ts-warp.sh stop`: no redundant messages when autodetecting PID
 
@@ -51,7 +56,8 @@
   * `inifile.c`: `socks5_atype()`: Correct SOCKS5 address type selection
   * `inifile.c`: `socks5_atype()`: SOCKS5 Address type selector: IPv4/IPv6/Name
   * `socks5_request()`: SOCKS5_ATYPE_NAME added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
-  * `Makefile`: make uninstall
+  * `Makefile`: make uninstal
+  * l
   * Minor decorative changes
   * `ts-warp.sh`: stop -f for macOS update
   * `ts-warp.sh`: Force mode for start/stop procedures rewritten

@@ -25,11 +25,15 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-#define BUF_SIZE           1024 * 1024
-#define STR_SIZE           255
+typedef struct pid_list {
+    int pid;                                                /* Client PID */
+    int status;                                             /* Status code: -1 running, Exit: 0 - OK, >=1 - KO */
+    char *section_name;                                     /* Section used by the client's process */
+    struct pid_list *next;                                  /* Link to the next p_list */
+} pid_list;
 
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-long toint(char *str);
-char *init_xcrypt(int xkey_len);
-void mexit(int status, char *pid_file);
+struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid);
+int pidlist_update(struct pid_list *root, pid_t pid, int status);
+void pidlist_show(struct pid_list *root);
