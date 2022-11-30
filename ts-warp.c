@@ -321,7 +321,7 @@ All parameters are optional:
         /* -- Get the client original destination from NAT ---------------------------------------------------------- */
         socklen_t daddrlen = sizeof daddr;                              /* Client dest address len */
         #if defined(linux)
-            /* On Linux && IPTABLES */
+            /* On Linux && nftabeles/iptables */
             memset(&daddr, 0, daddrlen); 
             daddr.sa_family = caddr.sa_family;
             ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);

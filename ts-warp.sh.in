@@ -41,7 +41,9 @@ tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v 3"
 
-FORCE=0                     # Ignore status and start/stop ts-warp forcibly
+linux_firewall="nftables"       # Under Linux set nftables or iptables
+
+FORCE=0                         # Ignore status and start/stop ts-warp forcibly
 
 # ------------------------------------------------------------------------------
 _start() {
@@ -55,7 +57,7 @@ _start() {
     _check_root
     printf "Starting ts-warp: "
     uname -s | grep -i 'Linux' >/dev/null &&
-        "$tswarp_prefix"/etc/ts-warp_iptables.sh || 
+        "$tswarp_prefix"/etc/ts-warp_"$linux_firewall".sh || 
         /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
     echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
 }

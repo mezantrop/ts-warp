@@ -56,6 +56,7 @@ install: ts-warp ts-pass
 	install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
 	install -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf_freebsd.conf.sample
 	install -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf_macos.conf.sample
+	install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample
 	install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
@@ -68,6 +69,7 @@ uninstall:
 	rm -f $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
 	rm -f $(PREFIX)/etc/ts-warp_pf_freebsd.conf.sample
 	rm -f $(PREFIX)/etc/ts-warp_pf_macos.conf.sample
+	rm -f $(PREFIX)/etc/ts-warp_nftables.sh.sample
 	rm -f $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	rm -f $(PREFIX)/var/log/ts-warp.log
 	rm -f $(PREFIX)/var/run/ts-warp.pid

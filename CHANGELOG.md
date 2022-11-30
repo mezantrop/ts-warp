@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.11.30    Current
+  * On Linux `nftables` rules and usage examples added
+
 * 2022.11.26    ts-warp-1.1.3, gui-warp-1.0, ns-warp-1.0.1
   * SOCKS servers section Failover/Roundrobin/None modes enabled
   * `README.md`, `examples\ts-warp.ini`: updated

@@ -12,7 +12,7 @@
 
 - Support platforms:
   - [x] macOS, FreeBSD and OpenBSD with PF
-  - [x] Linux with Iptables
+  - [x] Linux with nftables or iptables
 
 - [x] IPv6 stack support
 - [x] Maintain simple configuration structure as INI-file
@@ -77,8 +77,16 @@ to configure the packet filter. For example:
   # sudo nano /usr/local/etc/ts-warp_pf.conf
   ```
 
-- **On Linux**. Create `<PREFIX>/etc/ts-warp_iptables.sh` based on `<PREFIX>/etc/ts-warp_iptables.sh.sample`
+- **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` based on
+  `<PREFIX>/etc/ts-warp_nftables.sh.sample` or respectively `<PREFIX>/etc/ts-warp_iptables.sh.sample`
 to configure firewall. For example:
+
+```sh
+  # sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
+  # sudo nano /usr/local/etc/ts-warp_nftables.sh
+  ```
+
+or
 
   ```sh
   # sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
