@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.11.30    Current
+* 2022.12.01    Current
+  * `ts-warp.c`: Use empty SOCKS section name in the PID list for direct connections
   * On Linux `nftables` rules and usage examples added
 
 * 2022.11.26    ts-warp-1.1.3, gui-warp-1.0, ns-warp-1.0.1

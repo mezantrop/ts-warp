@@ -348,7 +348,8 @@ All parameters are optional:
             setpgid(cpid, pid);
             close(csock);
 
-            pids = pidlist_add(pids, s_ini->section_name, cpid);        /* Save the client into the list */
+            /* Save the client into the list */
+            pids = pidlist_add(pids, s_ini ? s_ini->section_name : "", cpid);
 
             /* Process the PIDs list: remove exitted clients and execute workload balance functions */
             struct pid_list *d = NULL, *c = NULL;
