@@ -71,7 +71,7 @@ char *lfile_name = LOG_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                                         /* Active clients number */
-pid_t pid;                                                          /* Current and main daemon PID */
+pid_t pid, mpid;                                                    /* Current and main daemon PID */
 struct pid_list *pids;                                              /* List of active clients with PIDs and Sections */
 int isock, ssock, csock;                                            /* Sockets for in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
@@ -230,6 +230,7 @@ All parameters are optional:
             pid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
         #endif
     }
+    mpid = pid;
 
     #if !defined(__APPLE__)
         if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
@@ -713,7 +714,7 @@ void trap_signal(int sig) {
         case SIGINT:                                                /* Exit processes */
         case SIGQUIT:
         case SIGTERM:
-            if (getpid() == pid) {                                  /* The main daemon */
+            if (getpid() == mpid) {                                 /* The main daemon */
                 shutdown(isock, SHUT_RDWR);
                 close(isock);
                 #if !defined(linux)

@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2022.12.01    Current
+  * `ts-warp.c`: Correct clients exit procedure
   * `ts-warp.c`: Use empty SOCKS section name in the PID list for direct connections
   * On Linux `nftables` rules and usage examples added
 
