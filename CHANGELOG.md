@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2022.12.01    Current
+* 2022.12.02    Current
+  * `mk_pidfile()`: fix for NULL pwd structure
+  * `ns-warp`: CIDR addresses for NIT-pools
   * `ts-warp.c`: Correct clients exit procedure
   * `ts-warp.c`: Use empty SOCKS section name in the PID list for direct connections
   * On Linux `nftables` rules and usage examples added

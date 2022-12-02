@@ -227,7 +227,7 @@ All parameters are optional:
         #if defined(__APPLE__)
             pid = mk_pidfile(pfile_name, f_flg, 0, 0);
         #else
-            pid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
+            pid = mk_pidfile(pfile_name, f_flg, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
         #endif
     }
     mpid = pid;

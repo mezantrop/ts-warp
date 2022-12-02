@@ -169,7 +169,7 @@ int main (int argc, char* argv[]) {
         if (pid > 0) exit(0);
 
         printl(LOG_CRIT, "%s-%s daemon started", NS_PROG_NAME, NS_PROG_VERSION);
-        pid = mk_pidfile(pfile_name, f_flg, pwd->pw_uid, pwd->pw_gid);
+        pid = mk_pidfile(pfile_name, f_flg, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
     }
 
     nit_root = read_ini(ifile_name);
@@ -452,7 +452,7 @@ void usage(int ecode) {
     printf("Usage:\n\
   ns-warp -i IP:Port -s IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -h\n\n\
 All parameters are optional:\n\
-  -i IP:Port\t    NS-Warp server SIP address and port\n\
+  -i IP:Port\t    NS-Warp server IP address and port\n\
   -s IP:Port\t    Original DNS server IP address and port\n\
   \n\
   -c file.ini\t    Configuration INI-file, default: %s\n\

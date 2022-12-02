@@ -94,7 +94,15 @@ nit *read_ini(char *ifile_name) {
             c_nit = (struct nit *)malloc(sizeof(struct nit));
             c_nit->domain = strdup(entry.val1);
             c_nit->ip_addr = str2inet(entry.val2, NULL);
-            c_nit->ip_mask = str2inet(entry.mod1, NULL);
+            if (entry.mod1) {
+                int m;
+                /* Build IPv4 address netmask based on CIDR */
+                if ((m = strtol(entry.mod1, NULL, 10)) && m < 33) {
+                    SIN4_FAMILY(c_nit->ip_mask) = AF_INET;
+                    S4_ADDR(c_nit->ip_mask) = htonl(~(0xFFFFFFFF >> m));
+                } else 
+                    c_nit->ip_mask = str2inet(entry.mod1, NULL);
+            }            
             c_nit->next = NULL;
             c_nit->iname = 0;
 

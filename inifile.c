@@ -204,7 +204,13 @@ ini_section *read_ini(char *ifile_name) {
                 if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
                     c_sect->nit_domain = strdup(entry.val1);
                     c_sect->nit_ipaddr = str2inet(entry.mod1, NULL);
-                    c_sect->nit_ipmask = str2inet(entry.val2, NULL);
+                    int m;
+                    /* Build IPv4 address netmask based on CIDR */
+                    if ((m = strtol(entry.val2, NULL, 10)) && m < 33) {
+                        SIN4_FAMILY(c_sect->nit_ipmask) = AF_INET;
+                        S4_ADDR(c_sect->nit_ipmask) = htonl(~(0xFFFFFFFF >> m));
+                    } else 
+                        c_sect->nit_ipmask = str2inet(entry.val2, NULL);
             } else {
                 target_type = INI_TARGET_NOTSET;
                 /* Parse target_* entries: var=val1[:mod1[-mod2]]/val2 */
@@ -353,7 +359,7 @@ void show_ini(struct ini_section *ini) {
 
         /* Display NIT pool */
         if (s->nit_domain)
-            printl(LOG_VERB, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s:%s]", 
+            printl(LOG_VERB, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s/%s]", 
                 s->nit_domain, inet2str(&s->nit_ipaddr, ip1), inet2str(&s->nit_ipmask, ip2));
 
         /* Display target entries */

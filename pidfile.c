@@ -39,6 +39,7 @@ extern char *pfile_name;
 char *rd_pidfile(char *file_name) {
     FILE *pfile;
     static char pid[9];                                                 /* Could PID be of long long type? */
+
      if ((pfile = fopen(file_name, "r")))
         if (fgets(pid, sizeof pid, pfile)) {
             printl(LOG_VERB, "Daemon running, pid: [%s]", pid);
