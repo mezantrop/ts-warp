@@ -105,11 +105,13 @@ struct sockaddr str2inet(char *str_addr, char *str_port) {
     hints.ai_socktype = SOCK_STREAM;
     if ((ret = getaddrinfo(str_addr, str_port, &hints, &res)) > 0) {
         printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]", str_addr, str_port, gai_strerror(ret));
-        mexit(1, pfile_name);
-    }
+        /* Return INADDR_NONE when failing to resolve */
+        memset(&a_ret, 0, sizeof(struct sockaddr));
+        SA_FAMILY(a_ret) = AF_INET;
+        S4_ADDR(a_ret) = INADDR_NONE;
+    } else
+        a_ret = *res->ai_addr;
 
-    a_ret = *res->ai_addr;
-    freeaddrinfo(res);
-    
+    freeaddrinfo(res);    
     return a_ret;
 }

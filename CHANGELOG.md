@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.12.02    Current
+* 2022.12.05    Current
+  * `network.c`, `str2inet()`: Return INADDR_NONE if resolve fails
   * `mk_pidfile()`: fix for NULL pwd structure
   * `ns-warp`: CIDR addresses for NIT-pools
   * `ts-warp.c`: Correct clients exit procedure
