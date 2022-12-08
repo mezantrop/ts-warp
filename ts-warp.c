@@ -262,7 +262,7 @@ All parameters are optional:
     printl(LOG_VERB, "Our socket for incoming connections created");
 
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
-    #if (WITH_TCP_NODELAY)
+    #if defined(WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
         if (setsockopt(isock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for incoming connections");
