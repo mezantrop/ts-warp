@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2022.12.08    Current
+* 2022.12.12    Current
   * `ts-warp.c`: TCP nodelay enabled
   * `network.c`, `str2inet()`: Return INADDR_NONE if resolve fails
   * `mk_pidfile()`: fix for NULL pwd structure
