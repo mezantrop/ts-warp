@@ -48,7 +48,7 @@
 /* Program name and version */
 #define NS_PROG_NAME          "NS-Warp"
 #define NS_PROG_NAME_SHORT    "NSW"
-#define NS_PROG_VERSION       "1.0.1"
+#define NS_PROG_VERSION       "1.0.2"
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void trap_signal(int sig);

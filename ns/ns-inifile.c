@@ -127,9 +127,7 @@ nit *read_ini(char *ifile_name) {
         }
     }
 
-    free(entry.val);
-    fclose(fini);
-    
+    fclose(fini);    
     return nit_root;
 }
 

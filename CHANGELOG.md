@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.12.12    Current
+* 2022.12.23    ts-warp-1.1.4, gui-warp-1.0, ns-warp-1.0.2
+  * `ns-warp`: memory usage fix
   * `ts-warp.c`: TCP nodelay enabled
   * `network.c`, `str2inet()`: Return INADDR_NONE if resolve fails
   * `mk_pidfile()`: fix for NULL pwd structure

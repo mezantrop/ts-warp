@@ -147,11 +147,12 @@ int main (int argc, char* argv[]) {
 
     if (d_flg) {
         /* -- Daemonizing ------------------------------------------------------------------------------------------- */
-        signal(SIGHUP, trap_signal);
+        /* signal(SIGHUP, trap_signal); */
         signal(SIGINT, trap_signal);
         signal(SIGQUIT, trap_signal);
         signal(SIGTERM, trap_signal);
         signal(SIGCHLD, trap_signal);
+        /* signal(SIGUSR1, trap_signal); */
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
@@ -420,30 +421,32 @@ void trap_signal(int sig) {
     /* Signal handler */
 
     switch (sig) {
-            case SIGHUP:
-                /* TODO: implement */
+        /* case SIGHUP: */                                          /* TODO: implement */
+            /* ini_root = delete_ini(nit_root);
+            nit_root = read_ini(ifile_name);
+            show_ini(nit_root);
+            break; */
+        case SIGINT:                                                /* Exit processes */
+        case SIGQUIT:
+        case SIGTERM:
+            shutdown(isock, SHUT_RDWR);
+            shutdown(ssock, SHUT_RDWR);
+            close(isock);
+            close(ssock);
+            if (pfile_name) {
+                if (unlink(pfile_name)) truncate(pfile_name, 0);
+                printl(LOG_WARN, "PID file removed/PID erased");
+            }
+            exit(0);
+            break;
 
-                /* ini_root = delete_ini(ini_root);
-                ini_root = read_ini(ifile_name);
-                show_ini(ini_root); */
-                break;
-            case SIGINT:                                                /* Exit processes */
-            case SIGQUIT:
-            case SIGTERM:
-                shutdown(isock, SHUT_RDWR);
-                shutdown(ssock, SHUT_RDWR);
-                close(isock);
-                close(ssock);
-                if (pfile_name) {
-                    if (unlink(pfile_name)) truncate(pfile_name, 0);
-                    printl(LOG_WARN, "PID file removed/PID erased");
-                }
-                exit(0);
-                break;
+        /* case SIGUSR1: */                                         /* TODO: Show current configuration */
+        /*  show_ini(nit_root);
+            break;*/
 
-            default:
-                printl(LOG_INFO, "Got unhandled signal: %d", sig);
-                break;
+        default:
+            printl(LOG_INFO, "Got unhandled signal: %d", sig);
+            break;
     }
 }
 
