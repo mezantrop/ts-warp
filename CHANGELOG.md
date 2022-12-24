@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2022.12.24    Current
+  * `ns-warp.c`: `fork()` to reduce possible resolve timeout
+
 * 2022.12.23    ts-warp-1.1.4, gui-warp-1.0, ns-warp-1.0.2
   * `ns-warp`: memory usage fix
   * `ts-warp.c`: TCP nodelay enabled

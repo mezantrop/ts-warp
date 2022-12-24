@@ -32,6 +32,7 @@
 #include <errno.h>
 
 #include <signal.h>
+#include <sys/wait.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -53,7 +54,7 @@ char *lfile_name = NS_LOG_FILE_NAME;
 FILE *lfile = NULL;
 int loglevel = LOG_LEVEL_DEFAULT;
 
-pid_t pid;                                                              /* Current process id */
+pid_t pid, cpid;                                                        /* Current process id, clients PID */
 
 int isock;                                                              /* Incoming socket */
 int ssock;                                                              /* Outcoming server socket */
@@ -217,13 +218,11 @@ int main (int argc, char* argv[]) {
     }
     printl(LOG_VERB, "Socket for outgoing DNS-requests succesfully bound");
 
-/* TODO: Implement */
-/*
-    if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
+    /* TODO: Implement */
+    /* if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
         printl(LOG_CRIT, "Failed to lower privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
         exit(1);
-    }
-*/
+    } */
 
     /* -- Try validating DNS address to forward requests to --------------------------------------------------------- */
     memset(&shints, 0, sizeof shints);
@@ -243,7 +242,7 @@ int main (int argc, char* argv[]) {
         FD_SET(ssock, &rfd);
 
         tv.tv_sec = 0;
-        tv.tv_usec = 100000;
+        tv.tv_usec = 10000;
 
         ret = select(ssock > isock ? ssock + 1: isock + 1, &rfd, 0, 0, &tv);
         
@@ -332,27 +331,35 @@ int main (int argc, char* argv[]) {
                                 break;
 
                             case NS_MESSAGE_TYPE_PTR:
-                                q_ip = forward_ip(dnsq.name);
-                                switch (nit_lookup_ip(nit_root, &q_ip, q_name)) {
-                                    case 0:
-                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
-                                            q_name, inet2str(&q_ip, str_buf));
-                                        rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
-                                        free(dnsq.name);
-                                        free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
-                                    case 2:
-                                        printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
-                                        rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
-                                        free(dnsq.name);
-                                        free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
-                                    case 1:
-                                    default:
-                                        printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
-                                        break;
+                                /* fork() because forward_ip() -> str2inet() -> getaddrinfo() may cause a timeout */
+                                if ((cpid = fork()) == -1) {
+                                    printl(LOG_CRIT, "Failed fork() to serve a client request");
+                                    exit(1);
+                                }
+                                if (cpid > 0) {;}                                       /* Parent: nothing to do */
+                                if (cpid == 0) {                                        /* Child */
+                                    q_ip = forward_ip(dnsq.name);
+                                    switch (nit_lookup_ip(nit_root, &q_ip, q_name)) {
+                                        case 0:
+                                            printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                                q_name, inet2str(&q_ip, str_buf));
+                                            rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
+                                            free(dnsq.name);
+                                            free(dnsq_raw);
+                                            goto snd_client;
+                                            break;
+                                        case 2:
+                                            printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
+                                            rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+                                            free(dnsq.name);
+                                            free(dnsq_raw);
+                                            goto snd_client;
+                                            break;
+                                        case 1:
+                                        default:
+                                            printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
+                                            break;
+                                    }
                                 }
                                 break;
 
@@ -419,6 +426,9 @@ snd_client:
 /* ------------------------------------------------------------------------------------------------------------------ */
 void trap_signal(int sig) {
     /* Signal handler */
+    pid_t cpid;
+    int status;
+
 
     switch (sig) {
         /* case SIGHUP: */                                          /* TODO: implement */
@@ -438,6 +448,11 @@ void trap_signal(int sig) {
                 printl(LOG_WARN, "PID file removed/PID erased");
             }
             exit(0);
+            break;
+
+        case SIGCHLD:
+            /* Never use printf() in SIGCHLD processor, it causes SIGILL */
+            while ((cpid = wait3(&status, WNOHANG, 0)) > 0) ;
             break;
 
         /* case SIGUSR1: */                                         /* TODO: Show current configuration */
