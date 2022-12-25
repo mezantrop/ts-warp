@@ -125,6 +125,7 @@ nit *read_ini(char *ifile_name) {
             free(entry.val);
             continue;
         }
+        if (entry.val) free(entry.val);
     }
 
     fclose(fini);    
@@ -159,7 +160,9 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *i
     unsigned int i = 0;
     unsigned int nit_size = 0;
     struct sockaddr r_ip;
+    int ret = 1;                                                        /* Return code */
 
+    strlow(name);
     s = nit_root;
     while (s) {
         if (strcmp(s->domain, name + strlen(name) - strlen(s->domain)) == 0) {
@@ -210,8 +213,10 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *i
                 s->iname++;
                 if (s->iname > nit_size) s->iname = 0;
                 return 0;
-            } else
+            } else {
                 printl(LOG_VERB, "Skipping the pool of non-matching address family");
+                ret = 2;                                /* The Name is in NIT, but NOT in the Adress family */
+            }
         } else
             printl(LOG_VERB, "NOT Found: [%s] as part of domain: [%s]", name, s->domain);
 
@@ -219,7 +224,7 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *i
     }
 
     /* The requested name does not belong to any domain in NIT */
-    return 1;
+    return ret;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -264,4 +269,12 @@ int nit_lookup_ip(struct nit *nit_root, struct sockaddr *ip, char *name) {
     }
 
     return 1;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void strlow(char *s) {
+    /* Make a string lowercase */
+    while (*s) {
+        *s = tolower(*s); s++;
+    }
 }

@@ -304,62 +304,78 @@ int main (int argc, char* argv[]) {
                     if (dnsq.classc == 0x0001) {                        /* != IN */
                         switch (dnsq.type) {
                             case NS_MESSAGE_TYPE_A:
-                                if (nit_lookup_name(nit_root, dnsq.name, AF_INET, &q_ip) == 0) {
-                                    printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
-                                        dnsq.name, inet2str(&q_ip, str_buf));
-                                    if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
-                                        continue;
-                                    free(dnsq.name);
-                                    free(dnsq_raw);
-                                    goto snd_client;
-                                } else
-                                    printl(LOG_VERB, "[%s] is not found in NIT", dnsq.name);
+                                switch (nit_lookup_name(nit_root, dnsq.name, AF_INET, &q_ip)) {
+                                    case 0:
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                            dnsq.name, inet2str(&q_ip, str_buf));
+                                        if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
+                                            continue;
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 2:
+                                        printl(LOG_VERB, "[%s] is found in NIT but not in IPv4 range", dnsq.name);
+                                        rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 1:
+                                    default:
+                                        printl(LOG_VERB, "[%s] is not found in NIT", dnsq.name);
+                                        break;
+                                }
                                 break;
 
                             case NS_MESSAGE_TYPE_AAAA:
-                                if (nit_lookup_name(nit_root, dnsq.name, AF_INET6, &q_ip) == 0) {
-                                    printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
-                                        dnsq.name, inet2str(&q_ip, str_buf));
-                                    
-                                    if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
-                                        continue;
-                                    free(dnsq.name);
-                                    free(dnsq_raw);
-                                    goto snd_client;
-                                } else
-                                    printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
+                                switch (nit_lookup_name(nit_root, dnsq.name, AF_INET6, &q_ip)) {
+                                    case 0:
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                            dnsq.name, inet2str(&q_ip, str_buf));
+                                        
+                                        if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
+                                            continue;
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 2:
+                                        printl(LOG_VERB, "[%s] is found in NIT but not in IPv6 range", dnsq.name);
+                                        rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 1:
+                                    default:
+                                        printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
+                                        break;
+                                }
                                 break;
 
                             case NS_MESSAGE_TYPE_PTR:
-                                /* fork() because forward_ip() -> str2inet() -> getaddrinfo() may cause a timeout */
-                                if ((cpid = fork()) == -1) {
-                                    printl(LOG_CRIT, "Failed fork() to serve a client request");
-                                    exit(1);
-                                }
-                                if (cpid > 0) {;}                                       /* Parent: nothing to do */
-                                if (cpid == 0) {                                        /* Child */
-                                    q_ip = forward_ip(dnsq.name);
-                                    switch (nit_lookup_ip(nit_root, &q_ip, q_name)) {
-                                        case 0:
-                                            printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
-                                                q_name, inet2str(&q_ip, str_buf));
-                                            rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
-                                            free(dnsq.name);
-                                            free(dnsq_raw);
-                                            goto snd_client;
-                                            break;
-                                        case 2:
-                                            printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
-                                            rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
-                                            free(dnsq.name);
-                                            free(dnsq_raw);
-                                            goto snd_client;
-                                            break;
-                                        case 1:
-                                        default:
-                                            printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
-                                            break;
-                                    }
+                                q_ip = forward_ip(dnsq.name);
+                                switch (nit_lookup_ip(nit_root, &q_ip, q_name)) {
+                                    case 0:
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                            q_name, inet2str(&q_ip, str_buf));
+                                        rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 2:
+                                        printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
+                                        rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+                                        free(dnsq.name);
+                                        free(dnsq_raw);
+                                        goto snd_client;
+                                        break;
+                                    case 1:
+                                    default:
+                                        printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
+                                        break;
                                 }
                                 break;
 

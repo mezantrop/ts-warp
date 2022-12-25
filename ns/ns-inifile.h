@@ -55,3 +55,4 @@ int nit_lookup_ip(struct nit *nit_root, struct sockaddr *ip, char *name);
 struct sockaddr rev_addr(struct sockaddr *sa);
 char *reverse_ip(struct sockaddr *ip, char *rev_ip);
 struct sockaddr forward_ip(char *rev_ip);
+void strlow(char *s);

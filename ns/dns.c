@@ -29,6 +29,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "dns.h"
 #include "logfile.h"
@@ -101,12 +103,27 @@ struct sockaddr forward_ip(char *rev_ip) {
     struct sockaddr sa;
     char buf[HOST_NAME_MAX];
 
-    memset(buf, 0, sizeof(buf));
-    if (rev_ip && ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV4)) || 
-        (suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV6))))
-            strncpy(buf, rev_ip, suff - rev_ip);
+    SA_FAMILY(sa) = AF_INET;
+    ((struct sockaddr_in *)&sa)->sin_addr.s_addr = INADDR_BROADCAST;
 
-    sa = str2inet(buf, NULL);
+    memset(buf, 0, sizeof(buf));
+    if (rev_ip) {
+        if ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV4))) {
+            strncpy(buf, rev_ip, suff - rev_ip);
+            if (!inet_pton(AF_INET, buf,  &((struct sockaddr_in *)&sa)->sin_addr)) {
+                printl(LOG_VERB, "Corrupted IPv4 address: [%s]", buf);
+            }
+        } else {
+            if ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV6))) {
+                strncpy(buf, rev_ip, suff - rev_ip);
+                if (!inet_pton(AF_INET6, buf,  &((struct sockaddr_in6 *)&sa)->sin6_addr))
+                    printl(LOG_VERB, "Corrupted IPv6 address: [%s]", buf);
+            } else {
+                printl(LOG_VERB, "Corrupted IP address: [%s]", buf);
+            }
+        }
+    }
+
     sa = rev_addr(&sa);
 
     printl(LOG_VERB, "Forward IP: [%s]", inet2str(&sa, buf));
@@ -211,7 +228,7 @@ int dns_reply_nfound(unsigned int id, unsigned int typ, unsigned char *dnsq_raw,
     /* Fill in the header */
     dnsh = (dns_header *)rbuf;   
     dnsh->id = id;
-    dnsh->flags = 0x8385;                                           /* Standard query response, No error */
+    dnsh->flags = 0x8085;                                           /* Standard query response, No error */
     dnsh->qdcount = 0x0100;
     dnsh->ancount = 0x0000;
     dnsh->nscount = 0x0000;
