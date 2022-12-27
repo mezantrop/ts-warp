@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.12.24    Current
+* 2022.12.27    Current
+  * `ns-warp.c`: Cosmetic chanes
   * `ns-warp`:  `dns.c/forward_ip()` rewritten for speed; Many fixes and improvements
   * ~~`ns-warp.c`: `fork()` to reduce possible resolve timeout~~
 

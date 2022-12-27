@@ -152,7 +152,6 @@ int main (int argc, char* argv[]) {
         signal(SIGINT, trap_signal);
         signal(SIGQUIT, trap_signal);
         signal(SIGTERM, trap_signal);
-        signal(SIGCHLD, trap_signal);
         /* signal(SIGUSR1, trap_signal); */
 
         if ((pid = fork()) == -1) {
@@ -442,13 +441,10 @@ snd_client:
 /* ------------------------------------------------------------------------------------------------------------------ */
 void trap_signal(int sig) {
     /* Signal handler */
-    pid_t cpid;
-    int status;
-
 
     switch (sig) {
-        /* case SIGHUP: */                                          /* TODO: implement */
-            /* ini_root = delete_ini(nit_root);
+/*        case SIGHUP: */                                          /* TODO: implement */
+/*          nit_root = delete_ini(nit_root);
             nit_root = read_ini(ifile_name);
             show_ini(nit_root);
             break; */
@@ -466,14 +462,10 @@ void trap_signal(int sig) {
             exit(0);
             break;
 
-        case SIGCHLD:
-            /* Never use printf() in SIGCHLD processor, it causes SIGILL */
-            while ((cpid = wait3(&status, WNOHANG, 0)) > 0) ;
-            break;
+/*        case SIGUSR1: */                                          /* TODO: Show current configuration */
+/*            show_ini(nit_root);
+            break; */
 
-        /* case SIGUSR1: */                                         /* TODO: Show current configuration */
-        /*  show_ini(nit_root);
-            break;*/
 
         default:
             printl(LOG_INFO, "Got unhandled signal: %d", sig);
