@@ -43,6 +43,24 @@
 
 extern char *pfile_name;
 
+const char *socks4_status[] = {
+    "OK", 
+    "Request rejected or failed",
+    "Request failed because client is not running identd",
+    "Request failed because client's identd couldn't confirm user"
+};
+
+const char *socks5_status[] = {
+    "OK",
+    "General failure", 
+    "Connection not allowed by ruleset",
+    "Network unreacheable",
+    "Host unreacheable", 
+    "Connection refused by target host",
+    "TTL expired",
+    "Command unsupported / protocol error",
+    "Address type is not supported"
+};
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user) {
@@ -81,14 +99,15 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
         mexit(1, pfile_name);
     }
 
-    printl(LOG_VERB, "SOCKS4 reply: [%d][%d], Bytes [%d]", rep.nul, rep.status, rcount);
+    printl(LOG_VERB, "SOCKS4 reply: [%d][%d]:[%s], Bytes [%d]",
+        rep.nul, rep.status, socks4_status[rep.status - 0x5a], rcount);
 
     if (rep.nul != 0) {                                             /* Reply SOCKS4 Request rejected or failed */
         printl(LOG_CRIT, "SOCKS4 server speaks unsupported protocol v:[%d]", rep.nul);
         return SOCKS4_REPLY_KO;
     }
     
-    printl(LOG_VERB, "SOCKS4 server reply status: %d", rep.status);
+    printl(LOG_VERB, "SOCKS4 server reply status: [%d]:[%s]", rep.status, socks4_status[rep.status - 0x5a]);
     
     return rep.status;
 }
@@ -173,7 +192,8 @@ int socks5_auth(int socket, char *user, char *password) {
     }
 
     rep = (s5_reply_auth *)buf;
-    printl(LOG_VERB, "SOCKS5 reply: [%d][%d], Bytes [%d]", rep->ver, rep->status, rcount);
+    printl(LOG_VERB, "SOCKS5 reply: [%d][%d]:[%s], Bytes [%d]",
+        rep->ver, rep->status, !rep->status ? "OK" : "KO", rcount);
 
     return rep->status;
 }
@@ -269,14 +289,14 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
     }
 
     rep = (s5_reply_short *)buf;
-    printl(LOG_VERB, "SOCKS5 reply: [%d][%d], Bytes [%d]", rep->ver, 
-        rep->status, rcount);
+    printl(LOG_VERB, "SOCKS5 reply: [%d][%d]:[%s], Bytes [%d]", rep->ver, 
+        rep->status, socks5_status[rep->status], rcount);
 
     if (rep->ver != PROXY_PROTO_SOCKS_V5) {                             /* Report SOCKS5 general failure */
         printl(LOG_WARN, "SOCKS5 server speaks unsupported protocol v:[%d]", rep->ver);
         return SOCKS5_REPLY_KO;
     }
     
-    printl(LOG_VERB, "SOCKS5 server reply status: %d", rep->status);
+    printl(LOG_VERB, "SOCKS5 server reply status: [%d]:[%s]", rep->status, socks5_status[rep->status]);
     return rep->status;
 }

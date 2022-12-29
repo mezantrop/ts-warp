@@ -32,12 +32,6 @@
 #define SOCKS4_CMD_TCPCONNECT   0x01
 #define SOCKS4_CMD_TCPBIND      0x02
 
-/* SOCKS4 server replies. Only 0x5a and 0x5b are interesting */
-#define SOCKS4_REPLY_OK         0x5a                /* Request granted */
-#define SOCKS4_REPLY_KO         0x5b                /* Request rejected or failed */
-#define SOCKS4_REPLY_KO_IDENT1  0x5c                /* Request failed because client is not running identd */
-#define SOCKS4_REPLY_KO_IDENT2  0x5d                /* Request failed because client's identd couldn't confirm user */
-
 typedef struct {
     uint8_t ver;                /* SOCKS version */
     uint8_t cmd;                /* Command
@@ -58,6 +52,12 @@ typedef struct {
     uint16_t dstport;           /* Dest port number in a network byte order */
     uint32_t dstaddr;           /* IPv4 Address 4 bytes in network byte order */
 } s4_reply;
+
+/* SOCKS4 server replies. Only 0x5a and 0x5b are interesting */
+#define SOCKS4_REPLY_OK         0x5a                /* Request granted */
+#define SOCKS4_REPLY_KO         0x5b                /* Request rejected or failed */
+#define SOCKS4_REPLY_KO_IDENT1  0x5c                /* Request failed because client is not running identd */
+#define SOCKS4_REPLY_KO_IDENT2  0x5d                /* Request failed because client's identd couldn't confirm user */
 
 /* -- SOCKS V5 ------------------------------------------------------------------------------------------------------ */
 #define AUTH_MAX_METHODS        255
