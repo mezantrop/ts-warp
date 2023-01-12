@@ -80,10 +80,10 @@ void pidlist_show(struct pid_list *root) {
 
     struct pid_list *c = NULL;
 
-    printl(LOG_VERB, "Show clients table");
+    printl(LOG_CRIT, "Show clients table");
     c = root;
     while (c) {
-        printl(LOG_VERB, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
+        printl(LOG_CRIT, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
         c = c->next;
     }
 }

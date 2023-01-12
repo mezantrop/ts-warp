@@ -71,7 +71,7 @@ ini_section *read_ini(char *ifile_name) {
         strsep(&s, "#;\n\r");
 
         /* Get section */
-        if (sscanf(buffer, "[%[a-zA-Z0-9_\t -]]", section) == 1) {
+        if (sscanf(buffer, "[%[a-zA-Z0-9_\t -+()]]", section) == 1) {
             printl(LOG_VERB, "LN: %d S: %s", ln, section);
 
             /* Current section to use */
@@ -329,7 +329,7 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-void show_ini(struct ini_section *ini) {
+void show_ini(struct ini_section *ini, int loglvl) {
     /* Debug only function to print parsed INI-file. TODO: Remove in release? */
 
     struct ini_section *s;
@@ -342,30 +342,30 @@ void show_ini(struct ini_section *ini) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(LOG_VERB, "SHOW Section: [%s] Balancing: [%d] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
+        printl(loglvl, "SHOW Section: [%s] Balancing: [%d] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
             s->section_name, s->section_balance, inet2str(&s->socks_server, ip1), ntohs(SIN4_PORT(s->socks_server)),
             s->socks_version, s->socks_user,  s->socks_password ? "********" : "(null)");
 
         /* Display SOCKS chain */
         if (s->proxy_chain) {
-            printl(LOG_VERB, "Socks Chain:");
+            printl(loglvl, "Socks Chain:");
             c = s->proxy_chain;
             while (c) {
-                printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
+                printl(loglvl, "[%s] ->", c->chain_member->section_name);
                 c = c->next;
             }
-            printl(LOG_VERB, "-> [%s]", s->section_name);
+            printl(loglvl, "-> [%s]", s->section_name);
         }
 
         /* Display NIT pool */
         if (s->nit_domain)
-            printl(LOG_VERB, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s/%s]", 
+            printl(loglvl, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s/%s]", 
                 s->nit_domain, inet2str(&s->nit_ipaddr, ip1), inet2str(&s->nit_ipmask, ip2));
 
         /* Display target entries */
         t = s->target_entry;
         while (t) {
-            printl(LOG_VERB, "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
+            printl(loglvl, "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
                 inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
                 t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
                 t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),

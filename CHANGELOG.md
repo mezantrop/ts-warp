@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 2022.01.12    Current
+  * `ts-warp.c`: `read_ini()` added more allowed characters in sections: a-zA-Z0-9_\t -+()
+  * `inifile.c`, `pidlist.c`: `show_ini()`, `pidlist_show()` logs using `LOG_CRIT`
+
 * 2022.12.29    Current
   * `socks.c`, `socks.h`: Extended SOCKS status codes
   * `ns-warp.c`: Cosmetic chanes

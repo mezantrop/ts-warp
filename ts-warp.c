@@ -252,7 +252,7 @@ All parameters are optional:
     printl(LOG_INFO, "ts-warp address [%s] succesfully resolved to [%s]", iaddr, inet2str(ires->ai_addr, buf));
 
     ini_root = read_ini(ifile_name);
-    show_ini(ini_root);
+    show_ini(ini_root, LOG_VERB);
 
     /* -- Create socket for the incoming connections ---------------------------------------------------------------- */
     if ((isock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
@@ -709,7 +709,7 @@ void trap_signal(int sig) {
         case SIGHUP:                                                /* Reload configuration from the INI-file */
             ini_root = delete_ini(ini_root);
             ini_root = read_ini(ifile_name);
-            show_ini(ini_root);
+            show_ini(ini_root, LOG_CRIT);
             break;
 
         case SIGINT:                                                /* Exit processes */
@@ -740,7 +740,7 @@ void trap_signal(int sig) {
             break;
 
         case SIGUSR1:                                               /* Display: */
-            show_ini(ini_root);                                     /* current configuration */
+            show_ini(ini_root, LOG_CRIT);                           /* current configuration */
             pidlist_show(pids);                                     /* Client's PIDs list */
             break;
 

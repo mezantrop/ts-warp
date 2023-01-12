@@ -110,7 +110,7 @@ typedef struct chain_list {                                 /* Chains as they de
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 ini_section *read_ini(char *ifile_name);
-void show_ini(struct ini_section *ini);
+void show_ini(struct ini_section *ini, int loglvl);
 struct ini_section *delete_ini(struct ini_section *ini);
 int pushback_ini(struct ini_section **ini, struct ini_section *target);
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip);
