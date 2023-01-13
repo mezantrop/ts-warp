@@ -465,7 +465,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
             domainlen = strnlen(domain, HOST_NAME_MAX);
         }
     
-    printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]", inet2str(&ip, buf1), host, domain);
+    printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]", inet2str(&ip, buf1), host, domain?:"");
 
     s = ini;
     while (s) {
