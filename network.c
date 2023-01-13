@@ -76,16 +76,23 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
     /* inet_ntop() wrapper. If str_add is NULL, memory is auto-allocated,
      don't forget to free it after usage! */
 
-    if (!str_addr) str_addr = (char *)malloc(INET6_ADDRSTRLEN);
+    char buf[INET_ADDRPORTSTRLEN];
 
-    memset(str_addr, 0, INET6_ADDRSTRLEN);
+    if (!str_addr) str_addr = (char *)malloc(INET_ADDRPORTSTRLEN);
+
+    memset(str_addr, 0, INET_ADDRPORTSTRLEN);
+    memset(&buf, 0, INET_ADDRPORTSTRLEN);
 
     switch (ai_addr->sa_family) {
         case AF_INET:
-            return (char *)inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr), str_addr, INET_ADDRSTRLEN);
+            inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr), buf, INET_ADDRSTRLEN);
+            sprintf(str_addr, "%s:%d", buf, ntohs(SIN4_PORT(*ai_addr)));
+            break;
 
         case AF_INET6:
-            return (char *)inet_ntop(AF_INET6, &SIN6_ADDR(*ai_addr), str_addr, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &SIN6_ADDR(*ai_addr), buf, INET6_ADDRSTRLEN);
+            sprintf(str_addr, "%s:%d", buf, ntohs(SIN6_PORT(*ai_addr)));
+            break;
 
         default:
             printl(LOG_WARN, "Unrecognized address family: %d", ai_addr->sa_family);

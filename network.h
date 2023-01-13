@@ -48,6 +48,7 @@
 #define LISTEN_PORT     "10800"                                         /* This is our TCP port */
 #define SOCKS_PORT      "1080"                                          /* That is remote SOCKS server port */
 
+#define INET_ADDRPORTSTRLEN INET6_ADDRSTRLEN + 6    /* MAX: ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff + ':' + '65535' */
 
 /* -- Socket conversion macros -------------------------------------------------------------------------------------- */
 #define SA_FAMILY(sa)  ((struct sockaddr *)&sa)->sa_family

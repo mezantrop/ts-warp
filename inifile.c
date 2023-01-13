@@ -72,7 +72,7 @@ ini_section *read_ini(char *ifile_name) {
 
         /* Get section */
         if (sscanf(buffer, "[%[a-zA-Z0-9_\t -+()]]", section) == 1) {
-            printl(LOG_VERB, "LN: %d S: %s", ln, section);
+            printl(LOG_VERB, "LN: [%d] S: [%s]", ln, section);
 
             /* Current section to use */
             c_sect = (struct ini_section *)malloc(sizeof(struct ini_section));
@@ -135,8 +135,8 @@ ini_section *read_ini(char *ifile_name) {
             }
 
             printl(LOG_VERB, "LN: [%d] V: [%s] v1: [%s] v2: [%s] m1: [%s] m2: [%s]",
-                ln, entry.var, entry.val1, entry.val2,
-                !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD) ? "********" : entry.mod1, entry.mod2);
+                ln, entry.var, entry.val1?:"", entry.val2?:"",
+                !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD) ? "********" : entry.mod1?:"", entry.mod2?:"");
 
             /* Parse socks_* entries */
             if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
@@ -335,16 +335,16 @@ void show_ini(struct ini_section *ini, int loglvl) {
     struct ini_section *s;
     struct socks_chain *c;
     struct ini_target *t;
-    char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
+    char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
     printl(LOG_VERB, "Show INI-Configuration");
 
     s = ini;
     while (s) {
         /* Display section */
-        printl(loglvl, "SHOW Section: [%s] Balancing: [%d] Server: [%s:%d] Version: [%d] User/Password: [%s/%s]",
-            s->section_name, s->section_balance, inet2str(&s->socks_server, ip1), ntohs(SIN4_PORT(s->socks_server)),
-            s->socks_version, s->socks_user,  s->socks_password ? "********" : "(null)");
+        printl(loglvl, "SHOW Section: [%s] Balancing: [%d] Server: [%s] Version: [%d] User/Password: [%s/%s]",
+            s->section_name, s->section_balance, inet2str(&s->socks_server, ip1), s->socks_version, s->socks_user?:"",
+            s->socks_password ? "********" : "");
 
         /* Display SOCKS chain */
         if (s->proxy_chain) {
@@ -365,11 +365,8 @@ void show_ini(struct ini_section *ini, int loglvl) {
         /* Display target entries */
         t = s->target_entry;
         while (t) {
-            printl(loglvl, "SHOW IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
-                inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
-                t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
-                t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
-                t->name ? t->name : "", t->target_type);
+            printl(loglvl, "SHOW IP1: [%s] IP2: [%s] Name: [%s] Type: [%d]",
+                inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2), t->name ? t->name : "", t->target_type);
             t = t->next;
         }
         s = s->next;
@@ -383,7 +380,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     struct ini_section *s;
     struct socks_chain *c, *cc;
     struct ini_target *t, *tt;
-    char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
+    char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
     printl(LOG_VERB, "Delete INI-configuration");
 
@@ -454,8 +451,8 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
 
     struct ini_section *s;
     struct ini_target *t;
-    char buf1[INET6_ADDRSTRLEN], buf2[INET6_ADDRSTRLEN];
-    char buf3[INET6_ADDRSTRLEN], buf4[INET6_ADDRSTRLEN];
+    char buf1[INET_ADDRPORTSTRLEN], buf2[INET_ADDRPORTSTRLEN];
+    char buf3[INET_ADDRPORTSTRLEN], buf4[INET_ADDRPORTSTRLEN];
     char host[HOST_NAME_MAX], *domain = NULL;
     int domainlen = 0;
 

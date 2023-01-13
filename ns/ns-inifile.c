@@ -136,7 +136,7 @@ nit *read_ini(char *ifile_name) {
 void show_ini(struct nit *nit_root) {
     struct nit *s;
     unsigned int nit_size, i;
-    char ip1[INET6_ADDRSTRLEN], ip2[INET6_ADDRSTRLEN];
+    char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
     s = nit_root;
     while (s) {

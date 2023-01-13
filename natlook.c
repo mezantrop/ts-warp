@@ -65,11 +65,10 @@ int pf_open() {
 int pf_close(int pfd) { return close(pfd); }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
-    struct sockaddr *daddr) {
+int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, struct sockaddr *daddr) {
     
     struct pfioc_natlook pfnl;
-    char dstr_addr[INET6_ADDRSTRLEN];
+    char dstr_addr[INET_ADDRPORTSTRLEN];
 
 
     memset(&pfnl, 0, sizeof(struct pfioc_natlook));
@@ -98,9 +97,6 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             return 1;
     }
 
-    printl(LOG_VERB, "saddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.sport));
-    printl(LOG_VERB, "daddr: [%s:%d]", inet2str(caddr, dstr_addr), ntohs(pfnl.dport));
- 
     if (ioctl(pfd, DIOCNATLOOK, &pfnl) == -1) {
         if (errno == ENOENT) {
             printl(LOG_WARN, "Failed to query PF NAT about PF_OUT packets");
@@ -134,7 +130,7 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr,
             printl(LOG_CRIT, "Unsupported Address family in nat_lookup() response: [%d]", pfnl.af);
             return 1;
     }
-    printl(LOG_VERB, "Real destination address: [%s:%d]", inet2str(daddr, dstr_addr), ntohs(pfnl.rdport));
+    printl(LOG_VERB, "Real destination address: [%s]", inet2str(daddr, dstr_addr));
 
     return 0;
 }
