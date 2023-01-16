@@ -57,8 +57,23 @@ _start() {
     _check_root
     printf "Starting ts-warp: "
     uname -s | grep -i 'Linux' >/dev/null &&
-        "$tswarp_prefix"/etc/ts-warp_"$linux_firewall".sh || 
-        /sbin/pfctl -f "$tswarp_prefix"/etc/ts-warp_pf.conf > /dev/null
+        "$tswarp_prefix"/etc/ts-warp_"$linux_firewall".sh ||
+        awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
+                /ts-warp/       {next} 
+                /rdr-anchor/    {rdrpos = NR} 
+                                {pf[NR] = $0}
+
+            END {
+                for (i = 0; i < NR; i++)
+                    if (i == rdrpos + 1)
+                        print("rdr-anchor \"ts-warp\"")
+                    else
+                        print(pf[i])
+                print("anchor \"ts-warp\"")
+                printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
+            }
+        ' /etc/pf.conf | /sbin/pfctl -f -
+
     echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
 }
 
@@ -90,6 +105,7 @@ _stop() {
         } || 
             printf "ts-warp is already stopped: "
     fi
+    /sbin/pfctl -f /etc/pf.conf
 }
 
 _reload() {

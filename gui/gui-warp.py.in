@@ -90,7 +90,7 @@ class App:
         tab_ini.columnconfigure(2, weight=0)
         tab_ini.rowconfigure(1, weight=1)
 
-        tk.Label(tab_ini, height=1, text='Update the file:').grid(column=0, row=0, sticky=tk.E)
+        tk.Label(tab_ini, height=1, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
         btn_save = tk.Button(tab_ini, width=2, height=1, text='▲')
         btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
@@ -111,7 +111,7 @@ class App:
         tab_fw.columnconfigure(2, weight=0)
         tab_fw.rowconfigure(1, weight=1)
 
-        tk.Label(tab_fw, height=1, text='Update the file:').grid(column=0, row=0, sticky=tk.E)
+        tk.Label(tab_fw, height=1, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
         btn_save = tk.Button(tab_fw, width=2, height=1, text='▲')
         btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
@@ -179,7 +179,6 @@ class App:
             self.pause = False
             btn['text'] = '■'                                            # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
-
         else:
             self.pause = True
             btn['text'] = '↭'                                           # Enable auto-refresh

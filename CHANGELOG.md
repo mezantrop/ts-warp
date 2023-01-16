@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2022.01.13    Current
+* 2022.01.16    Current
+  * `ts-warp.sh.in`: Do not replace original PF-rules
   * `network.c`: `inet2str()` Returns IP:PORT
   * `inifile.c`: Many minor logfile tweaks
   * `ts-warp.c`: `read_ini()` added more allowed characters in sections: a-zA-Z0-9_\t -+()
