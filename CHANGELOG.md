@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2022.01.16    Current
+* 2023.01.16    Current
   * `ts-warp.sh.in`: Do not replace original PF-rules
   * `network.c`: `inet2str()` Returns IP:PORT
   * `inifile.c`: Many minor logfile tweaks
