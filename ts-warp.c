@@ -48,8 +48,8 @@
 #include <pwd.h>
 
 #if defined(linux)
-#include <netinet/in.h>
-#include <linux/netfilter_ipv4.h>
+    #include <netinet/in.h>
+    #include <linux/netfilter_ipv4.h>
 #endif
 
 #include "ts-warp.h"

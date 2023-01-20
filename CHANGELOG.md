@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.01.16    Current
+* 2023.01.20    Current
+  * `gui-warp.py`: `App()` class `fwfile` argument to override default `ts-warp_pf.conf` location, thanks Gema Robles
   * `ts-warp.sh.in`: Do not replace original PF-rules
   * `network.c`: `inet2str()` Returns IP:PORT
   * `inifile.c`: Many minor logfile tweaks

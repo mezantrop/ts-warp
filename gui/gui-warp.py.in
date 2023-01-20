@@ -227,5 +227,5 @@ if __name__ == "__main__":
         pidfile = prefix + ini['GUI-WARP']['pidfile']
 
     root = tk.Tk()
-    app = App(root, runcmd=runcmd, inifile=inifile, logfile=logfile, pidfile=pidfile)
+    app = App(root, runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
     root.mainloop()
