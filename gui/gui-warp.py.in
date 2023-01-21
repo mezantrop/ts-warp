@@ -45,7 +45,7 @@ class App:
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        version = 'v1.0'
+        version = 'v1.0.1'
 
         root.title(f'GUI-warp {version}')
         width = 800
@@ -92,9 +92,9 @@ class App:
 
         tk.Label(tab_ini, height=1, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
-        btn_save = tk.Button(tab_ini, width=2, height=1, text='▲')
-        btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
-        btn_save['command'] = lambda: self.savefile(ini_txt, inifile)
+        btn_save_ini = tk.Button(tab_ini, width=2, height=1, text='▲')
+        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save_ini['command'] = lambda: self.savefile(ini_txt, inifile)
 
         ini_txt = tk.Text(tab_ini)
         ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
@@ -113,9 +113,9 @@ class App:
 
         tk.Label(tab_fw, height=1, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
-        btn_save = tk.Button(tab_fw, width=2, height=1, text='▲')
-        btn_save.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
-        btn_save['command'] = lambda: self.savefile(fw_txt, fwfile)
+        btn_save_fw = tk.Button(tab_fw, width=2, height=1, text='▲')
+        btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save_fw['command'] = lambda: self.savefile(fw_txt, fwfile)
 
         fw_txt = tk.Text(tab_fw)
         fw_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)

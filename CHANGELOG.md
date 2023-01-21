@@ -1,14 +1,13 @@
 # CHANGELOG
 
-* 2023.01.20    Current
+* 2023.01.21    Current
+  * `gui-warp.py`: Correct `Save changes` Button references on `INI` and `FW` tabs
   * `gui-warp.py`: `App()` class `fwfile` argument to override default `ts-warp_pf.conf` location, thanks Gema Robles
   * `ts-warp.sh.in`: Do not replace original PF-rules
-  * `network.c`: `inet2str()` Returns IP:PORT
+  * `network.c`: `inet2str()` Returns `IP:PORT`
   * `inifile.c`: Many minor logfile tweaks
-  * `ts-warp.c`: `read_ini()` added more allowed characters in sections: a-zA-Z0-9_\t -+()
+  * `ts-warp.c`: `read_ini()` added more allowed characters in sections: `a-zA-Z0-9_\t -+()`
   * `inifile.c`, `pidlist.c`: `show_ini()`, `pidlist_show()` logs using `LOG_CRIT`
-
-* 2022.12.29    Current
   * `socks.c`, `socks.h`: Extended SOCKS status codes
   * `ns-warp.c`: Cosmetic chanes
   * `ns-warp`:  `dns.c/forward_ip()` rewritten for speed; Many fixes and improvements
