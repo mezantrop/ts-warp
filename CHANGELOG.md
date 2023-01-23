@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2023.01.22    Current
+* 2023.01.23    ts-warp-1.1.5, gui-warp-1.0.2, ns-warp-1.0.2
   * `gui-warp.py`: The most of the widgets changed from `tk` to `ttk` for better theme (light/dark) support
   * `gui-warp.py`: Correct `Save changes` Button references on `INI` and `FW` tabs
   * `gui-warp.py`: `App()` class `fwfile` argument to override default `ts-warp_pf.conf` location, thanks Gema Robles
