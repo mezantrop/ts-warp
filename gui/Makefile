@@ -2,7 +2,7 @@
 # GUI frontend for TS-Warp - Transparent SOCKS proxy Wrapper
 # ----------------------------------------------------------------------------------------------------------------------
 
-# Copyright (c) 2022, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2022-2023 Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:
@@ -33,7 +33,7 @@ gui-warp.py:
 	sed 's|prefix *= *.*|prefix = "$(PREFIX)"|' gui-warp.py.in > gui-warp.py
 
 gui-warp.ini:
-	sed 's|prefix *= *.*|prefix = "$(PREFIX)"|' gui-warp.ini.in > gui-warp.ini
+	sed 's|prefix *= *.*|prefix = $(PREFIX)|' gui-warp.ini.in > gui-warp.ini
 
 install:	all
 	install -d $(PREFIX)/bin/

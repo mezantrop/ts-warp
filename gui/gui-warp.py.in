@@ -35,46 +35,52 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
 import configparser
+import platform
 
 
 class App:
-    def __init__(self, root,
+    def __init__(self, width=800, height=560,
                  runcmd='/usr/local/etc/ts-warp.sh',
                  inifile='/usr/local/etc/ts-warp.ini',
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        version = 'v1.0.2'
+        self.version = 'v1.0.3'
+        self.width = width
+        self.height = height
 
-        root.title(f'GUI-warp {version}')
-        width = 800
-        height = 560
-        root.geometry(f'{width}x{height}')
-        root.resizable(width=True, height=True)
+        # Tk widgets formatting variables
+        self._padx = 2
+        self._pady = 4
+        self._btnw = 2                                                  # Button width
 
-        root.columnconfigure(0, weight=1)
-        root.rowconfigure(0, weight=0)
-        root.rowconfigure(1, weight=1)
-        root.rowconfigure(2, weight=0)
+        # -- GUI -------------------------------------------------------------------------------------------------------
+        self.root = tk.Tk()
 
-        # Top button frame
-        lfrm_top = tk.LabelFrame(root, height=40, relief=tk.FLAT, padx=2, pady=4)
-        lfrm_top.grid(column=0, row=0, sticky=tk.N + tk.W + tk.E)
-        lfrm_top.columnconfigure(0, weight=0)
-        lfrm_top.columnconfigure(1, weight=0)
-        lfrm_top.columnconfigure(2, weight=0)
+        self.root.title(f'GUI-warp {self.version}')
+        self.root.geometry(f'{self.width}x{self.height}')
+        self.root.resizable(width=True, height=True)
 
-        btn_run = ttk.Button(lfrm_top, width=2, text='▶')
-        btn_run.grid(row=0, column=0, sticky=tk.W, padx=2)
-        btn_run['command'] = lambda: self.startstop(btn_run, runcmd)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=0)
+        self.root.rowconfigure(1, weight=1)
 
-        btn_rld = ttk.Button(lfrm_top, width=2, text='⟳')
-        btn_rld.grid(row=0, column=1, sticky=tk.W, padx=2)
+        # -- Top button frame ------------------------------------------------------------------------------------------
+        lfrm_top = tk.LabelFrame(self.root, height=40, relief=tk.FLAT, padx=self._padx, pady=self._pady)
+        lfrm_top.grid(column=0, row=0, sticky=tk.EW)
+
+        btn_run = ttk.Button(lfrm_top, width=self._btnw, text='▶')
+        btn_run.grid(column=0, row=0, sticky=tk.W, padx=self._padx)
+        btn_run['command'] = lambda: subprocess.run([runcmd, 'stop']) \
+            if btn_run['text'] == '■' else subprocess.run([runcmd, 'start'])
+
+        btn_rld = ttk.Button(lfrm_top, width=self._btnw, text='⟳')
+        btn_rld.grid(column=1, row=0, sticky=tk.W, padx=self._padx)
         btn_rld['command'] = lambda: subprocess.run([runcmd, 'reload'])
 
-        # Display ini/fw/log pane
-        tabControl = ttk.Notebook(root)
+        # -- Display ini/fw/log pane -----------------------------------------------------------------------------------
+        tabControl = ttk.Notebook(self.root)
         tab_ini = ttk.Frame(tabControl)
         tab_fw = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
@@ -84,16 +90,14 @@ class App:
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
-        # Tab INI
+        # -- Tab INI ---------------------------------------------------------------------------------------------------
         tab_ini.columnconfigure(0, weight=1)
-        tab_ini.columnconfigure(1, weight=0)
-        tab_ini.columnconfigure(2, weight=0)
         tab_ini.rowconfigure(1, weight=1)
 
         ttk.Label(tab_ini, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
-        btn_save_ini = ttk.Button(tab_ini, width=2, text='▲')
-        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save_ini = ttk.Button(tab_ini, width=self._btnw, text='▲')
+        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.savefile(ini_txt, inifile)
 
         ini_txt = tk.Text(tab_ini)
@@ -105,16 +109,14 @@ class App:
         scroll_ini.config(command=ini_txt.yview)
         ini_txt.config(yscrollcommand=scroll_ini.set)
 
-        # Tab FW
+        # -- Tab FW ----------------------------------------------------------------------------------------------------
         tab_fw.columnconfigure(0, weight=1)
-        tab_fw.columnconfigure(1, weight=0)
-        tab_fw.columnconfigure(2, weight=0)
         tab_fw.rowconfigure(1, weight=1)
 
         ttk.Label(tab_fw, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
         btn_save_fw = ttk.Button(tab_fw, width=2, text='▲')
-        btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_fw['command'] = lambda: self.savefile(fw_txt, fwfile)
 
         fw_txt = tk.Text(tab_fw)
@@ -126,16 +128,14 @@ class App:
         scroll_fw.config(command=fw_txt.yview)
         fw_txt.config(yscrollcommand=scroll_fw.set)
 
-        # Tab Log
+        # -- Tab Log ---------------------------------------------------------------------------------------------------
         tab_log.columnconfigure(0, weight=1)
-        tab_log.columnconfigure(1, weight=0)
-        tab_log.columnconfigure(2, weight=0)
         tab_log.rowconfigure(1, weight=1)
 
         ttk.Label(tab_log, text='Log auto-refresh:').grid(column=0, row=0, sticky=tk.E)
 
-        btn_pause = ttk.Button(tab_log, width=2, text='■')
-        btn_pause.grid(column=1, row=0, sticky=tk.W, padx=2, pady=4)
+        btn_pause = ttk.Button(tab_log, width=self._btnw, text='■')
+        btn_pause.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.pause = False
         btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
 
@@ -148,14 +148,16 @@ class App:
         scroll_log.config(command=log_txt.yview)
         log_txt.config(yscrollcommand=scroll_log.set)
 
-        # Status bar
-        lfrm_bottom = tk.LabelFrame(root, relief=tk.FLAT, padx=2)
-        lfrm_bottom.grid(column=0, row=2, sticky=tk.S + tk.W + tk.E)
+        # -- Status bar ------------------------------------------------------------------------------------------------
+        lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
+        lfrm_bottom.grid(column=0, row=2, sticky=tk.EW)
         lfrm_bottom.columnconfigure(0, weight=1)
 
         lbl_stat = ttk.Label(lfrm_bottom, text='■ running', foreground='green')
         lbl_stat.grid(row=0, column=0, sticky=tk.E)
         self.status(lbl_stat, btn_run, pidfile)
+
+        self.root.mainloop()
 
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
@@ -167,7 +169,7 @@ class App:
         if refresh:
             t_widget.config(state='disabled')
             if not self.pause:
-                root.after(3000, self.readfile, t_widget, filename, refresh)
+                self.root.after(3000, self.readfile, t_widget, filename, refresh)
 
     def savefile(self, t_widget, filename):
         f = open(filename, 'w')
@@ -177,7 +179,7 @@ class App:
     def pauselog(self, btn, txt, filename):
         if self.pause:
             self.pause = False
-            btn['text'] = '■'                                            # Pause log auto-refresh
+            btn['text'] = '■'                                           # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
         else:
             self.pause = True
@@ -198,13 +200,7 @@ class App:
             btn['text'] = '■'
             pf.close()
 
-        root.after(10000, self.status, lbl, btn, pidfile)
-
-    def startstop(self, t_widget, runcmd):
-        if t_widget['text'] == '■':
-            subprocess.run([runcmd, 'stop'])
-        else:
-            subprocess.run([runcmd, 'start'])
+        self.root.after(10000, self.status, lbl, btn, pidfile)
 
 
 if __name__ == "__main__":
@@ -214,18 +210,15 @@ if __name__ == "__main__":
 
     runcmd = prefix + '/etc/ts-warp.sh'
     inifile = prefix + '/etc/ts-warp.ini'
-    fwfile = prefix + '/etc/ts-warp_pf.conf'
+    fwfile = prefix + ('/etc/ts-warp_pf.conf' if platform.system() != 'Linux' else '/etc/ts-warp_nftables.sh')
     logfile = prefix + '/var/log/ts-warp.log'
     pidfile = prefix + '/var/run/ts-warp.pid'
 
     if 'GUI-WARP' in ini.sections():
-        prefix = ini['GUI-WARP']['prefix']
-        runcmd = prefix + ini['GUI-WARP']['runcmd']
-        inifile = prefix + ini['GUI-WARP']['inifile']
-        fwfile = prefix + ini['GUI-WARP']['fwfile']
-        logfile = prefix + ini['GUI-WARP']['logfile']
-        pidfile = prefix + ini['GUI-WARP']['pidfile']
+        runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
+        inifile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['inifile']
+        fwfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['fwfile']
+        logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
+        pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
 
-    root = tk.Tk()
-    app = App(root, runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
-    root.mainloop()
+    app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
