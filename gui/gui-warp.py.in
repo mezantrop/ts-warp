@@ -100,7 +100,7 @@ class App:
         btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.savefile(ini_txt, inifile)
 
-        ini_txt = tk.Text(tab_ini)
+        ini_txt = tk.Text(tab_ini, highlightthickness=0)
         ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
 
@@ -119,7 +119,7 @@ class App:
         btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_fw['command'] = lambda: self.savefile(fw_txt, fwfile)
 
-        fw_txt = tk.Text(tab_fw)
+        fw_txt = tk.Text(tab_fw, highlightthickness=0)
         fw_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_fw.bind("<Visibility>", self.readfile(fw_txt, fwfile, refresh=False))
 
@@ -139,7 +139,7 @@ class App:
         self.pause = False
         btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
 
-        log_txt = tk.Text(tab_log)
+        log_txt = tk.Text(tab_log, highlightthickness=0)
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_log.bind("<Visibility>", self.readfile(log_txt, logfile, refresh=True))
 

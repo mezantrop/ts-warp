@@ -1,7 +1,8 @@
 # CHANGELOG
   
-* 2023.01.25    Current
-  * `gui-warp.py`:  Many small changes: gui-warp-1.0.3
+* 2023.02.08    Current
+  * `gui-warp.py`: Minor updates
+  * `gui-warp.py`: Many small changes: gui-warp-1.0.3
 
 * 2023.01.23    ts-warp-1.1.5, gui-warp-1.0.2, ns-warp-1.0.2
   * `gui-warp.py`: The most of the widgets changed from `tk` to `ttk` for better theme (light/dark) support
