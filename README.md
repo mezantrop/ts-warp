@@ -159,7 +159,7 @@ Experimental GUI front-end application to control ts-warp daemon can be installe
 To start the GUI run:
 
 ``` sh
-# sudo <PREFIX>/bin/gui-warp.py &
+# sudo -b <PREFIX>/bin/gui-warp.py
 ```
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
