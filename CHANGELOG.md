@@ -1,7 +1,7 @@
 # CHANGELOG
   
 * 2023.02.08    Current
-  * `README.md`: `gui-warp.py` with `sudo`
+  * `README.md`: `gui-warp.py` with `sudo`; a new screenshot
   * `gui-warp.py`: Minor updates
   * `gui-warp.py`: Many small changes: gui-warp-1.0.3
 
