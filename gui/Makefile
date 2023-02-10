@@ -27,7 +27,7 @@ PREFIX ?= /usr/local
 
 .PHONY:	install
 
-all:	gui-warp.py gui-warp.ini
+all: gui-warp.py gui-warp.ini
 
 gui-warp.py:
 	sed 's|prefix *= *.*|prefix = "$(PREFIX)"|' gui-warp.py.in > gui-warp.py
@@ -35,7 +35,7 @@ gui-warp.py:
 gui-warp.ini:
 	sed 's|prefix *= *.*|prefix = $(PREFIX)|' gui-warp.ini.in > gui-warp.ini
 
-install:	all
+install: all
 	install -d $(PREFIX)/bin/
 	install -m 755 gui-warp.py $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/

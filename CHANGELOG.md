@@ -1,6 +1,7 @@
 # CHANGELOG
   
-* 2023.02.08    Current
+* 2023.02.10    Current
+  * `Makefile`: Multiple minor changes
   * `README.md`: `gui-warp.py` with `sudo`; a new screenshot
   * `gui-warp.py`: Minor updates
   * `gui-warp.py`: Many small changes: gui-warp-1.0.3

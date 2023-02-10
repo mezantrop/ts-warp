@@ -32,7 +32,7 @@ PASS_OBJS = ts-pass.o xedec.o
 
 .PHONY:	all clean install release uninstall version
 
-all: ts-warp ts-pass
+all: ts-warp ts-warp.sh ts-pass
 
 release: version all
 
@@ -42,15 +42,17 @@ version:
 ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
 
+ts-warp.sh:
+	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
+
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
-install: ts-warp ts-pass
+install: ts-warp ts-warp.sh ts-pass
 	install -d $(PREFIX)/bin/
 	install -m 755 ts-warp $(PREFIX)/bin/
 	install -m 755 ts-pass $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
-	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
 	install -m 755 ts-warp.sh $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
 	install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
