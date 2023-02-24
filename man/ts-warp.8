@@ -16,27 +16,27 @@
 .\" SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 .\" WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-.TH ts\-warp 8 "" "06 June 2022" "Mikhail Zakharov"
+.TH TS\-WARP 8 "June 6, 2022" "1.0" "Mikhail Zakharov"
 .SH NAME
 TS-Warp \- \fBT\fRransparent \fBS\fROCKS protocol \fBW\fRrapper
 .SH SYNOPSIS
 .B ts-warp
 [
-.I \-i
+.B \-i
 IP:Port
-.I \-c
+.B \-c
 file.ini
-.I \-l
+.B \-l
 file.log
-.I \-v
+.B \-v
 0-4
-.I \-d
-.I \-p
+.B \-d
+.B \-p
 file.pid
-.I \-f
-.I \-u
+.B \-f
+.B \-u
 user
-.I \-h
+.B \-h
 ]
 .SH DESCRIPTION
 \fBts-warp\fR is a transparent firewall-based redirector of TCP/IP traffic to SOCKS-proxy servers. For macOS, FreeBSD
@@ -45,7 +45,7 @@ supports IPv6 stack, has a simple INI-like configuration file with password obfu
 authentication methods and SOCKS proxy chains.
 
 Sample PF and nftables/iptables configuration files for \fBts-warp\fR can be found in \fBts-warp_pf_<OSNAME>.conf\fR and
-\fBts-warp_nftables.sh\fR or \fBts-warp_iptables.sh\fR respectively. 
+\fBts-warp_nftables.sh\fR or \fBts-warp_iptables.sh\fR respectively.
 
 Example of the INI-file can be found in \fBts-warp.ini\fR.
 
@@ -55,37 +55,36 @@ manually. In this case, see the \fBOPTIONS\fR and \fBNOTES\fR sections below, ch
 .SH OPTIONS
 The options are as follows:
 .TP 16
-\fI\-i\fR IP:Port
+\fB\-i\fR IP:Port
 Incoming local IP address and port
 .TP
-\fI\-c\fR file.ini
+\fB\-c\fR file.ini
 Configuration file
 .BR
 .TP
-\fI\-l\fR file.log
+\fB\-l\fR file.log
 Log filename. If \fBts-warp\fR runs in foreground, the default log is STDOUT.
 .TP
-\fI\-v\fR 0..4
+\fB\-v\fR 0..4
 Log verbosity level: 0 - off, default 3
 .BR
 .TP
-\fI\-d\fR
+\fB\-d\fR
 Daemon mode
 .TP
-\fI\-p\fR file.pid
+\fB\-p\fR file.pid
 PID filename
 .TP
-\fI\-f\fR
+\fB\-f\fR
 Force start
 .BR
 .TP
-\fI\-u\fR user
+\fB\-u\fR user
 A user to run \fBts-warp\fR. On macOS this has no effect, \fBts-warp\fR runs alwas as root.
 .BR
 .TP
-\fI\-h\fR
+\fB\-h\fR
 A short help message
-.TP
 .SH NOTES
 \fBts-warp\fR understands \fBSIGHUP\fR signal as command to reload configuration and \fBSIGINT\fR to stop the daemon.
 .SH SEE ALSO

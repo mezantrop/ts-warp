@@ -16,15 +16,15 @@
 .\" SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 .\" WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-.TH ts\-warp5 5 "" "06 June 2022" "Mikhail Zakharov"
+.TH TS\-WARP 5 "June 6, 2022" "1.0" "Mikhail Zakharov"
 .SH NAME
 \fBTS\-Warp\fR INI-like configuration file format
 .SH DESCRIPTION
-\fBts\-warp\fR uses INI-like configuration files to identify SOCKS servers for destinations that clients are willing to 
+\fBts\-warp\fR uses INI-like configuration files to identify SOCKS servers for destinations that clients are willing to
 reach. The format of ts-warp INI-files are almost dentical to the classical INI dialect, with the only main exception,
 that duplicate names for \fBkeys\fR are alloved within the same \fBsection\fR.
 
-Each \fBsection\fR, a string, enclosed in square brackets ('[', ']'), specifies a name for a SOCKS server block. A 
+Each \fBsection\fR, a string, enclosed in square brackets ('[', ']'), specifies a name for a SOCKS server block. A
 section consists of keys (variables) describing \fBSOCKS server\fR attributes, as well, as keys specifying destination
 \fBtargets\fR.
 
@@ -57,7 +57,7 @@ prefix or encoded by \fBts-pass(8)\fR with TS-Warp obfuscation algorithm if the 
 .TP
 .B target_host = <IP | Hostname>:[port_1[-port_n]]
 Describes a single target host either with it's IP address or resolveable host name. Optionally a port or a port range
-can be specified to narrow the band. 
+can be specified to narrow the band.
 .BR
 .TP
 .B target_domain = example.org:[port_1[-port_n]]
@@ -74,13 +74,13 @@ can be specified to narrow the band.
 Specifies a range of sequential IPv4, IPv6 addresses. Optionally a port or a port range can be specified to narrow the
 band.
 .SH EXAMPLES
-.PP
 .EX
 [HOME NETWORK]                          ; Section definition
 # Target definitions:
 ; target_host = 192.168.1.1
 ; target_host = Anvil
 ; target_network = 192.168.1.0/255.255.255.0
+; target_network = 192.168.1.0/24
 ; target_range = 192.168.1.1/192.168.1.20
 target_domain = balmora.lan
 
@@ -91,7 +91,6 @@ socks_user = socks
 ; socks_password = plain:TopSecretPass@34
 socks_password = tsw01:08415D5F6519633F1D150E08552837506D12383C177C176F7C322E1F562D
 .EE
-.PP
 .SH SEE ALSO
 .BR ts\-warp (8),
 .BR ts\-warp.sh (1),
