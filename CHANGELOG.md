@@ -1,6 +1,7 @@
 # CHANGELOG
   
-* 2023.02.24    Current
+* 2023.03.04    Current
+  * `ts-warp.sh`: Check if a process from the pid-file really exists
   * Manpages formatting: https://github.com/mezantrop/ts-warp/issues/5
   * `Makefile`: Multiple minor changes
   * `README.md`: `gui-warp.py` with `sudo`; a new screenshot
