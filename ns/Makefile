@@ -31,17 +31,26 @@ OBJECTS = ns-warp.o ns-inifile.o dns.o ../network.o ../utility.o ../logfile.o ..
 
 .PHONY:	all clean install
 
-all: ns-warp
+all: ns-warp ns-warp.sh
 
 ns-warp: $(OBJECTS)
 	$(CC) -o $@ $(OBJECTS)
 
-install: ns-warp
+ns-warp.sh:
+	sed 's|nswarp_prefix=.*|nswarp_prefix="$(PREFIX)"|' ns-warp.sh.in > ns-warp.sh
+
+install: ns-warp ns-warp.sh
 	install -d $(PREFIX)/bin/
 	install -m 755 ns-warp $(PREFIX)/bin/
+	install -d $(PREFIX)/etc/
+	install -m 755 ns-warp.sh $(PREFIX)/etc/
+	install -m 755 ns-warp_nftables.sh $(PREFIX)/etc/ns-warp_nftables.sh.sample
+	install -m 755 ns-warp_iptables.sh $(PREFIX)/etc/ns-warp_iptables.sh.sample
 
 uninstall:
 	rm -f $(PREFIX)/bin/ns-warp
+	rm -f $(PREFIX)/etc/ns-warp_nftables.sh.sample
+	rm -f $(PREFIX)/etc/ns-warp_iptables.sh.sample
 
 clean:
-	rm -rf ns-warp *.o *.core
+	rm -rf ns-warp ns-warp.sh *.o *.core

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ------------------------------------------------------------------------------
-# TS-Warp - rc script
+# NS-Warp - rc script
 # ------------------------------------------------------------------------------
 
 # Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
@@ -35,15 +35,16 @@
 
 
 # -- CONFIGURATION VARIABLES ---------------------------------------------------
-tswarp_prefix="/usr/local"
-tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
-tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
-tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
-tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v 3"
+nswarp_prefix="/usr/local"
+nswarp_inifile="$nswarp_prefix/etc/ts-warp.ini"
+nswarp_logfile="$nswarp_prefix/var/log/ns-warp.log"
+nswarp_pidfile="$nswarp_prefix/var/run/ns-warp.pid"
+nswarp_iaddr="127.0.0.1:35353"
+nswarp_saddr=""
 
 linux_firewall="nftables"       # Under Linux set nftables or iptables
 
-FORCE=0                         # Ignore status and start/stop ts-warp forcibly
+FORCE=0                         # Ignore status and start/stop ns-warp forcibly
 
 # ------------------------------------------------------------------------------
 _start() {
@@ -51,13 +52,13 @@ _start() {
         _status
         case $? in
             0)
-                printf "ts-warp is already running: "
+                printf "ns-warp is already running: "
                 return 0
                 ;;
             1)
                 ;;
             2)
-                printf "ts-warp status unknown: requesting 'force stop'. "
+                printf "ns-warp status unknown: requesting 'force stop'. "
                 FORCE=1
                 _stop
                 ;;
@@ -65,51 +66,36 @@ _start() {
     fi
 
     _check_root
-    printf "Starting ts-warp: "
+    nswarp_saddr=`awk '/nameserver/ {print $2; exit 0}' /etc/resolv.conf`
+    printf "Starting ns-warp: "
+    nswarp_options="-i $nswarp_iaddr -s $nswarp_saddr -c $nswarp_inifile -l $nswarp_logfile -p $nswarp_pidfile -d -v 3"
+    echo $nswarp_options $* | xargs "$nswarp_prefix"/bin/ns-warp > /dev/null
     uname -s | grep -i 'Linux' >/dev/null &&
-        "$tswarp_prefix"/etc/ts-warp_"$linux_firewall".sh ||
-        awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
-                /ts-warp/       {next}
-                /ns-warp/       {next} 
-                /rdr-anchor/    {rdrpos = NR} 
-                                {pf[NR] = $0}
-
-            END {
-                for (i = 0; i < NR; i++)
-                    if (i == rdrpos + 1) {
-                        print("rdr-anchor \"ts-warp\"")
-                        print("rdr-anchor \"ns-warp\"")
-                    } else
-                        print(pf[i])
-                print("anchor \"ts-warp\"")
-                print("anchor \"ns-warp\"")
-                printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
-            }
-        ' /etc/pf.conf | /sbin/pfctl -f -
-
-    echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
+        "$tswarp_prefix"/etc/ns-warp_"$linux_firewall".sh ||
+        printf "rdr pass log on lo0 inet proto udp from any to any port 53 -> 127.0.0.1 port 35353\npass out route-to lo0 inet proto udp from any to any port 53 user != nobody\n" |
+            pfctl -a ns-warp -f -
 }
 
 # ------------------------------------------------------------------------------
 _status() {
     # Set $1 if status message is required
-    [ -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] || {
-        [ "$1" ] && printf "ts-warp is not running: "
+    [ -s "$nswarp_pidfile" -a -r "$nswarp_pidfile" ] || {
+        [ "$1" ] && printf "ns-warp is not running: "
         return 1
     }
 
-    pgrep -F "$tswarp_pidfile" > /dev/null 2>&1
+    pgrep -F "$nswarp_pidfile" > /dev/null 2>&1
     case $? in
         0)
-           [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
+           [ "$1" ] && printf "ns-warp is running PID: %s: " `cat "$nswarp_pidfile"`
            return 0
            ;;
         1)
-           [ "$1" ] && printf "ts-warp is not running: "
+           [ "$1" ] && printf "ns-warp is not running: "
            return 1
            ;;
         *)
-           [ "$1" ] && printf "ts-warp is not found: "
+           [ "$1" ] && printf "ns-warp is not found: "
            return 2
            ;;
     esac
@@ -119,33 +105,34 @@ _status() {
 _stop() {
     _check_root
     if [ $FORCE -eq 1 ]; then 
-        printf "Stopping ts-warp with force: "
-        [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
-        pkill ts-warp
+        printf "Stopping ns-warp with force: "
+        [ -f "$nswarp_pidfile" ] && rm "$nswarp_pidfile"
+        pkill ns-warp
     else
         _status
         case $? in
             0)
                 ;;
             1)
-                printf "ts-warp is already stopped: "
+                printf "ns-warp is already stopped: "
                 return 0
                 ;;
             2)
-                printf "ts-warp status unknown: requesting 'force stop': "
-                [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
-                pkill ts-warp
+                printf "ns-warp status unknown: requesting 'force stop': "
+                [ -f "$nswarp_pidfile" ] && rm "$nswarp_pidfile"
+                pkill ns-warp
                 ;;
         esac
 
-        printf "Stopping ts-warp: "
-        [ -f "$tswarp_pidfile" ] && {
-            cat "$tswarp_pidfile" | xargs kill -TERM || pkill ts-warp
+        printf "Stopping ns-warp: "
+        [ -f "$nswarp_pidfile" ] && {
+            cat "$nswarp_pidfile" | xargs kill -TERM || pkill ns-warp
         }
-        while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
-    fi
+        while [ -s "$nswarp_pidfile" ] ; do sleep 1; done
 
-    uname -s | grep -i 'Linux' >/dev/null || /sbin/pfctl -f /etc/pf.conf
+        uname -s | grep -i 'Linux' >/dev/null ||
+        printf "\n" | pfctl -a ns-warp -f -
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -153,10 +140,10 @@ _reload() {
     # Re-read configuration file on HUP signal
     _status && {
         _check_root
-        printf "Reloading ts-warp: "
-        cat "$tswarp_pidfile" | xargs kill -HUP
+        printf "Reloading ns-warp: "
+        cat "$nswarp_pidfile" | xargs kill -HUP
     } || {
-        printf "Unable to reload: ts-warp is not running\n"
+        printf "Unable to reload: ns-warp is not running\n"
         exit 1
     }
 }
@@ -164,7 +151,7 @@ _reload() {
 # ------------------------------------------------------------------------------
 _restart() {
     _check_root
-    printf "Restarting ts-warp: "
+    printf "Restarting ns-warp: "
     _stop
     _start $*
 }
@@ -179,8 +166,8 @@ _check_root() {
 
 # ------------------------------------------------------------------------------
 _usage() {
-    printf "Usage:\n\tts-warp.sh start|restart [options]\n" 
-    printf "\tts-warp.sh stop|reload|status\n"
+    printf "Usage:\n\tns-warp.sh start|restart [options]\n" 
+    printf "\tns-warp.sh stop|reload|status\n"
     exit 1
 }
 

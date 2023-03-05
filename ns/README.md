@@ -8,8 +8,6 @@ and solve the issue if a target hostname is not known to a local DNS and you hav
 NS-Warp uses an IP subnet to define Name to IP translation Table (NIT), to temporary associate hostnames with
 IP-addresses from NIT before supplying them to TS-Warp.
 
-**Please note, NS-Warp is on early testing stage. Use it with extra caution in a testing environment**.
-
 ### Installation
 
 ```sh
@@ -20,23 +18,10 @@ Install NS-Warp under the default `PREFIX=/usr/local`
 
 ### Configuration
 
-* Edit /etc/rc.conf to add local IP address `127.0.0.1` as the first name server in the list:
-
-  ```sh
-  vi /etc/resolv.conf
-  # ...
-  nameserver 127.0.0.1
-  nameserver 192.168.1.1
-  # ...
-  ```
-
-  Here, `127.0.0.1` is the address where NS-Warp runs and `192.168.1.1` is the address of original DNS-server.
-  Make sure, that in the `resolf.conf` NS-Warp server is defind upper than the original DNS-server.
-
 * Edit `ts-warp.ini` to add a NIT-pool and a related target network to a desired section:
 
   ```sh
-  vi  /usr/local/etc/ts-warp.ini
+  vi /usr/local/etc/ts-warp.ini
   [EXAMPLE]
   # ...
   # socks_server ...
@@ -50,18 +35,19 @@ Install NS-Warp under the default `PREFIX=/usr/local`
 
 ### Usage
 
-Start NS-Warp with options to listen on the localhost IP-address `127.0.0.1` and forward requests to the original
-DNS-server, which is `192.168.1.1` in the example:
+Start NS-Warp:
 
 ```sh
-# ns-warp -i 127.0.0.1:53 -s 192.168.1.1:53 -c /usr/local/etc/ts-warp.ini -d
+# /usr/local/etc/ns-warp.sh start
 ```
+
+NS-Warp understands also `stop` and `restart` commands
 
 Notes:
 
 * NS-Warp logs to `/usr/local/var/log/ns-warp.log`
-* Adding `-v 4` option enables more verbose logging
-* There is no start/stop script yet, use `kill <PID>` to stop NS-Warp
+* Adding `-v 4` option enables more verbose logging, e.g. `# /usr/local/etc/ns-warp.sh start -v 4`
+* On Linux check contents of `ns-warp_iptables.sh` and `ns-warp_nftables.sh` for *BSD systems see the `ns-warp.sh` for the firewall rules.
 
 ### Contacts
 
