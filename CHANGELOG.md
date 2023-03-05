@@ -1,7 +1,7 @@
 # CHANGELOG
   
 * 2023.03.05    Current
-  * `sn-warp.sh`: Startup script; `README.md` update; Minor changes
+  * `ns-warp.sh`: Startup script; `README.md` update; Minor changes
   * `ns-warp`: Run as different user
   * `ts-warp.sh`: Check if a process from the pid-file really exists
   * Manpages formatting: https://github.com/mezantrop/ts-warp/issues/5
