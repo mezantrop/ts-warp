@@ -43,12 +43,12 @@
 #define BUF_SIZE        1024 * 1024
 #define STR_SIZE        255
 
-#define RUNAS_USER      "ns-warp"
+#define RUNAS_USER      "nobody"
 
 /* Program name and version */
 #define NS_PROG_NAME          "NS-Warp"
 #define NS_PROG_NAME_SHORT    "NSW"
-#define NS_PROG_VERSION       "1.0.2"
+#define NS_PROG_VERSION       "1.0.3"
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void trap_signal(int sig);
