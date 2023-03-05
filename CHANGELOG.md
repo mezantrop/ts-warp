@@ -1,6 +1,7 @@
 # CHANGELOG
   
-* 2023.03.04    Current
+* 2023.03.05    Current
+  * `ns-warp`: Run as different user
   * `ts-warp.sh`: Check if a process from the pid-file really exists
   * Manpages formatting: https://github.com/mezantrop/ts-warp/issues/5
   * `Makefile`: Multiple minor changes

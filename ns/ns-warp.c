@@ -95,10 +95,10 @@ int main (int argc, char* argv[]) {
     char *qname;
     int ret;                                                            /* Various function return codes */
 
-    char *runas_user = RUNAS_USER;                                      /* A user to run ts-warp */
+    char *runas_user = RUNAS_USER;                                      /* A user to run ns-warp */
 
 
-    while ((flg = getopt(argc, argv, "i:s:c:l:v:dp:fh")) != -1)
+    while ((flg = getopt(argc, argv, "i:s:c:l:v:dp:fu:h")) != -1)
             switch(flg) {
                 case 'i':                                               /* Our IP/name */
                     iaddr = strsep(&optarg, ":");                       /* IP:PORT */
@@ -120,6 +120,8 @@ int main (int argc, char* argv[]) {
                     pfile_name = optarg; break;                         /* PID-file */
                 case 'f':                                               /* Force start */
                     f_flg = 1; break;
+                case 'u':
+                    runas_user = optarg; break;                         /* User to run NS-Warp from */
                 case 'h':                                               /* Help */
                 default:
                     (void)usage(0);
@@ -148,11 +150,9 @@ int main (int argc, char* argv[]) {
 
     if (d_flg) {
         /* -- Daemonizing ------------------------------------------------------------------------------------------- */
-        /* signal(SIGHUP, trap_signal); */
         signal(SIGINT, trap_signal);
         signal(SIGQUIT, trap_signal);
         signal(SIGTERM, trap_signal);
-        /* signal(SIGUSR1, trap_signal); */
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
@@ -171,6 +171,12 @@ int main (int argc, char* argv[]) {
 
         printl(LOG_CRIT, "%s-%s daemon started", NS_PROG_NAME, NS_PROG_VERSION);
         pid = mk_pidfile(pfile_name, f_flg, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
+    }
+
+    /* Reset the running process user:group */
+    if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
+        printl(LOG_CRIT, "Failed to lower process privileges to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
+        exit(1);
     }
 
     nit_root = read_ini(ifile_name);
@@ -209,19 +215,12 @@ int main (int argc, char* argv[]) {
     printl(LOG_VERB, "Socket for outgoing DNS-requests created");
 
 	memset(&oaddr, 0, sizeof(struct sockaddr));
-    //oaddr.sa_family = ires->ai_family;
     SA_FAMILY(oaddr) = ires->ai_family;
 	if (bind(ssock, (struct sockaddr *)&oaddr, sizeof(oaddr)) != 0) {
 		printl(LOG_CRIT, "Error binding socket for outgoing DNS-requests: [%s]", strerror(errno));
         exit(1);
     }
     printl(LOG_VERB, "Socket for outgoing DNS-requests succesfully bound");
-
-    /* TODO: Implement */
-    /* if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
-        printl(LOG_CRIT, "Failed to lower privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
-        exit(1);
-    } */
 
     /* -- Try validating DNS address to forward requests to --------------------------------------------------------- */
     memset(&shints, 0, sizeof shints);
@@ -443,11 +442,6 @@ void trap_signal(int sig) {
     /* Signal handler */
 
     switch (sig) {
-/*        case SIGHUP: */                                          /* TODO: implement */
-/*          nit_root = delete_ini(nit_root);
-            nit_root = read_ini(ifile_name);
-            show_ini(nit_root);
-            break; */
         case SIGINT:                                                /* Exit processes */
         case SIGQUIT:
         case SIGTERM:
@@ -462,11 +456,6 @@ void trap_signal(int sig) {
             exit(0);
             break;
 
-/*        case SIGUSR1: */                                          /* TODO: Show current configuration */
-/*            show_ini(nit_root);
-            break; */
-
-
         default:
             printl(LOG_INFO, "Got unhandled signal: %d", sig);
             break;
@@ -476,7 +465,9 @@ void trap_signal(int sig) {
 /* ------------------------------------------------------------------------------------------------------------------ */
 void usage(int ecode) {
     printf("Usage:\n\
-  ns-warp -i IP:Port -s IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -h\n\n\
+  ns-warp -i IP:Port -s IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -u user -h\n\n\
+Version:\n\
+  %s-%s\n\n\
 All parameters are optional:\n\
   -i IP:Port\t    NS-Warp server IP address and port\n\
   -s IP:Port\t    Original DNS server IP address and port\n\
@@ -489,7 +480,9 @@ All parameters are optional:\n\
   -d\t\t    Daemon mode\n\
   -p file.pid\t    PID filename, default: %s\n\
   \n\
-  -h\t\t    This message\n\n", NS_INI_FILE_NAME, NS_LOG_FILE_NAME, LOG_LEVEL_DEFAULT, NS_PID_FILE_NAME);
+  -u user\t    User to run NS-Warp from, default: %s\n\
+  -h\t\t    This message\n\n", 
+  NS_PROG_NAME, NS_PROG_VERSION, NS_INI_FILE_NAME, NS_LOG_FILE_NAME, LOG_LEVEL_DEFAULT, NS_PID_FILE_NAME, RUNAS_USER);
 
     exit(ecode);
 }
