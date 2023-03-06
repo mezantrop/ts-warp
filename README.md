@@ -98,8 +98,8 @@ or
 Under root privileges start, control or get status of ts-warp daemon:
 
 ```sh
-# <PREFIX>/etc/ts-warp.sh start|restart [options]
-# <PREFIX>/etc/ts-warp.sh stop|reload|status
+# <PREFIX>/etc/ts-warp.sh start|stop|reload|restart [options]
+# <PREFIX>/etc/ts-warp.sh status
 ```
 
 All the ts-warp command-line options can be listed using `$ ts-warp -h`:

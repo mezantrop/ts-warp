@@ -1,6 +1,7 @@
 # CHANGELOG
   
-* 2023.03.05    Current
+* 2023.03.06    ts-warp-1.1.6, gui-warp-1.0.2, ns-warp-1.0.3
+  * Release preparation
   * `ns-warp.sh`: Startup script; `README.md` update; Minor changes
   * `ns-warp`: Run as different user
   * `ts-warp.sh`: Check if a process from the pid-file really exists
