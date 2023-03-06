@@ -4,7 +4,7 @@
 # NS-Warp - rc script
 # ------------------------------------------------------------------------------
 
-# Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2023 Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -39,7 +39,9 @@ nswarp_prefix="/usr/local"
 nswarp_inifile="$nswarp_prefix/etc/ts-warp.ini"
 nswarp_logfile="$nswarp_prefix/var/log/ns-warp.log"
 nswarp_pidfile="$nswarp_prefix/var/run/ns-warp.pid"
-nswarp_iaddr="127.0.0.1:35353"
+nswarp_user="nobody"
+nswarp_iaddr="127.0.0.1"
+nswarp_iport="35353"
 nswarp_saddr=""
 
 linux_firewall="nftables"       # Under Linux set nftables or iptables
@@ -68,12 +70,35 @@ _start() {
     _check_root
     nswarp_saddr=`awk '/nameserver/ {print $2; exit 0}' /etc/resolv.conf`
     printf "Starting ns-warp: "
-    nswarp_options="-i $nswarp_iaddr -s $nswarp_saddr -c $nswarp_inifile -l $nswarp_logfile -p $nswarp_pidfile -d -v 3"
+    nswarp_options="-i $nswarp_iaddr:$nswarp_iport -s $nswarp_saddr -c $nswarp_inifile -l $nswarp_logfile -p $nswarp_pidfile -d -v 3"
     echo $nswarp_options $* | xargs "$nswarp_prefix"/bin/ns-warp > /dev/null
-    uname -s | grep -i 'Linux' >/dev/null &&
-        "$tswarp_prefix"/etc/ns-warp_"$linux_firewall".sh ||
-        printf "rdr pass log on lo0 inet proto udp from any to any port 53 -> 127.0.0.1 port 35353\npass out route-to lo0 inet proto udp from any to any port 53 user != nobody\n" |
-            pfctl -a ns-warp -f -
+
+    case "$os" in
+        linux)
+            [ "$linux_firewall" = "nftables" ] && {     # Use nft if defined or iptables 
+                nft add chain ip nat NS-WARP
+                nft add rule ip nat NS-WARP ip protocol udp dport 53 counter redirect to :$nswarp_iport
+                nft add rule ip nat OUTPUT ip protocol udp skuid != $nswarp_user counter jump NS-WARP
+            } || {
+                iptables -t nat -N NS-WARP
+                iptables -t nat -A NS-WARP -p udp --dport 53 -j REDIRECT --to-ports $nswarp_iport
+                iptables -t nat -A OUTPUT -p udp -m owner --uid-owner != $nswarp_user -j NS-WARP
+            }
+            ;;
+        openbsd)
+            pfctl -a ns-warp -f - << EOF
+pass in log on lo0 inet proto udp from any to any rdr-to $nswarp_iaddr port $nswarp_iport
+pass out on !lo0 inet proto udp from any to any port 53 route-to lo0 user != $nswarp_user
+EOF
+            ;;
+        darwin|freebsd)
+            pfctl -a ns-warp -f - << EOF
+rdr pass log on lo0 inet proto udp from any to any port 53 -> $nswarp_iaddr port $nswarp_iport
+pass out route-to lo0 inet proto udp from any to any port 53 user != $nswarp_user
+EOF
+            ;;
+        *)
+    esac
 }
 
 # ------------------------------------------------------------------------------
@@ -130,22 +155,8 @@ _stop() {
         }
         while [ -s "$nswarp_pidfile" ] ; do sleep 1; done
 
-        uname -s | grep -i 'Linux' >/dev/null ||
-        printf "\n" | pfctl -a ns-warp -f -
+        [ "$os" = "linux" ] || printf "\n" | pfctl -a ns-warp -f -
     fi
-}
-
-# ------------------------------------------------------------------------------
-_reload() {
-    # Re-read configuration file on HUP signal
-    _status && {
-        _check_root
-        printf "Reloading ns-warp: "
-        cat "$nswarp_pidfile" | xargs kill -HUP
-    } || {
-        printf "Unable to reload: ns-warp is not running\n"
-        exit 1
-    }
 }
 
 # ------------------------------------------------------------------------------
@@ -166,8 +177,8 @@ _check_root() {
 
 # ------------------------------------------------------------------------------
 _usage() {
-    printf "Usage:\n\tns-warp.sh start|restart [options]\n" 
-    printf "\tns-warp.sh stop|reload|status\n"
+    printf "Usage:\n\tns-warp.sh start|stop|restart [options]\n" 
+    printf "\tns-warp.sh status\n"
     exit 1
 }
 
@@ -176,6 +187,7 @@ _usage() {
 [ $# -eq 0 ] && _usage
 
 echo $* | grep -q '\-f' && FORCE=1
+os=`uname -s | tr '[:upper:]' '[:lower:]'`
 
 case "$1" in
     [sS][tT][aA][rR][tT])           shift; _start $*    ;;

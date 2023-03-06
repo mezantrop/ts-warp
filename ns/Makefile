@@ -44,8 +44,6 @@ install: ns-warp ns-warp.sh
 	install -m 755 ns-warp $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 ns-warp.sh $(PREFIX)/etc/
-	install -m 755 ns-warp_nftables.sh $(PREFIX)/etc/ns-warp_nftables.sh.sample
-	install -m 755 ns-warp_iptables.sh $(PREFIX)/etc/ns-warp_iptables.sh.sample
 
 uninstall:
 	rm -f $(PREFIX)/bin/ns-warp
