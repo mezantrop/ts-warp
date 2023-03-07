@@ -24,9 +24,9 @@
 - [x] Installation script
 - [ ] Documentation
 - [ ] UDP support
-- [x] Remote names resolution using [ns-warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
+- [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
 - [ ] (optional) HTTP proxy
-- [x] SOCKS workload balance modes: Failover/Roundrobin/None
+- [x] SOCKS workload balance modes: `Failover`/`Roundrobin`/`None`
 
 ### Changelog
 

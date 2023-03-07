@@ -35,19 +35,25 @@ Install NS-Warp under the default `PREFIX=/usr/local`
 
 ### Usage
 
-Start NS-Warp:
+Start/stop/restart NS-Warp respectively:
 
 ```sh
 # /usr/local/etc/ns-warp.sh start
+# /usr/local/etc/ns-warp.sh stop
+# /usr/local/etc/ns-warp.sh restart
 ```
 
 NS-Warp understands also `stop` and `restart` commands
 
 Notes:
 
-* NS-Warp logs to `/usr/local/var/log/ns-warp.log`
 * Adding `-v 4` option enables more verbose logging, e.g. `# /usr/local/etc/ns-warp.sh start -v 4`
-* On Linux check contents of `ns-warp_iptables.sh` and `ns-warp_nftables.sh` for *BSD systems see the `ns-warp.sh` for the firewall rules.
+* Check contents of `ns-warp.sh` for the firewall rules if you nead to modify them
+
+### TO-DO
+
+* [ ] Cache DNS records
+* [ ] Documentation
 
 ### Contacts
 
