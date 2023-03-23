@@ -43,26 +43,21 @@ tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v 3
 
 linux_firewall="nftables"       # Under Linux set nftables or iptables
 
-FORCE=0                         # Ignore status and start/stop ts-warp forcibly
-
 # ------------------------------------------------------------------------------
 _start() {
-    if [ $FORCE -eq 0 ]; then
-        _status
-        case $? in
-            0)
-                printf "ts-warp is already running: "
-                return 0
-                ;;
-            1)
-                ;;
-            2)
-                printf "ts-warp status unknown: requesting 'force stop'. "
-                FORCE=1
-                _stop
-                ;;
-        esac
-    fi
+    _status
+    case $? in
+        0)
+            printf "ts-warp is already running: "
+            return 0
+            ;;
+        1)
+            ;;
+        2|3)
+            printf "ts-warp status unknown: requesting 'stop' "
+            _stop
+            ;;
+    esac
 
     _check_root
     printf "Starting ts-warp: "
@@ -105,12 +100,12 @@ _status() {
            return 0
            ;;
         1)
-           [ "$1" ] && printf "ts-warp is not running: "
-           return 1
+           [ "$1" ] && printf "ts-warp is NOT running PID: %s: " `cat "$tswarp_pidfile"`
+           return 2
            ;;
         *)
            [ "$1" ] && printf "ts-warp is not found: "
-           return 2
+           return 3
            ;;
     esac
 }
@@ -118,32 +113,13 @@ _status() {
 # ------------------------------------------------------------------------------
 _stop() {
     _check_root
-    if [ $FORCE -eq 1 ]; then 
-        printf "Stopping ts-warp with force: "
-        [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
-        pkill ts-warp
-    else
-        _status
-        case $? in
-            0)
-                ;;
-            1)
-                printf "ts-warp is already stopped: "
-                return 0
-                ;;
-            2)
-                printf "ts-warp status unknown: requesting 'force stop': "
-                [ -f "$tswarp_pidfile" ] && rm "$tswarp_pidfile"
-                pkill ts-warp
-                ;;
-        esac
+    printf "Stopping ts-warp: "
+    [ -f "$tswarp_pidfile" -a -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
+        cat "$tswarp_pidfile" | xargs kill -TERM  > /dev/null 2>&1 || pkill ts-warp
+    }
 
-        printf "Stopping ts-warp: "
-        [ -f "$tswarp_pidfile" ] && {
-            cat "$tswarp_pidfile" | xargs kill -TERM || pkill ts-warp
-        }
-        while [ -s "$tswarp_pidfile" ] ; do sleep 1; done
-    fi
+    [ -f "$tswarp_pidfile" ] && rm -f "$tswarp_pidfile"
+    pkill ts-warp
 
     uname -s | grep -i 'Linux' >/dev/null || /sbin/pfctl -f /etc/pf.conf
 }
@@ -187,8 +163,6 @@ _usage() {
 
 # ------------------------------------------------------------------------------
 [ $# -eq 0 ] && _usage
-
-echo $* | grep -q '\-f' && FORCE=1
 
 case "$1" in
     [sS][tT][aA][rR][tT])           shift; _start $*    ;;

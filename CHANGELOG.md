@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.03.07    Current
+* 2023.03.23    Current
+  * `ts-warp.sh stop` ensures the daemon is killed
   * Updated `README.md` files
 
 * 2023.03.06    ts-warp-1.1.6, gui-warp-1.0.2, ns-warp-1.0.3
