@@ -73,7 +73,7 @@ operating systems you may need to invoke `su` instead.
 to configure the packet filter. For example:
 
   ```sh
-  # sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+  # sudo cp /usr/local/etc/ts-warp_pf_macos.conf.sample /usr/local/etc/ts-warp_pf.conf
   # sudo nano /usr/local/etc/ts-warp_pf.conf
   ```
 
@@ -102,6 +102,8 @@ Under root privileges start, control or get status of ts-warp daemon:
 # <PREFIX>/etc/ts-warp.sh status
 ```
 
+### Low-level ts-warp daemon usage
+
 All the ts-warp command-line options can be listed using `$ ts-warp -h`:
 
 ```sh
@@ -128,13 +130,13 @@ All parameters are optional:
 
 ```
 
-For example, to temporary enable more verbose logs, restart ts-warp with `-v 4` option:
+ `ts-warp.sh` respects `ts-warp` daemon options. For example, to temporary enable more verbose logs, restart `ts-warp` with `-v 4` option:
 
 ```sh
 # sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
-ts-warp understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
+`ts-warp` understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
 and clients connection status and `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
@@ -143,7 +145,7 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ![gui-warp.py](gui/gui-warp_py.png)
 
-Experimental GUI front-end application to control ts-warp daemon can be installed from the `gui` directory:
+The GUI front-end application to control `ts-warp` daemon can be installed from the `gui` directory:
 
 ```sh
 # cd gui
