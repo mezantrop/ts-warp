@@ -72,7 +72,7 @@ char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                                         /* Active clients number */
 pid_t pid, mpid;                                                    /* Current and main daemon PID */
-struct pid_list *pids;                                              /* List of active clients with PIDs and Sections */
+struct pid_list *pids = NULL;                                       /* List of active clients with PIDs and Sections */
 int isock, ssock, csock;                                            /* Sockets for in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
  
@@ -131,6 +131,9 @@ All parameters are optional:
     int ret;                                                            /* Various function return codes */
     int rec, snd;                                                       /* received/sent bytes */
     pid_t cpid;                                                         /* Child PID */
+
+    struct pid_list *d = NULL, *c = NULL;                               /* PID list related ... */
+    struct ini_section *push_ini = NULL;                                /* variables */
 
 
     while ((flg = getopt(argc, argv, "i:c:l:v:dp:fu:h")) != -1)
@@ -338,6 +341,32 @@ All parameters are optional:
 
         printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
 
+        /* Process the PIDs list: remove exitted clients and execute workload balance functions */
+        c = pids;
+        while (c) {
+            if (c == pids && c->status >= 0) {                      /* Remove pidlist root entry */
+                pids = c->next;
+                if (c->status && (push_ini = getsection(ini_root, c->section_name)))
+                    if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
+                        pushback_ini(&ini_root, push_ini);
+                free(c->section_name);
+                free(c);
+                c = pids;
+            }  
+
+            if (c && c->next && c->next->status >= 0) {             /* Remove a pidlist entry */
+                d = c->next;
+                c->next = d->next;
+                if (d->status && (push_ini = getsection(ini_root, d->section_name)))
+                    if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
+                        pushback_ini(&ini_root, push_ini);
+                free(d->section_name);
+                free(d);
+            }
+            
+            if (c) c = c->next;
+        }
+
         /* Find SOCKS server to serve the destination address in INI file */
         s_ini = ini_look_server(ini_root, daddr);
         if (s_ini && s_ini->section_balance == SECTION_BALANCE_ROUNDROBIN) pushback_ini(&ini_root, s_ini);
@@ -346,41 +375,16 @@ All parameters are optional:
             printl(LOG_CRIT, "Failed fork() to serve a client request");
             mexit(1, pfile_name);
         }
-        if (cpid > 0) {                                                 /* Main (parent process) */
+
+        if (cpid > 0) {                                                 
+            /* -- Main (parent process) ----------------------------------------------------------------------------- */
             setpgid(cpid, pid);
             close(csock);
 
             /* Save the client into the list */
             pids = pidlist_add(pids, s_ini ? s_ini->section_name : "", cpid);
-
-            /* Process the PIDs list: remove exitted clients and execute workload balance functions */
-            struct pid_list *d = NULL, *c = NULL;
-            struct ini_section *push_ini = NULL;
-
-            c = pids;
-            while (c) {
-                if (c == pids && c->status >= 0) {                      /* Remove pidlist root entry */
-                    pids = c->next;
-                    if (c->status && (push_ini = getsection(ini_root, c->section_name)))
-                        if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
-                            pushback_ini(&ini_root, push_ini);
-                    free(c->section_name);
-                    free(c);
-                    c = pids;
-                }  
-                
-                if (c->next && c->next->status >= 0) {                  /* Remove a pidlist entry */
-                    d = c->next;
-                    c->next = d->next;
-                    if (d->status && (push_ini = getsection(ini_root, d->section_name)))
-                        if (push_ini->section_balance == SECTION_BALANCE_FAILOVER)
-                            pushback_ini(&ini_root, push_ini);
-                    free(d->section_name);
-                    free(d);
-                }
-                c = c->next;
-            }
         }
+
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
             close(isock);
@@ -393,7 +397,9 @@ All parameters are optional:
                 printl(LOG_WARN, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
                 if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
+                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
+                        sizeof(S6_ADDR(daddr))))) {
+                        
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp dirctly: no NAT/redirection */
                         printl(LOG_WARN, "Dropping loop connection with ts-warp");
@@ -413,7 +419,9 @@ All parameters are optional:
             } else
                 /* We have found a SOCKS-proxy server for the destination */
                 if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr))))) {
+                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                        sizeof(S6_ADDR(daddr))))) {
+                        
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp directly: no NAT/redirection */                    
                         printl(LOG_INFO, "Connecting the client with SOCKS server directly");
@@ -468,7 +476,7 @@ All parameters are optional:
                                 case AUTH_METHOD_NDS:
                                 case AUTH_METHOD_MAF:
                                 case AUTH_METHOD_JPB:
-                                    printl(LOG_CRIT, "CHAIN SOCKS5 server accepted unsupported auth-method: [%d]", auth_method);
+                                    printl(LOG_CRIT, "CHAIN SOCKS5 server accepted unsupported auth-method: [%d]",auth_method);
                                     close(csock);
                                     exit(2);
                                 case AUTH_METHOD_NOACCEPT:
