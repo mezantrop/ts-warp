@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.04.08    Current
+* 2023.04.11    Current
+  * `network.c` Reduce timeout for a new not yet established connections
   * `ts-warp.c` faster `failover` switch. Details in [#6](https://github.com/mezantrop/ts-warp/issues/6)
   * `ts-warp.sh stop` ensures the daemon is killed
   * Updated `README.md` files

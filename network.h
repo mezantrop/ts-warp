@@ -33,13 +33,24 @@
 #include <arpa/inet.h>
 
 
+/* Socket options: Keepalive, timeouts, ets */
 #if !defined (WITH_TCP_NODELAY)
    #define WITH_TCP_NODELAY 1
 #endif
 
-#define TCP_KEEPIDLE_S  120                                 /* Wait 2 minutes in sec before sending keep_alives */
-#define TCP_KEEPINTVL_S 30                                  /* Interval between keep_alives probes in seconds */
-#define TCP_KEEPCNT_N   8                                   /* A number of probes before marking a session broken */              
+#define TCP_KEEPIDLE_S  120         /* Wait 2 minutes in sec before sending keep_alives */
+#define TCP_KEEPINTVL_S 30          /* Interval between keep_alives probes in seconds */
+#define TCP_KEEPCNT_N   8           /* A number of probes before marking a session broken */
+
+#if defined(__FreeBSD__)
+    #define TCP_KEEPINIT_S  6           /* Timeout for a new not yet established connections in seconds */
+#endif
+#if defined(__APPLE__)
+    #define TCP_CONNECTIONTIMEOUT_S 6   /* Timeout for a new not yet established connections in seconds */
+#endif
+#if defined(linux)
+    #define TCP_SYNCNT_N    2           /* N of SYN retransmits should be sent before aborting the attempt to connect */
+#endif
 
 /* Used ports */
 #define LISTEN_IPV4     "127.0.0.1"                                     /* We listen on this IPv4 address or */
