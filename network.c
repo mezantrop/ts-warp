@@ -61,6 +61,26 @@ int connect_desnation(struct sockaddr dest) {
             printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for outgoing connections");
     #endif
 
+    /* Timeout for a new not yet established connections on FreeBSD/Darwin, 
+    or a number of retries on Linux, or nothing on OpenBSD */
+    #if defined(__FreeBSD__)
+        int keepinit = TCP_KEEPINIT_S;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPINIT, &keepinit, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPINIT socket option for outgoing connections");
+    #endif
+
+    #if defined(__APPLE__)
+        int keepinit = TCP_CONNECTIONTIMEOUT_S;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_CONNECTIONTIMEOUT, &keepinit, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_CONNECTIONTIMEOUT socket option for outgoing connections");
+    #endif
+
+    #if defined(linux)
+        int syncnt = TCP_SYNCNT_N;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_SYNCNT, &syncnt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_SYNCNT socket option for outgoing connections");
+    #endif
+
     printl(LOG_VERB, "Socket to connect with destination address created");
 
     if ((connect(sock, &dest, sizeof dest)) < 0) {
