@@ -112,6 +112,7 @@ All parameters are optional:
     int f_flg = 0;                                                      /* Force start */
 
     #if !defined(__APPLE__)
+        /* This doesn't work in MacOS, it won't allow reading /dev/pf under non-root */
         char *runas_user = RUNAS_USER;                                  /* A user to run ts-warp */
     #endif
 
@@ -760,6 +761,7 @@ void trap_signal(int sig) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 void usage(int ecode) {
+#if !defined(__APPLE__)
     printf("Usage:\n\
   ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h\n\n\
 Version:\n\
@@ -779,6 +781,24 @@ All parameters are optional:\n\
   \n\
   -h\t\t    This message\n\n", 
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
-
+#else
+    printf("Usage:\n\
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
+Version:\n\
+  %s-%s\n\n\
+All parameters are optional:\n\
+  -i IP:Port\t    Incoming local IP address and port\n\
+  -c file.ini\t    Configuration file, default: %s\n\
+  \n\
+  -l file.log\t    Log filename, default: %s\n\
+  -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
+  \n\
+  -d\t\t    Daemon mode\n\
+  -p file.pid\t    PID filename, default: %s\n\
+  -f\t\t    Force start\n\
+  \n\
+  -h\t\t    This message\n\n", 
+    PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);
+#endif
     exit(ecode);
 }
