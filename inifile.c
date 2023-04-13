@@ -337,14 +337,24 @@ void show_ini(struct ini_section *ini, int loglvl) {
     struct ini_target *t;
     char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
+    const char *ini_targets[5] = {
+        INI_ENTRY_TARGET_NOTSET, INI_ENTRY_TARGET_HOST, INI_ENTRY_TARGET_DOMAIN,
+        INI_ENTRY_TARGET_NETWORK, INI_ENTRY_TARGET_RANGE
+    };
+
+    const char *ini_balance[3] = {
+        INI_ENTRY_SECTION_BALANCE_NONE, INI_ENTRY_SECTION_BALANCE_FAILOVER, INI_ENTRY_SECTION_BALANCE_ROUNDROBIN
+    };
+
+
     printl(LOG_VERB, "Show INI-Configuration");
 
     s = ini;
     while (s) {
         /* Display section */
-        printl(loglvl, "SHOW Section: [%s] Balancing: [%d] Server: [%s] Version: [%d] User/Password: [%s/%s]",
-            s->section_name, s->section_balance, inet2str(&s->socks_server, ip1), s->socks_version, s->socks_user?:"",
-            s->socks_password ? "********" : "");
+        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Server: [%s] Version: [%d] User/Password: [%s/%s]",
+            s->section_name, ini_balance[s->section_balance], inet2str(&s->socks_server, ip1), s->socks_version,
+            s->socks_user?:"", s->socks_password ? "********" : "");
 
         /* Display SOCKS chain */
         if (s->proxy_chain) {
@@ -365,8 +375,8 @@ void show_ini(struct ini_section *ini, int loglvl) {
         /* Display target entries */
         t = s->target_entry;
         while (t) {
-            printl(loglvl, "SHOW IP1: [%s] IP2: [%s] Name: [%s] Type: [%d]",
-                inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2), t->name ? t->name : "", t->target_type);
+            printl(loglvl, "SHOW IP1: [%s] IP2: [%s] Name: [%s] Type: [%s]",
+                inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2), t->name ? t->name : "", ini_targets[t->target_type]);
             t = t->next;
         }
         s = s->next;

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.04.12    Current
+* 2023.04.13    Current
+  * `inifile.c`: `show_ini()`: captions instead of IDs for targets and balansing
   * Updated `-h` option
   * `network.c` Reduce timeout for a new not yet established connections
   * `ts-warp.c` faster `failover` switch. Details in [#6](https://github.com/mezantrop/ts-warp/issues/6)
