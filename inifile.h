@@ -50,10 +50,6 @@ typedef struct ini_section {
     struct ini_section *next;                                           /* The next INI-section */
 } ini_section;
 
-#define SECTION_BALANCE_NONE        0
-#define SECTION_BALANCE_FAILOVER    1                                   /* Default */
-#define SECTION_BALANCE_ROUNDROBIN  2
-
 typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] */
     char *var; 
     char *val;                      /* Raw value: whatever right from the '=' char */
@@ -62,12 +58,6 @@ typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]
     char *mod2;
     char *val2;
 } ini_entry;
-
-#define INI_TARGET_NOTSET   0
-#define INI_TARGET_HOST     1
-#define INI_TARGET_DOMAIN   2
-#define INI_TARGET_NETWORK  3
-#define INI_TARGET_RANGE    4
 
 typedef struct ini_target {
     int target_type;                /* Hostname, Host IP, Domain, Network, Range */
@@ -89,7 +79,13 @@ typedef struct chain_list {                                 /* Chains as they de
     struct chain_list *next;
 } chain_list;
 
-/* INI-file entries */
+/* -- INI-file entries  --------------------------------------------------------------------------------------------- */
+/* Section balancing modes in memory */
+#define SECTION_BALANCE_NONE        0
+#define SECTION_BALANCE_FAILOVER    1                               /* Default */
+#define SECTION_BALANCE_ROUNDROBIN  2
+
+/* Section balancing modes in the INI-file */
 #define INI_ENTRY_SECTION_BALANCE               "section_balance"   /* Socks section balance policy */
 #define INI_ENTRY_SECTION_BALANCE_NONE          "none"              /* 0 */
 #define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
@@ -101,6 +97,15 @@ typedef struct chain_list {                                 /* Chains as they de
 #define INI_ENTRY_SOCKS_USER        "socks_user"
 #define INI_ENTRY_SOCKS_PASSWORD    "socks_password"
 
+/* Target type IDs in memory */
+#define INI_TARGET_NOTSET   0
+#define INI_TARGET_HOST     1
+#define INI_TARGET_DOMAIN   2
+#define INI_TARGET_NETWORK  3
+#define INI_TARGET_RANGE    4
+
+/* Target type IDs in the INI-file */
+#define INI_ENTRY_TARGET_NOTSET      ""
 #define INI_ENTRY_TARGET_HOST       "target_host"
 #define INI_ENTRY_TARGET_DOMAIN     "target_domain"
 #define INI_ENTRY_TARGET_NETWORK    "target_network"

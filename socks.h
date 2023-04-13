@@ -83,9 +83,6 @@ typedef struct {
     uint8_t auth[AUTH_MAX_METHODS];                 /* Authentication methods */
 } s5_request_hello;
 
-#define HELLO_NOAUTH    "\x05\x01\x00"
-#define HELLO_UNAME     "\x05\x02\x00\x02"
-
 typedef struct {
     uint8_t ver;                                    /* SOCKS version */
     uint8_t cauth;                                  /* Chosen auth method */
