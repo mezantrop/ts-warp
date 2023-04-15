@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------- #
+# TS-Warp - PF configuration for OpenBSD example                               #
+# ---------------------------------------------------------------------------- #
+
+pass in log on lo0 inet proto tcp from any to any rdr-to 127.0.0.1 port 10800
+pass out on !lo0 inet proto tcp from any to any route-to lo0 keep state user %USER%
+

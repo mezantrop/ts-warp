@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------- #
+# TS-Warp - PF configuration for macOS example                                 #
+# ---------------------------------------------------------------------------- #
+
+rdr pass log on lo0 inet proto tcp from any to any -> 127.0.0.1 port 10800
+pass out on !lo0 route-to lo0 inet proto tcp from any to any keep state user %USER%
+
