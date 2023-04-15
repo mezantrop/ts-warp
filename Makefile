@@ -30,7 +30,7 @@ CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_OBJS = inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean examples-general examples-special install install-examples install-configs release uninstall version
+.PHONY:	all clean examples-general examples-special install install-configs install-examples release uninstall version
 
 all: ts-warp ts-warp.sh examples-general ts-pass
 
@@ -97,7 +97,6 @@ install-configs:
 			install -b -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh \
 			;; \
 	esac
-
 
 install: ts-warp ts-warp.sh ts-pass install-examples
 	install -d $(PREFIX)/bin/
