@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------- #
-# TS-Warp - PF configuration for OpenBSD example                               #
+# TS-Warp - PF special configuration for OpenBSD example                       #
 # ---------------------------------------------------------------------------- #
 
 # Change/add IP addresses, network interfaces, ports and username
@@ -32,4 +32,3 @@ table <socks> { \
 
 pass in log on lo0 inet proto tcp from any to { <socks> } rdr-to 127.0.0.1 port 10800
 pass out on !lo0 inet proto tcp from any to { <socks> } route-to lo0 keep state user %USER%
-

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ---------------------------------------------------------------------------- #
-# TS-Warp - NFTABLES configuration for Linux example                           #
+# TS-Warp - NFTABLES general configuration for Linux example                   #
 # ---------------------------------------------------------------------------- #
 
 nft add chain ip nat SOCKS
