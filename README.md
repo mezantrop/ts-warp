@@ -76,11 +76,11 @@ For example:
   $ sudo nano /usr/local/etc/ts-warp.ini
   ```
   
-- *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
+*Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
 
-  ```sh
-  $ sudo nano /usr/local/etc/ts-warp.sh
-  ```
+```sh
+$ sudo nano /usr/local/etc/ts-warp.sh
+```
 
 #### Setup firewall
 
@@ -109,23 +109,23 @@ to configure the packet filter:
 
 - **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` based on
   `<PREFIX>/etc/ts-warp_nftables.sh.sample` or respectively `<PREFIX>/etc/ts-warp_iptables.sh.sample`
-to configure firewall. For example:
-
-```sh
-  $ sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
-  $ sudo nano /usr/local/etc/ts-warp_nftables.sh
-  ```
-
-or
+  to configure firewall. For example:
 
   ```sh
-  $ sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-  $ sudo nano /usr/local/etc/ts-warp_iptables.sh
-  ```
+    $ sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
+    $ sudo nano /usr/local/etc/ts-warp_nftables.sh
+    ```
+
+  or
+
+    ```sh
+    $ sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+    $ sudo nano /usr/local/etc/ts-warp_iptables.sh
+    ```
 
 ##### Advanced firewall configuration
 
-If for some reasons, **general** firewall configuration is not suitable i.e. you don't want all the TCP traffic to go
+If for some reasons **general** firewall configuration is not suitable i.e. you don't want all the TCP traffic to go
 through TS-Warp, it is possible to use more complex **special** versions of the firewall configuration files.
 To build them run:
 
@@ -197,7 +197,7 @@ All parameters are optional:
  with `-v 4` option:
 
 ```sh
-# sudo /usr/local/etc/ts-warp.sh restart -v 4
+$ sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
 `ts-warp` understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
@@ -212,20 +212,20 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 The GUI front-end application to control `ts-warp` daemon can be installed from the `gui` directory:
 
 ```sh
-# cd gui
-# sudo make install
+$ cd gui
+$ sudo make install
 ```
 
 *Optionally*. Set `PREFIX`, to use a different installation target in the `make` command above:
 
 ``` sh
-# sudo make install PREFIX=/path/to/install
+$ sudo make install PREFIX=/path/to/install
 ```
 
 To start the GUI run:
 
 ``` sh
-# sudo -b <PREFIX>/bin/gui-warp.py
+$ sudo -b <PREFIX>/bin/gui-warp.py
 ```
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
