@@ -60,7 +60,7 @@ systems you may need to invoke `su` instead:
   $ sudo make install
   ```
   
-  This will install all the files under the `/usr/local` tree. If a different installation path is required, set `PREFIX`:
+  This installs all the files under the `/usr/local` tree. If a different installation path is required, set `PREFIX`:
   
   ```sh
   $ sudo make install PREFIX=/path/to/install
@@ -84,16 +84,18 @@ $ sudo nano /usr/local/etc/ts-warp.sh
 
 #### Setup firewall
 
-Above mentioned `make install` command installs **general** firewall configuration **sample**-file, that contains
+Above mentioned `make install` command installs a **general** firewall configuration **sample**-file, that contains
 forwards rules to forward all TCP traffic to TS-Warp. This example can be used to create a working configuration:
 
 ##### Using make
 
-**Beware**, of that the custom firewall configuration is overwritten by the newly installed one:
+**Beware** the custom firewall configuration is overwritten by the newly installed one:
 
 ```sh
 $ sudo make install-configs
 ```
+
+Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
 
 **Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
 
@@ -144,6 +146,9 @@ Install the configuration files:
 ```sh
 $ sudo make install-configs
 ```
+
+Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
+
 **Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
 
 Finally, edit either `ts-warp_pf.conf`, or if you are on Linux, `ts-warp_nftables.sh` or `ts-warp_iptables.sh` to define
