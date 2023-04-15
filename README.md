@@ -1,6 +1,9 @@
 # TS-Warp
 
 [![CodeQL](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml)
+[![C/C++ CI ](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp.yml)
+
+
 
 ## Transparent SOCKS proxy Wrapper
 
