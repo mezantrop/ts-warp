@@ -18,6 +18,4 @@ nft add rule ip nat SOCKS ip protocol tcp ip daddr 192.168.3.0/24 counter redire
 nft add rule ip nat SOCKS ip protocol tcp ip daddr 123.45.123.0/24 counter redirect to :10800
 nft add rule ip nat SOCKS ip protocol tcp ip daddr 123.45.234.96/24 counter redirect to :10800
 
-# NB! User 'frodo' is a process owner username of the applictions to redirect to
-# SOCKS servers. Change it to your username on localhost.
-nft add rule ip nat OUTPUT ip protocol tcp skuid frodo counter jump SOCKS
+nft add rule ip nat OUTPUT ip protocol tcp skuid %USER% counter jump SOCKS

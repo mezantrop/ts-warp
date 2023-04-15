@@ -34,47 +34,77 @@ See it [here](CHANGELOG.md)
 
 ### Installation
 
-- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them,
-or just clone the repository running `git` in a terminal:
+#### Obtain source codes
+
+- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them
+- Or clone the repository running `git` in a terminal:
   
   ```sh
   $ git clone https://github.com/mezantrop/ts-warp
   ```
 
-Typically the installation operations require root privileges, below we use `sudo` to achieve the goal, but on some
-operating systems you may need to invoke `su` instead.
+#### Build the appplication from sources
 
-- Using terminal, in the directory with TS-Warp source code run:
+Using terminal, in the directory with TS-Warp source code run:
+
+  ```sh
+  $ make
+  ```
+
+#### Install the application
+
+Typically, the operation requires root privileges, below we use `sudo` to achieve the goal, but on some operating
+systems you may need to invoke `su` instead:
   
   ```sh
-  # sudo make install
+  $ sudo make install
   ```
   
   This will install all the files under the `/usr/local` tree. If a different installation path is required, set `PREFIX`:
   
   ```sh
-  # sudo make install PREFIX=/path/to/install
+  $ sudo make install PREFIX=/path/to/install
   ```
 
-- Create `<PREFIX>/etc/ts-warp.ini` based on `<PREFIX>/etc/ts-warp.ini.sample` file to suite your configuration. For example:
+#### Configure TS-Warp
+
+Based on `<PREFIX>/etc/ts-warp.ini.sample` file, create `<PREFIX>/etc/ts-warp.ini` to suite your SOCKS configuration.
+For example:
 
   ```sh
-  # sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
-  # sudo nano /usr/local/etc/ts-warp.ini
+  $ sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
+  $ sudo nano /usr/local/etc/ts-warp.ini
   ```
   
 - *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
 
   ```sh
-  # sudo nano /usr/local/etc/ts-warp.sh
+  $ sudo nano /usr/local/etc/ts-warp.sh
   ```
 
-- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf_*.conf.sample`
-to configure the packet filter. For example:
+#### Setup firewall
+
+Above mentioned `make install` command installs **general** firewall configuration **sample**-file, that contains
+forwards rules to forward all TCP traffic to TS-Warp. This example can be used to create a working configuration:
+
+##### Using make
+
+**Beware**, of that the custom firewall configuration is overwritten by the newly installed one:
+
+```sh
+$ sudo make install-configs
+```
+
+**Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
+
+##### Manually
+
+- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf.conf.sample`
+to configure the packet filter:
 
   ```sh
-  # sudo cp /usr/local/etc/ts-warp_pf_macos.conf.sample /usr/local/etc/ts-warp_pf.conf
-  # sudo nano /usr/local/etc/ts-warp_pf.conf
+  $ sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+  $ sudo nano /usr/local/etc/ts-warp_pf.conf
   ```
 
 - **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` based on
@@ -82,24 +112,57 @@ to configure the packet filter. For example:
 to configure firewall. For example:
 
 ```sh
-  # sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
-  # sudo nano /usr/local/etc/ts-warp_nftables.sh
+  $ sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
+  $ sudo nano /usr/local/etc/ts-warp_nftables.sh
   ```
 
 or
 
   ```sh
-  # sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-  # sudo nano /usr/local/etc/ts-warp_iptables.sh
+  $ sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+  $ sudo nano /usr/local/etc/ts-warp_iptables.sh
   ```
+
+##### Advanced firewall configuration
+
+If for some reasons, **general** firewall configuration is not suitable i.e. you don't want all the TCP traffic to go
+through TS-Warp, it is possible to use more complex **special** versions of the firewall configuration files.
+To build them run:
+
+```sh
+$ make examples-special
+```
+
+Install the **special** versions of the **sample** files:
+
+```
+$ sudo make install-examples
+```
+
+Install the configuration files:
+
+```sh
+$ sudo make install-configs
+```
+**Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
+
+Finally, edit either `ts-warp_pf.conf`, or if you are on Linux, `ts-warp_nftables.sh` or `ts-warp_iptables.sh` to define
+firewall rules, suitable for your environment.
 
 ### Usage
 
-Under root privileges start, control or get status of ts-warp daemon:
+You can control, e.g. start, stop `ts-warp` daemon using `ts-warp.sh` script. Under root privileges or `sudo` run:
 
 ```sh
 # <PREFIX>/etc/ts-warp.sh start|stop|reload|restart [options]
 # <PREFIX>/etc/ts-warp.sh status
+```
+
+For example:
+
+```sh
+$ sudo /usr/local/etc/ts-warp.sh start
+$ sudo /usr/local/etc/ts-warp.sh stop
 ```
 
 ### Low-level ts-warp daemon usage
@@ -130,7 +193,8 @@ All parameters are optional:
 
 ```
 
- `ts-warp.sh` respects `ts-warp` daemon options. For example, to temporary enable more verbose logs, restart `ts-warp` with `-v 4` option:
+ `ts-warp.sh` respects `ts-warp` daemon options. For example, to temporary enable more verbose logs, restart `ts-warp`
+ with `-v 4` option:
 
 ```sh
 # sudo /usr/local/etc/ts-warp.sh restart -v 4

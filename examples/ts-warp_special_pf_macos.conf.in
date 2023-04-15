@@ -14,7 +14,7 @@
 # In the 'rdr' rule:
 # Port 10800 is a port our SOCKS-redirector works on
 # 
-# In the 'route-to' rule user 'frodo' is a process owner username of
+# In the 'route-to' rule user 'USER' is a process owner username of
 # the applictions to redirect to SOCKS servers.
 #
 #   Note, user here is needed to prevent redirection loops when connecting
@@ -31,4 +31,5 @@ table <socks> { \
 }
 
 rdr pass log on lo0 inet proto tcp from any to { <socks> } -> 127.0.0.1 port 10800
-pass out on !lo0 route-to lo0 inet proto tcp from any to { <socks> } keep state user frodo
+pass out on !lo0 route-to lo0 inet proto tcp from any to { <socks> } keep state user %USER%
+

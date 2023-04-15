@@ -30,9 +30,9 @@ CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_OBJS = inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean install release uninstall version
+.PHONY:	all clean examples-general examples-special install install-examples install-configs release uninstall version
 
-all: ts-warp ts-warp.sh ts-pass
+all: ts-warp ts-warp.sh examples-general ts-pass
 
 release: version all
 
@@ -45,21 +45,66 @@ ts-warp: $(WARP_OBJS)
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
 
+examples-general:
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
+
+examples-special:
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
+	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
+
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
-install: ts-warp ts-warp.sh ts-pass
+install-examples:
+	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
+	case `uname -s` in \
+		Darwin) \
+			install -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			;; \
+		FreeBSD) \
+			install -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			;; \
+		OpenBSD) \
+			install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			;; \
+		Linux) \
+			install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample \
+			install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample \
+			;; \
+	esac
+
+install-configs:
+	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
+	case `uname -s` in \
+		Darwin) \
+			install -b -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf.conf \
+			;; \
+		FreeBSD) \
+			install -b -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf.conf \
+			;; \
+		OpenBSD) \
+			install -b -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf \
+			;; \
+		Linux) \
+			install -b -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh \
+			install -b -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh \
+			;; \
+	esac
+
+
+install: ts-warp ts-warp.sh ts-pass install-examples
 	install -d $(PREFIX)/bin/
 	install -m 755 ts-warp $(PREFIX)/bin/
 	install -m 755 ts-pass $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 ts-warp.sh $(PREFIX)/etc/
-	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
-	install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
-	install -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf_freebsd.conf.sample
-	install -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf_macos.conf.sample
-	install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample
-	install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
 
@@ -77,7 +122,7 @@ uninstall:
 	rm -f $(PREFIX)/var/run/ts-warp.pid
 
 clean:
-	rm -rf ts-warp ts-warp.sh ts-pass *.o *.dSYM *.core
+	rm -rf ts-warp ts-warp.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh
 
 inifile.o: inifile.h
 natlook.o: natlook.h
