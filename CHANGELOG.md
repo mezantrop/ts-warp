@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.04.15    Current
-  * Simplyfy firewall configuration. `make install`/`make install-configs` installs **general** simplified firewall
+  * Simplify firewall configuration. `make install`/`make install-configs` installs **general** simplified firewall
     example- and configuration- files to forward all TCP traffic via TS-Warp. See [README.md](README.md) for details
     and examples of more complex **special** firewall configuration files.
   * `inifile.c`: `show_ini()`: captions instead of IDs for targets and balansing
