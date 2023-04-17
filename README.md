@@ -59,10 +59,11 @@ Typically, installation requires root privileges. Below we use `sudo` to achieve
 systems you may need to invoke `su` instead:
   
   ```sh
-  $ sudo make install
+  $ sudo make install clean
   ```
   
-  This installs all the files under the `/usr/local` tree. If a different installation path is required, set `PREFIX`:
+  This installs all the files under the `/usr/local` tree and after that cleans source codes from object and temporary
+  created files. If a different installation path is required, set `PREFIX`:
   
   ```sh
   $ sudo make install PREFIX=/path/to/install
