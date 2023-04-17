@@ -47,7 +47,7 @@ See it [here](CHANGELOG.md)
 
 #### Build the appplication from sources
 
-Using terminal, in the directory with TS-Warp source code run as the nomal user:
+Using terminal, in the directory with TS-Warp source code run as the normal user:
 
   ```sh
   $ make
