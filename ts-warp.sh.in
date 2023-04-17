@@ -37,9 +37,10 @@
 # -- CONFIGURATION VARIABLES ---------------------------------------------------
 tswarp_prefix="/usr/local"
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
-tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
-tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v 3"
+tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
+tswarp_loglevel="2"
+tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v $tswarp_loglevel"
 
 linux_firewall="nftables"       # Under Linux set nftables or iptables
 

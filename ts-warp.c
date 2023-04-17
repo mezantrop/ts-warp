@@ -395,7 +395,7 @@ All parameters are optional:
 
             if (!s_ini) {
                 /* No SOCKS-proxy server found for the destinbation IP */
-                printl(LOG_WARN, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
+                printl(LOG_INFO, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
                 if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
