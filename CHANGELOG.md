@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.04.15    Current
+* 2023.04.17    Current
+  * Starting loglevel changed to `LOG_WARN`; Minor changes and `README.md` update
   * Simplify firewall configuration. `make install`/`make install-configs` installs **general** simplified firewall
     example- and configuration- files to forward all TCP traffic via TS-Warp. See [README.md](README.md) for details
     and examples of more complex **special** firewall configuration files.

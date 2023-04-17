@@ -47,7 +47,7 @@ See it [here](CHANGELOG.md)
 
 #### Build the appplication from sources
 
-Using terminal, in the directory with TS-Warp source code run:
+Using terminal, in the directory with TS-Warp source code run as the nomal user:
 
   ```sh
   $ make
@@ -55,7 +55,7 @@ Using terminal, in the directory with TS-Warp source code run:
 
 #### Install the application
 
-Typically, the operation requires root privileges, below we use `sudo` to achieve the goal, but on some operating
+Typically, installation requires root privileges. Below we use `sudo` to achieve the goal, but on some operating
 systems you may need to invoke `su` instead:
   
   ```sh
