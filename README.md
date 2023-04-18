@@ -87,32 +87,15 @@ $ sudo nano /usr/local/etc/ts-warp.sh
 
 #### Setup firewall
 
-Above mentioned `make install` command installs a **general** firewall configuration **sample**-file, that contains
-forwards rules to forward all TCP traffic to TS-Warp. This example can be used to create a working configuration:
-
-##### Using make
-
-**Beware** the custom firewall configuration is overwritten by the newly installed one:
-
-```sh
-$ sudo make install-configs
-```
-
-Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
-
-**Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
-
-##### Manually
-
-- **On macOS and \*BSD**. Create `<PREFIX>/etc/ts-warp_pf.conf` based on appropriate `<PREFIX>/etc/ts-warp_pf.conf.sample`
-to configure the packet filter:
+- **On macOS** and **\*BSD** to configure the packet filter create `<PREFIX>/etc/ts-warp_pf.conf` based on
+  `<PREFIX>/etc/ts-warp_pf.conf.sample`. For example:
 
   ```sh
   $ sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
   $ sudo nano /usr/local/etc/ts-warp_pf.conf
   ```
 
-- **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` based on
+- **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` using as templates
   `<PREFIX>/etc/ts-warp_nftables.sh.sample` or respectively `<PREFIX>/etc/ts-warp_iptables.sh.sample`
   to configure firewall. For example:
 
@@ -130,32 +113,30 @@ to configure the packet filter:
 
 ##### Advanced firewall configuration
 
-If for some reasons **general** firewall configuration is not suitable i.e. you don't want all the TCP traffic to go
-through TS-Warp, it is possible to use more complex **special** versions of the firewall configuration files.
-To build them run:
+There are two predefined sets of example firewall configuration files: **general** and **special**.
+
+Simple **general** rulesets redirect all outgoing TCP traffic through TS-Warp, which in it's turn dispatches it to SOCKS
+servers or to the destination targets. More complex **special** firewall configuration, contains rules to only redirect
+TCP traffic to TS-Warp that requires to be soxified. By default, to minimize system workload, `make` installs
+**special** firewall rulesets, but it is possible to switch between both options using:
 
 ```sh
 $ make examples-special
 ```
 
-Install the **special** versions of the **sample** files:
+or
 
+```sh
+$ make examples-general
 ```
+
+Then install the selected configuration:
+
+```sh
 $ sudo make install-examples
 ```
 
-Install the configuration files:
-
-```sh
-$ sudo make install-configs
-```
-
 Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
-
-**Note!** Previously installed firewall configuration files are saved with the `old` filename extension.
-
-Finally, edit either `ts-warp_pf.conf`, or if you are on Linux, `ts-warp_nftables.sh` or `ts-warp_iptables.sh` to define
-firewall rules, suitable for your environment.
 
 ### Usage
 
