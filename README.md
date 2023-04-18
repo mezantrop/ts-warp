@@ -71,7 +71,7 @@ systems you may need to invoke `su` instead:
 
 #### Configure TS-Warp
 
-Based on `<PREFIX>/etc/ts-warp.ini.sample` file, create `<PREFIX>/etc/ts-warp.ini` to suite your SOCKS configuration.
+Based on `<PREFIX>/etc/ts-warp.ini.sample` file create `<PREFIX>/etc/ts-warp.ini` to suite your SOCKS configuration.
 For example:
 
   ```sh
@@ -116,7 +116,7 @@ $ sudo nano /usr/local/etc/ts-warp.sh
 There are two predefined sets of example firewall configuration files: **general** and **special**.
 
 Simple **general** rulesets redirect all outgoing TCP traffic through TS-Warp, which in it's turn dispatches it to SOCKS
-servers or to the destination targets. More complex **special** firewall configuration, contains rules to only redirect
+servers or to the destination targets. More complex **special** firewall configuration contains rules to only redirect
 TCP traffic to TS-Warp that requires to be soxified. By default, to minimize system workload, `make` installs
 **special** firewall rulesets, but it is possible to switch between both options using:
 
@@ -130,7 +130,7 @@ or
 $ make examples-general
 ```
 
-Then install the selected configuration:
+Then install the selected configuration examples:
 
 ```sh
 $ sudo make install-examples
