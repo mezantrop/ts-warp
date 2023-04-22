@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 # TS-Warp - rc script
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 
 # Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
 #
@@ -28,13 +28,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 # Start/stop rc-script
 # Requires root priveleges to run
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 
 
-# -- CONFIGURATION VARIABLES ---------------------------------------------------
+# -- CONFIGURATION VARIABLES ------------------------------------------------- #
 tswarp_prefix="/usr/local"
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
@@ -44,7 +44,7 @@ tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v $
 
 linux_firewall="nftables"       # Under Linux set nftables or iptables
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _start() {
     _status
     case $? in
@@ -62,31 +62,58 @@ _start() {
 
     _check_root
     printf "Starting ts-warp: "
-    uname -s | grep -i 'Linux' >/dev/null &&
-        "$tswarp_prefix"/etc/ts-warp_"$linux_firewall".sh ||
-        awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
-                /ts-warp/       {next}
-                /ns-warp/       {next} 
-                /rdr-anchor/    {rdrpos = NR} 
-                                {pf[NR] = $0}
 
-            END {
-                for (i = 0; i < NR; i++)
-                    if (i == rdrpos + 1) {
-                        print("rdr-anchor \"ts-warp\"")
-                        print("rdr-anchor \"ns-warp\"")
-                    } else
-                        print(pf[i])
-                print("anchor \"ts-warp\"")
-                print("anchor \"ns-warp\"")
-                printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
-            }
-        ' /etc/pf.conf | /sbin/pfctl -f -
+    case `uname -s` in
+        Linux)
+            if [ "`nft -v`" ] ; then
+                printf "Using NFTABLES Firewall "
+                [ -f "$tswarp_prefix"/etc/ts-warp_nftables.sh ]  && 
+                    "$tswarp_prefix"/etc/ts-warp_nftables.sh || {
+                        printf "FATAL: Unable to find ts-warp_nftables.sh\n"
+                        exit 1
+                    }
+            elif [ "`iptables -V`" ] ; then
+                    printf "Using IPTABLES Firewall " 
+                    [ -f "$tswarp_prefix"/etc/ts-warp_iptables.sh ] && 
+                    "$tswarp_prefix"/etc/ts-warp_iptables.sh || {
+                        printf "FATAL: Unable to find ts-warp_iptables.sh\n"
+                        exit 1
+                    }
+            else
+                        printf "FATAL: Unable to find any Linux firewall\n"
+                        exit 1
+            fi
+            ;;
+
+        Darwin|FreeBSD|OpenBSD)
+            awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
+                    /ts-warp/       {next}
+                    /ns-warp/       {next}
+                    /rdr-anchor/    {rdrpos = NR}
+                                    {pf[NR] = $0}
+
+                END {
+                    for (i = 0; i < NR; i++)
+                        if (i == rdrpos + 1) {
+                            print("rdr-anchor \"ts-warp\"")
+                            print("rdr-anchor \"ns-warp\"")
+                        } else
+                            print(pf[i])
+                    print("anchor \"ts-warp\"")
+                    print("anchor \"ns-warp\"")
+                    printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
+                }
+            ' /etc/pf.conf | /sbin/pfctl -f -
+            ;;
+
+        *)
+            printf "FATAL: Unsupported OS "
+    esac
 
     echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _status() {
     # Set $1 if status message is required
     [ -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] || {
@@ -111,7 +138,7 @@ _status() {
     esac
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _stop() {
     _check_root
     printf "Stopping ts-warp: "
@@ -125,7 +152,7 @@ _stop() {
     uname -s | grep -i 'Linux' >/dev/null || /sbin/pfctl -f /etc/pf.conf
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _reload() {
     # Re-read configuration file on HUP signal
     _status && {
@@ -138,7 +165,7 @@ _reload() {
     }
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _restart() {
     _check_root
     printf "Restarting ts-warp: "
@@ -146,7 +173,7 @@ _restart() {
     _start $*
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _check_root() {
     [ `id -u` -ne 0 ] && { 
         printf "Fatal: You must be root to proceed\n"
@@ -154,15 +181,14 @@ _check_root() {
     }
 }
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 _usage() {
     printf "Usage:\n\tts-warp.sh start|stop|reload|restart [options]\n" 
     printf "\tts-warp.sh status\n"
     exit 1
 }
 
-
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 [ $# -eq 0 ] && _usage
 
 case "$1" in

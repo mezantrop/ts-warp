@@ -111,6 +111,10 @@ $ sudo nano /usr/local/etc/ts-warp.sh
     $ sudo nano /usr/local/etc/ts-warp_iptables.sh
     ```
 
+- The helper script `<PREFIX>/bin/bin/ts-warp_autofw.sh` makes and prints out sample firewall configuration based on
+  `ts-warp.ini` contents. It can be used to populate contents of `ts-warp_pf.conf`,  `ts-warp_iptables.sh` or
+  `ts-warp_nftables.sh`
+
 ##### Advanced firewall configuration
 
 There are two predefined sets of example firewall configuration files: **general** and **special**.

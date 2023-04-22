@@ -1,6 +1,6 @@
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------- #
 # TS-Warp - Transparent SOCKS proxy Wrapper
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
 #
@@ -22,7 +22,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------- #
 PREFIX ?= /usr/local
 
 CC = cc -o3
@@ -44,6 +44,9 @@ ts-warp: $(WARP_OBJS)
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
+
+ts-warp_autofw.sh:
+	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
@@ -75,8 +78,11 @@ install-examples:
 			install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
 			;; \
 		Linux) \
+			install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample; \
 			install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample \
-			install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample \
+			;; \
+		*) \
+			echo "Unsupported OS" \
 			;; \
 	esac
 
@@ -93,15 +99,19 @@ install-configs:
 			install -b -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf \
 			;; \
 		Linux) \
-			install -b -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh \
+			install -b -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh; \
 			install -b -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh \
+			;; \
+		*) \
+			echo "Unsupported OS" \
 			;; \
 	esac
 
-install: ts-warp ts-warp.sh ts-pass install-examples
+install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -d $(PREFIX)/bin/
 	install -m 755 ts-warp $(PREFIX)/bin/
 	install -m 755 ts-pass $(PREFIX)/bin/
+	install -m 755 ts-warp_autofw.sh $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 ts-warp.sh $(PREFIX)/etc/
 	install -d $(PREFIX)/var/log/
@@ -110,6 +120,7 @@ install: ts-warp ts-warp.sh ts-pass install-examples
 uninstall:
 	rm -f $(PREFIX)/bin/ts-warp 
 	rm -f $(PREFIX)/bin/ts-pass
+	rm -f $(PREFIX)/bin/ts-warp_autofw.sh
 	rm -f $(PREFIX)/etc/ts-warp.sh
 	rm -f $(PREFIX)/etc/ts-warp.ini.sample
 	rm -f $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample

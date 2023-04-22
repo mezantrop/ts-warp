@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.04.18    Current
+* 2023.04.22    ts-warp-1.1.7, gui-warp-1.0.2, ns-warp-1.0.3
+  * `ts-warp_autofw.sh` makes and prints out sample firewall configuration based on
+  `ts-warp.ini` contents
   * Switch back default to special firewall configuration
   * Starting loglevel changed to `LOG_WARN`; Minor changes and `README.md` update
   * Simplify firewall configuration. `make install`/`make install-configs` installs **general** simplified firewall
