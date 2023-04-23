@@ -110,7 +110,6 @@
   * `inifile.c`: `socks5_atype()`: SOCKS5 Address type selector: IPv4/IPv6/Name
   * `socks5_request()`: SOCKS5_ATYPE_NAME added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
   * `Makefile`: make uninstal
-  * l
   * Minor decorative changes
   * `ts-warp.sh`: stop -f for macOS update
   * `ts-warp.sh`: Force mode for start/stop procedures rewritten
