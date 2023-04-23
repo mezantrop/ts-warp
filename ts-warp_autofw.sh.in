@@ -283,6 +283,11 @@ TSW_TNAME='TSWARP'
 TSW_USER=`whoami`
 TSW_PORT=${1-10800}
 
+[ `id -u` -eq 0 ] && { 
+    printf "Fatal: You must not be root to proceed\n"
+    exit 1
+}
+
 cfg=`cat $tsw_ini |
     cut -f 1 -d ';' |
     cut -f 1 -d '#' |

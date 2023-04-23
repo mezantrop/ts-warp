@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2023.04.23    Current
+  * `ts-warp_autofw.sh` block using as `root`
+
 * 2023.04.22    ts-warp-1.1.7, gui-warp-1.0.2, ns-warp-1.0.3
   * `ts-warp_autofw.sh` makes and prints out sample firewall configuration based on
   `ts-warp.ini` contents
