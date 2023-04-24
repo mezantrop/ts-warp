@@ -132,7 +132,7 @@ uninstall:
 	rm -f $(PREFIX)/var/run/ts-warp.pid
 
 clean:
-	rm -rf ts-warp ts-warp.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh
+	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh
 
 inifile.o: inifile.h
 natlook.o: natlook.h
