@@ -32,7 +32,7 @@ PASS_OBJS = ts-pass.o xedec.o
 
 .PHONY:	all clean examples-general examples-special install install-configs install-examples release uninstall version
 
-all: ts-warp ts-warp.sh examples-special ts-pass
+all: ts-warp ts-warp.sh ts-warp_autofw.sh examples-special ts-pass
 
 release: version all
 
