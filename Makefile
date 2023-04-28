@@ -66,6 +66,7 @@ ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
 install-examples:
+	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
 	case `uname -s` in \
 		Darwin) \
@@ -87,6 +88,7 @@ install-examples:
 	esac
 
 install-configs:
+	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
 	case `uname -s` in \
 		Darwin) \
