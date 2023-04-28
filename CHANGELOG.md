@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.04.24    Current
+* 2023.04.28    Current
+  * `Makefile`: create `/etc` on `install-configs`/`install-examples` stage
   * `ts-warp_autofw.sh` block using as `root`; Added to `make all`/`make clean`
 
 * 2023.04.22    ts-warp-1.1.7, gui-warp-1.0.2, ns-warp-1.0.3
