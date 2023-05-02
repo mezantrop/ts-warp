@@ -75,10 +75,10 @@ int main (int argc, char* argv[]) {
 
     struct addrinfo ihints, *ires = NULL;                               /* NS-Warp incoming address info structures */
     struct addrinfo shints, *sres = NULL;
-    struct sockaddr caddr;                                              /* Client address and ... */
+    struct sockaddr_storage caddr;                                      /* Client address and ... */
     socklen_t caddrlen = sizeof caddr;                                  /* ... its length */
-    struct sockaddr oaddr;                                              /* Address for outgoing requests */
-    struct sockaddr q_ip;
+    struct sockaddr_storage oaddr;                                      /* Address for outgoing requests */
+    struct sockaddr_storage q_ip;
     char q_name[STR_SIZE];
 
     fd_set rfd;
@@ -191,7 +191,7 @@ int main (int argc, char* argv[]) {
         printl(LOG_CRIT, "Error resolving ns-warp address [%s]: %s", iaddr, gai_strerror(ret));
         exit(1);
     }
-    printl(LOG_INFO, "ns-warp address [%s] succesfully resolved to [%s]", iaddr, inet2str(ires->ai_addr, str_buf));
+    printl(LOG_INFO, "ns-warp address [%s] succesfully resolved to [%s]", iaddr, inet2str((struct sockaddr_storage *)ires->ai_addr, str_buf));
 
     /* -- Create socket for the incoming requests ------------------------------------------------------------------- */
     if ((isock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
@@ -214,7 +214,7 @@ int main (int argc, char* argv[]) {
     }
     printl(LOG_VERB, "Socket for outgoing DNS-requests created");
 
-	memset(&oaddr, 0, sizeof(struct sockaddr));
+	memset(&oaddr, 0, sizeof(struct sockaddr_storage));
     SA_FAMILY(oaddr) = ires->ai_family;
 	if (bind(ssock, (struct sockaddr *)&oaddr, sizeof(oaddr)) != 0) {
 		printl(LOG_CRIT, "Error binding socket for outgoing DNS-requests: [%s]", strerror(errno));
@@ -231,7 +231,8 @@ int main (int argc, char* argv[]) {
         exit(1);
     }
 
-    printl(LOG_INFO, "DNS-server address [%s] succesfully resolved to [%s]", saddr, inet2str(sres->ai_addr, str_buf));
+    printl(LOG_INFO, "DNS-server address [%s] succesfully resolved to [%s]", saddr,
+        inet2str((struct sockaddr_storage *)sres->ai_addr, str_buf));
     
     /* -- Process requests ------------------------------------------------------------------------------------------ */
     while (1) {
@@ -415,12 +416,13 @@ int main (int argc, char* argv[]) {
                     continue;
                 }
                 if (rec < 12) {                                              /* DNS packet minimum length */
-                    printl(LOG_CRIT, "DNS reply too short from %s", inet2str(sres->ai_addr, str_buf));
+                    printl(LOG_CRIT, "DNS reply too short from %s",
+                        inet2str((struct sockaddr_storage *)sres->ai_addr, str_buf));
                     continue;
                 }
 snd_client:
                 /* Everything is OK, just forward the message to the client */
-                snd = sendto(isock, dns_buf, rec, 0, &caddr, sizeof(struct sockaddr));
+                snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
                 if (snd == -1) {
                     printl(LOG_CRIT, "Error forwarding data to the client");
                     break;

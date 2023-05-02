@@ -78,15 +78,15 @@ ini_section *read_ini(char *ifile_name) {
             c_sect = (struct ini_section *)malloc(sizeof(struct ini_section));
             c_sect->section_name = strndup(section, sizeof section);
             c_sect->section_balance = SECTION_BALANCE_FAILOVER;
-            memset(&c_sect->socks_server, 0, sizeof(struct sockaddr));
+            memset(&c_sect->socks_server, 0, sizeof(struct sockaddr_storage));
             c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
             c_sect->socks_user = NULL;
             c_sect->socks_password = NULL;
             c_sect->proxy_chain = NULL;
             c_sect->target_entry = NULL;
             c_sect->nit_domain = NULL;
-            memset(&c_sect->nit_ipaddr, 0, sizeof(struct sockaddr));
-            memset(&c_sect->nit_ipmask, 0, sizeof(struct sockaddr));
+            memset(&c_sect->nit_ipaddr, 0, sizeof(struct sockaddr_storage));
+            memset(&c_sect->nit_ipmask, 0, sizeof(struct sockaddr_storage));
 
             c_sect->next = NULL;
 
@@ -223,8 +223,8 @@ ini_section *read_ini(char *ifile_name) {
 
                     c_targ->target_type = target_type;
                     /* Default values */
-                    memset(&c_targ->ip1, 0, sizeof(struct sockaddr));
-                    memset(&c_targ->ip2, 0, sizeof(struct sockaddr));
+                    memset(&c_targ->ip1, 0, sizeof(struct sockaddr_storage));
+                    memset(&c_targ->ip2, 0, sizeof(struct sockaddr_storage));
                     SIN4_FAMILY(c_targ->ip1) = AF_INET;
                     SIN4_FAMILY(c_targ->ip2) = AF_INET; 
  
@@ -247,10 +247,10 @@ ini_section *read_ini(char *ifile_name) {
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
-                    if (c_targ->ip1.sa_family == AF_INET) { 
+                    if (c_targ->ip1.ss_family == AF_INET) { 
                         SIN4_PORT(c_targ->ip1) = entry.mod1 ? htons((int)strtol(entry.mod1, (char **)NULL, 10)) : 0;
                         SIN4_PORT(c_targ->ip2) = entry.mod2 ? htons((int)strtol(entry.mod2, (char **)NULL, 10)) : 0xFFFF;
-                    } else if (c_targ->ip1.sa_family == AF_INET6) {
+                    } else if (c_targ->ip1.ss_family == AF_INET6) {
                         SIN6_PORT(c_targ->ip1) = entry.mod1 ? htons((int)strtol(entry.mod1, (char **)NULL, 10)) : 0;
                         SIN6_PORT(c_targ->ip2) = entry.mod2 ? htons((int)strtol(entry.mod2, (char **)NULL, 10)) : 0xFFFF;
                     } 
@@ -415,8 +415,8 @@ struct ini_section *delete_ini(struct ini_section *ini) {
         while (t) {
             printl(LOG_VERB, "DELETE IP1: [%s] IP2: [%s] Port1: [%d] Port2: [%d] Name: [%s] Type: [%d]",
                 inet2str(&t->ip1, ip1), inet2str(&t->ip2, ip2),
-                t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
-                t->ip1.sa_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
+                t->ip1.ss_family == AF_INET ? ntohs(SIN4_PORT(t->ip1)) : ntohs(SIN6_PORT(t->ip1)),
+                t->ip1.ss_family == AF_INET ? ntohs(SIN4_PORT(t->ip2)) : ntohs(SIN6_PORT(t->ip2)),
                 t->name ? t->name : "", t->target_type);
             tt = t->next;
             if (t->name && t->name[0]) free(t->name);
@@ -456,7 +456,7 @@ int pushback_ini(struct ini_section **ini, struct ini_section *target) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip) {
+struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip) {
     /* Lookup a SOCKS server ip in the list referred by ini */
 
     struct ini_section *s;
@@ -467,7 +467,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
     int domainlen = 0;
 
     host[0] = 0;
-    if (getnameinfo(&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
+    if (getnameinfo((struct sockaddr *)&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
         printl(LOG_VERB, "Unable to resolve hostname: [%s] into IP", inet2str(&ip, buf1));
     else
         if ((domain = strchr(host, '.'))) {
@@ -484,9 +484,9 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
         while (t) {
             switch(t->target_type) {
                 case INI_TARGET_HOST:
-                    if ((ip.sa_family == AF_INET && S4_ADDR(ip) == S4_ADDR(t->ip1) &&
+                    if ((ip.ss_family == AF_INET && S4_ADDR(ip) == S4_ADDR(t->ip1) &&
                         SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
-                        (ip.sa_family == AF_INET6 && !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
+                        (ip.ss_family == AF_INET6 && !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                             printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), s->section_name);
@@ -496,9 +496,9 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
 
                 case INI_TARGET_DOMAIN:
                     if ((domainlen && strcasestr(t->name, domain) &&
-                        (ip.sa_family == AF_INET &&
+                        (ip.ss_family == AF_INET &&
                             SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2))) ||
-                        (ip.sa_family == AF_INET6 &&
+                        (ip.ss_family == AF_INET6 &&
                             SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
                             printl(LOG_VERB, "Found SOCKS server: [%s] to serve host: [%s] domain: [%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
@@ -507,7 +507,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                     break;
 
                 case INI_TARGET_NETWORK:
-                    if (ip.sa_family == AF_INET) {
+                    if (ip.ss_family == AF_INET) {
                         /* IP & MASK_from_ini vs IP_from_ini & MASK_from_ini */
                         if ((S4_ADDR(ip) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) &&
                             SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) {
@@ -516,7 +516,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                                     inet2str(&t->ip2, buf4), s->section_name);
                                 return s;
                         }
-                    } else if (ip.sa_family == AF_INET6) {
+                    } else if (ip.ss_family == AF_INET6) {
                         /* IPv6 & MASK_from_ini vs IPv6_from_ini & MASK_from_ini */
                         int b;
                         for (b = 0; b < 16; ++b)
@@ -531,10 +531,10 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip)
                     break;
 
                 case INI_TARGET_RANGE:
-                    if ((ip.sa_family == AF_INET &&
+                    if ((ip.ss_family == AF_INET &&
                         ntohl(S4_ADDR(ip)) >= ntohl(S4_ADDR(t->ip1)) && ntohl(S4_ADDR(ip)) <= ntohl(S4_ADDR(t->ip2)) &&
                         SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
-                        (ip.sa_family == AF_INET6 &&
+                        (ip.ss_family == AF_INET6 &&
                         memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) > 0 &&
                         memcmp(S6_ADDR(ip), S6_ADDR(t->ip2), sizeof(S6_ADDR(ip))) < 0 &&
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
@@ -572,12 +572,12 @@ int chk_inivar(void *v, char *vi, int ln) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_atype(ini_section *ini, struct sockaddr daddr) {
+int socks5_atype(ini_section *ini, struct sockaddr_storage daddr) {
     /* Return the SOCKS5 address type based on the address family and presence in NIT */
     int sat = SOCKS5_ATYPE_IPV4;
     int b = 0;
 
-    if (daddr.sa_family == AF_INET && S4_ADDR(ini->socks_server) != S4_ADDR(daddr)) {
+    if (daddr.ss_family == AF_INET && S4_ADDR(ini->socks_server) != S4_ADDR(daddr)) {
         if (ini->nit_domain && 
             (S4_ADDR(ini->nit_ipaddr) & S4_ADDR(ini->nit_ipmask)) == (S4_ADDR(daddr) & S4_ADDR(ini->nit_ipmask)))
                 sat = SOCKS5_ATYPE_NAME;

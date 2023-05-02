@@ -27,8 +27,8 @@
 /* -- INI-file processing ------------------------------------------------------------------------------------------- */
 typedef struct nit {
     char *domain;                           /* Domain name */
-    struct sockaddr ip_addr;                /* IP network */
-    struct sockaddr ip_mask;                /* IP mask */
+    struct sockaddr_storage ip_addr;        /* IP network */
+    struct sockaddr_storage ip_mask;        /* IP mask */
     int iname;                              /* Index of the last inserted record */
     char **names;                           /* Array of N char pointers to strings with hostnames. N == !IP-mask */
     struct nit *next;
@@ -50,9 +50,9 @@ typedef struct ns_ini_entry {               /* Parsed INI-entry: var=val1:val2/m
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 nit *read_ini(char *ifile_name);
 void show_ini(struct nit *ini);
-int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *ip);
-int nit_lookup_ip(struct nit *nit_root, struct sockaddr *ip, char *name);
-struct sockaddr rev_addr(struct sockaddr *sa);
-char *reverse_ip(struct sockaddr *ip, char *rev_ip);
-struct sockaddr forward_ip(char *rev_ip);
+int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_storage *ip);
+int nit_lookup_ip(struct nit *nit_root, struct sockaddr_storage *ip, char *name);
+struct sockaddr_storage rev_addr(struct sockaddr_storage *sa);
+char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip);
+struct sockaddr_storage forward_ip(char *rev_ip);
 void strlow(char *s);

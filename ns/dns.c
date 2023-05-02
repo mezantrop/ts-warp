@@ -39,10 +39,10 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct sockaddr rev_addr(struct sockaddr *ip) {
+struct sockaddr_storage rev_addr(struct sockaddr_storage *ip) {
     /* Reverse sinX_addr to be used in PTR DNS lookups, e.g. 127.0.0.1 -> 1.0.0.127 */
 
-    struct sockaddr sa;
+    struct sockaddr_storage sa;
     uint32_t ipv6_quad;
 
     sa = *ip;
@@ -75,11 +75,11 @@ struct sockaddr rev_addr(struct sockaddr *ip) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *reverse_ip(struct sockaddr *ip, char *rev_ip) {
+char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip) {
     /* Reverse an IP address to be used as used as reverse lookup in PTR queries */
 
     const char *rev_d = DNS_REV_LOOKUP_SUFFIX_IPV4;
-    struct sockaddr sa;
+    struct sockaddr_storage sa;
     
     if (!rev_ip) return NULL;
 
@@ -96,11 +96,11 @@ char *reverse_ip(struct sockaddr *ip, char *rev_ip) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct sockaddr forward_ip(char *rev_ip) {
+struct sockaddr_storage forward_ip(char *rev_ip) {
     /* Make normal forward IP address from a reversed one */
 
     char *suff = NULL;
-    struct sockaddr sa;
+    struct sockaddr_storage sa;
     char buf[HOST_NAME_MAX];
 
     SA_FAMILY(sa) = AF_INET;
@@ -132,7 +132,7 @@ struct sockaddr forward_ip(char *rev_ip) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct sockaddr *ip, unsigned char *rbuf) {
+int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct sockaddr_storage *ip, unsigned char *rbuf) {
     /* Prepare both A and AAAA replies in *rbuf based on input data */
 
     dns_header *dnsh;

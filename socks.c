@@ -199,7 +199,7 @@ int socks5_auth(int socket, char *user, char *password) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr) {
+int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_storage *daddr) {
     /* Perform SOCKS5 request; IPv4/IPv6 addresses: atype 1/4, Domain name: atype 3 */
 
     s5_reply_short *rep;
@@ -252,7 +252,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
 
         printl(LOG_VERB, "Preparing NAME SOCKS5 request");
 
-        getnameinfo(daddr, sizeof(*daddr), daddr_ch, sizeof(daddr_ch), NULL, 0, 0);
+        getnameinfo((const struct sockaddr *)daddr, sizeof(*daddr), daddr_ch, sizeof(daddr_ch), NULL, 0, 0);
         atype_len = strlen(daddr_ch);
      
         printl(LOG_VERB, "The name in the NAME SOCKS5 request: [%s]", daddr_ch);
@@ -273,7 +273,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *dadd
         printl(LOG_VERB, "NAME SOCKS5 request sent");
 
     } else {
-        printl(LOG_CRIT, "Unsupported address types: [%d] is in the request", daddr->sa_family);
+        printl(LOG_CRIT, "Unsupported address types: [%d] is in the request", daddr->ss_family);
         mexit(1, pfile_name);
     }
 

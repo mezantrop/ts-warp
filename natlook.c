@@ -65,7 +65,7 @@ int pf_open() {
 int pf_close(int pfd) { return close(pfd); }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, struct sockaddr *daddr) {
+int nat_lookup(int pfd, struct sockaddr_storage *caddr, struct sockaddr_storage *iaddr, struct sockaddr_storage *daddr) {
     
     struct pfioc_natlook pfnl;
     char dstr_addr[INET_ADDRPORTSTRLEN];
@@ -73,7 +73,7 @@ int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, struct s
 
     memset(&pfnl, 0, sizeof(struct pfioc_natlook));
     pfnl.direction = PF_OUT;
-    pfnl.af = caddr->sa_family;
+    pfnl.af = caddr->ss_family;
     pfnl.proto = IPPROTO_TCP;
     
     memset(daddr, 0, sizeof *daddr);
