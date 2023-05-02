@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 PREFIX ?= /usr/local
 
-CC = cc
+CC = cc -O3
 CFLAGS = -Wall -I ../
 OBJECTS = ts-xedec.o
 
@@ -38,7 +38,7 @@ ts-xedec: $(OBJECTS)
 
 install: ts-xedec
 	install -d $(PREFIX)/bin/
-	install -m 755 ts-xedec $(PREFIX)/bin/
+	install -m 755 -s ts-xedec $(PREFIX)/bin/
 
 clean:
 	rm -rf ts-xedec *.o

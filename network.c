@@ -92,7 +92,7 @@ int connect_desnation(struct sockaddr dest) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
+char *inet2str(struct sockaddr_storage *ai_addr, char *str_addr) {
     /* inet_ntop() wrapper. If str_add is NULL, memory is auto-allocated,
      don't forget to free it after usage! */
 
@@ -103,7 +103,7 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
     memset(str_addr, 0, INET_ADDRPORTSTRLEN);
     memset(&buf, 0, INET_ADDRPORTSTRLEN);
 
-    switch (ai_addr->sa_family) {
+    switch (ai_addr->ss_family) {
         case AF_INET:
             inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr), buf, INET_ADDRSTRLEN);
             sprintf(str_addr, "%s:%d", buf, ntohs(SIN4_PORT(*ai_addr)));
@@ -115,16 +115,16 @@ char *inet2str(struct sockaddr *ai_addr, char *str_addr) {
             break;
 
         default:
-            printl(LOG_WARN, "Unrecognized address family: %d", ai_addr->sa_family);
+            printl(LOG_WARN, "Unrecognized address family: %d", ai_addr->ss_family);
             return NULL;
     }
     return str_addr;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct sockaddr str2inet(char *str_addr, char *str_port) {
+struct sockaddr_storage str2inet(char *str_addr, char *str_port) {
     struct addrinfo hints, *res = NULL;
-    struct sockaddr a_ret;
+    struct sockaddr_storage a_ret;
     int ret;
 
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -133,11 +133,11 @@ struct sockaddr str2inet(char *str_addr, char *str_port) {
     if ((ret = getaddrinfo(str_addr, str_port, &hints, &res)) > 0) {
         printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]", str_addr, str_port, gai_strerror(ret));
         /* Return INADDR_NONE when failing to resolve */
-        memset(&a_ret, 0, sizeof(struct sockaddr));
+        memset(&a_ret, 0, sizeof(struct sockaddr_storage));
         SA_FAMILY(a_ret) = AF_INET;
         S4_ADDR(a_ret) = INADDR_NONE;
     } else
-        a_ret = *res->ai_addr;
+        a_ret = *(struct sockaddr_storage *)res->ai_addr;
 
     freeaddrinfo(res);    
     return a_ret;

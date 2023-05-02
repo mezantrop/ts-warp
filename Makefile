@@ -25,7 +25,7 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 PREFIX ?= /usr/local
 
-CC = cc -o3
+CC = cc -O3
 CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_OBJS = inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
@@ -111,8 +111,8 @@ install-configs:
 
 install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -d $(PREFIX)/bin/
-	install -m 755 ts-warp $(PREFIX)/bin/
-	install -m 755 ts-pass $(PREFIX)/bin/
+	install -m 755 -s ts-warp $(PREFIX)/bin/
+	install -m 755 -s ts-pass $(PREFIX)/bin/
 	install -m 755 ts-warp_autofw.sh $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 ts-warp.sh $(PREFIX)/etc/

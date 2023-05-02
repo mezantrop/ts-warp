@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 PREFIX ?= /usr/local
 
-CC = cc
+CC = cc -O3
 CFLAGS = -Wall -I ../
 OBJECTS = ns-warp.o ns-inifile.o dns.o ../network.o ../utility.o ../logfile.o ../pidfile.o
 
@@ -41,7 +41,7 @@ ns-warp.sh:
 
 install: ns-warp ns-warp.sh
 	install -d $(PREFIX)/bin/
-	install -m 755 ns-warp $(PREFIX)/bin/
+	install -m 755 -s ns-warp $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 ns-warp.sh $(PREFIX)/etc/
 

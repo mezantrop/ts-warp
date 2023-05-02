@@ -92,5 +92,5 @@
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int connect_desnation(struct sockaddr dest);
-char *inet2str(struct sockaddr *ai_addr, char *str_addr);
-struct sockaddr str2inet(char *str_addr, char *str_port);
+char *inet2str(struct sockaddr_storage *ai_addr, char *str_addr);
+struct sockaddr_storage str2inet(char *str_addr, char *str_port);

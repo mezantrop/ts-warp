@@ -120,9 +120,9 @@ All parameters are optional:
     ini_section *s_ini;                                                 /* Current section of the INI-file */
     unsigned char auth_method;                                          /* SOCKS5 accepted auth method */
 
-    struct sockaddr caddr;                                              /* Client address */
+    struct sockaddr_storage caddr;                                      /* Client address */
     socklen_t caddrlen;                                                 /* Client address len */
-    struct sockaddr daddr;                                              /* Client destination address */
+    struct sockaddr_storage daddr;                                      /* Client destination address */
 
     fd_set rfd;
     struct timeval tv;
@@ -253,7 +253,8 @@ All parameters are optional:
         mexit(1, pfile_name);
     }
 
-    printl(LOG_INFO, "ts-warp address [%s] succesfully resolved to [%s]", iaddr, inet2str(ires->ai_addr, buf));
+    printl(LOG_INFO, "ts-warp address [%s] succesfully resolved to [%s]",
+        iaddr, inet2str((struct sockaddr_storage *)(ires->ai_addr), buf));
 
     ini_root = read_ini(ifile_name);
     show_ini(ini_root, LOG_VERB);
@@ -317,7 +318,7 @@ All parameters are optional:
     while (1) {
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
-        if ((csock = accept(isock, &caddr, &caddrlen)) < 0) {
+        if ((csock = accept(isock, (struct sockaddr *)&caddr, &caddrlen)) < 0) {
             printl(LOG_CRIT, "Error accepting incoming connection");
             return 1;
         }
@@ -329,15 +330,15 @@ All parameters are optional:
         #if defined(linux)
             /* On Linux && nftabeles/iptables */
             memset(&daddr, 0, daddrlen); 
-            daddr.sa_family = caddr.sa_family;
+            daddr.ss_family = caddr.ss_family;
             ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr, &daddrlen);
         #else
             /* On *BSD with PF */
-            ret = nat_lookup(pfd, &caddr, ires->ai_addr, &daddr);
+            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)ires->ai_addr, &daddr);
         #endif
         if (ret != 0) {
             printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-            getpeername(csock, &daddr, &daddrlen);
+            getpeername(csock, (struct sockaddr *)&daddr, &daddrlen);
         }
 
         printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
@@ -397,8 +398,8 @@ All parameters are optional:
                 /* No SOCKS-proxy server found for the destinbation IP */
                 printl(LOG_INFO, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
-                if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
+                if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
                         sizeof(S6_ADDR(daddr))))) {
                         
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
@@ -410,7 +411,7 @@ All parameters are optional:
 
                 /*  Direct connection with the destination address bypassing SOCKS */
                 printl(LOG_INFO, "Making a direct connection with the destination address: [%s]", inet2str(&daddr, buf));
-                if ((ssock = connect_desnation(daddr)) == -1) {
+                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr)) == -1) {
                     printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr, buf));
                     close(csock);
                     exit(1);
@@ -419,14 +420,14 @@ All parameters are optional:
                 printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr, buf));
             } else
                 /* We have found a SOCKS-proxy server for the destination */
-                if ((daddr.sa_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr.sa_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
                         sizeof(S6_ADDR(daddr))))) {
                         
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp directly: no NAT/redirection */                    
                         printl(LOG_INFO, "Connecting the client with SOCKS server directly");
-                        if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
+                        if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
                             printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr, buf));
                             close(csock);
                             exit(1);
@@ -445,7 +446,7 @@ All parameters are optional:
                         inet2str(&sc->chain_member->socks_server, buf));
 
                     /* Connect the first member of the chain */
-                    if ((ssock = connect_desnation(sc->chain_member->socks_server)) == -1) {
+                    if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->socks_server)) == -1) {
                         printl(LOG_WARN, "Unable to connect with CHAIN SOCKS server: [%s]", 
                             inet2str(&sc->chain_member->socks_server, buf));
                         close(csock);
@@ -494,7 +495,7 @@ All parameters are optional:
                                     inet2str(&sc->next->chain_member->socks_server, buf));
 
                                 if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                                    sc->next->chain_member->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
+                                    sc->next->chain_member->socks_server.ss_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
                                     &sc->next->chain_member->socks_server) > 0) {
                                         printl(LOG_WARN, "CHAIN SOCKS5 server returned an error");
                                         close(csock);
@@ -507,7 +508,7 @@ All parameters are optional:
                                     inet2str(&s_ini->socks_server, buf));
 
                                 if (socks5_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                                    s_ini->socks_server.sa_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
+                                    s_ini->socks_server.ss_family == AF_INET ? SOCKS5_ATYPE_IPV4 : SOCKS5_ATYPE_IPV6,
                                     &s_ini->socks_server) > 0) {
                                         printl(LOG_WARN, "SOCKS5 server returned an error");
                                         printl(LOG_WARN, "CHAIN SOCKS5 server returned an error");
@@ -559,7 +560,7 @@ All parameters are optional:
                     /* Only a single SOCKS server: no chain */
                     printl(LOG_INFO, "Connecting the SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
 
-                    if ((ssock = connect_desnation(s_ini->socks_server)) == -1) {
+                    if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
                         printl(LOG_WARN, "Unable to connect with SOCKS server: [%s]", inet2str(&s_ini->socks_server, buf));
                         close(csock);
                         exit(2);

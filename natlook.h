@@ -103,4 +103,4 @@ struct pfioc_natlook {
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int pf_open();
 int pf_close(int pfd);
-int nat_lookup(int pfd, struct sockaddr *caddr, struct sockaddr *iaddr, struct sockaddr *daddr);
+int nat_lookup(int pfd, struct sockaddr_storage *caddr, struct sockaddr_storage *iaddr, struct sockaddr_storage *daddr);

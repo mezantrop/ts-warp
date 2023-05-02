@@ -235,4 +235,4 @@ typedef struct {
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);
-int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr *daddr);
+int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_storage *daddr);

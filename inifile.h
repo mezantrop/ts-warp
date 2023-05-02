@@ -35,7 +35,7 @@
 typedef struct ini_section {
     char *section_name;                                                 /* Section name */
     uint8_t section_balance;                                            /* Balance SOCKS server on accessibility */
-    struct sockaddr socks_server;                                       /* SOCKS server IP-address and Port */
+    struct sockaddr_storage socks_server;                               /* SOCKS server IP-address and Port */
     uint8_t socks_version;                                              /* SOCKS version: 4 | 5 */
     char *socks_user;                                                   /* SOCKS server username */
     char *socks_password;                                               /* SOCKS server user password */
@@ -44,8 +44,8 @@ typedef struct ini_section {
 
     /*NIT Pool specification */
     char *nit_domain;                                                   /* NIT Domain name */
-    struct sockaddr nit_ipaddr;                                         /* NIT IP/address */
-    struct sockaddr nit_ipmask;                                         /* NIT address mask */
+    struct sockaddr_storage nit_ipaddr;                                 /* NIT IP/address */
+    struct sockaddr_storage nit_ipmask;                                 /* NIT address mask */
 
     struct ini_section *next;                                           /* The next INI-section */
 } ini_section;
@@ -62,8 +62,8 @@ typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]
 typedef struct ini_target {
     int target_type;                /* Hostname, Host IP, Domain, Network, Range */
     char *name;                     /* Hostname / Domain or null */
-    struct sockaddr ip1;            /* Host IP, Net IP, First IP in Range or null and optional port number 0 65535 */
-    struct sockaddr ip2;            /* Netmask, Last IP in Range or null + port */
+    struct sockaddr_storage ip1;    /* Host IP, Net IP, First IP in Range or null and optional port number 0 65535 */
+    struct sockaddr_storage ip2;    /* Netmask, Last IP in Range or null + port */
 
     struct ini_target *next;                                /* The next range entry */
 } ini_target;
@@ -118,8 +118,8 @@ ini_section *read_ini(char *ifile_name);
 void show_ini(struct ini_section *ini, int loglvl);
 struct ini_section *delete_ini(struct ini_section *ini);
 int pushback_ini(struct ini_section **ini, struct ini_section *target);
-struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr ip);
+struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip);
 int create_chains(struct ini_section *ini, struct chain_list *chain);
 struct ini_section *getsection(struct ini_section *ini, char *name);
 int chk_inivar(void *v, char *vi, int d);
-int socks5_atype(ini_section *ini, struct sockaddr daddr);
+int socks5_atype(ini_section *ini, struct sockaddr_storage daddr);

@@ -153,13 +153,13 @@ void show_ini(struct nit *nit_root) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *ip) {
+int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_storage *ip) {
     /* Forward NIT query for name, set ip as result. Return 0 on success, 1 if Name is not found in NIT */
 
     struct nit *s = NULL;
     unsigned int i = 0;
     unsigned int nit_size = 0;
-    struct sockaddr r_ip;
+    struct sockaddr_storage r_ip;
     int ret = 1;                                                        /* Return code */
 
     strlow(name);
@@ -228,7 +228,7 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr *i
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int nit_lookup_ip(struct nit *nit_root, struct sockaddr *ip, char *name) {
+int nit_lookup_ip(struct nit *nit_root, struct sockaddr_storage *ip, char *name) {
     /* Reverse NIT query for ip, set name as result. Return 0 on success, or 1 if IP is not found in NIT */
 
     struct nit *s = NULL;
