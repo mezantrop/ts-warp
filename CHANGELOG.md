@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.02    Current
+* 2023.05.03    Current
+  * `Makefile`: prevent `examples-general` and `examples-special` from running as `root`
   * `struct sockaddr` -> `struct sockaddr_storage` to handle IPv6 correctly
   * `Makefile`: create `/etc` on `install-configs`/`install-examples` stage
   * `ts-warp_autofw.sh` block using as `root`; Added to `make all`/`make clean`
