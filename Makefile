@@ -49,20 +49,24 @@ ts-warp_autofw.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
-	@[ `id -u` -eq 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; exit 1; }
+	@[ `id -u` -eq 0 ] || { echo "FATAL: You must run configuration targets only as normal (non-root) user!"; exit 1; }
+
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
+	touch .configured
 
 examples-special:
-	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; exit 1; }
+	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal (non-root) user!"; exit 1; }
+
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
+	touch .configured
 
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
@@ -71,6 +75,8 @@ install-examples:
     # ---------------------------------------------------------------------------------------------------------------- #
     # Examples (special version) are installed by default                                                              #
     # ---------------------------------------------------------------------------------------------------------------- #
+	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+
 	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
 	@case `uname -s` in \
@@ -96,6 +102,8 @@ install-configs:
     # ---------------------------------------------------------------------------------------------------------------- #
     # Danger zone! The targer is not run by default, it overwrites INSTALLED configuration files                       #
     # ---------------------------------------------------------------------------------------------------------------- #
+	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+
 	install -d $(PREFIX)/etc/
 	install -b -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini
 	@case `uname -s` in \
@@ -118,6 +126,8 @@ install-configs:
 	esac
 
 install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
+	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+
 	install -d $(PREFIX)/bin/
 	install -m 755 -s ts-warp $(PREFIX)/bin/
 	install -m 755 -s ts-pass $(PREFIX)/bin/
@@ -142,7 +152,7 @@ uninstall:
 	rm -f $(PREFIX)/var/run/ts-warp.pid
 
 clean:
-	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh
+	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured
 
 inifile.o: inifile.h
 natlook.o: natlook.h
