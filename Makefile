@@ -49,7 +49,7 @@ ts-warp_autofw.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
-	@[ `id -u` -eq 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; return 1; }
+	@[ `id -u` -eq 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; exit 1; }
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
@@ -57,7 +57,7 @@ examples-general:
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
 
 examples-special:
-	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; return 1; }
+	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal user!"; exit 1; }
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
