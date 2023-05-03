@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2023.05.03    Current
+  * `Makefile`: detect configuration targets are completed
   * `Makefile`: prevent `examples-general` and `examples-special` from running as `root`
   * `struct sockaddr` -> `struct sockaddr_storage` to handle IPv6 correctly
   * `Makefile`: create `/etc` on `install-configs`/`install-examples` stage
