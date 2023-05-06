@@ -29,6 +29,7 @@
 - [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
 - [ ] (optional) HTTP proxy
 - [x] SOCKS workload balance modes: `Failover`/`Roundrobin`/`None`
+- [ ] Implement SOCKS-server with support of hostnames in requests
 
 ### Changelog
 
