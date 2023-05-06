@@ -370,7 +370,7 @@ All parameters are optional:
         }
 
         /* Find SOCKS server to serve the destination address in INI file */
-        s_ini = ini_look_server(ini_root, daddr);
+        s_ini = ini_look_server(ini_root, daddr, NULL);
         if (s_ini && s_ini->section_balance == SECTION_BALANCE_ROUNDROBIN) pushback_ini(&ini_root, s_ini);
 
         if ((cpid = fork()) == -1) {
@@ -398,37 +398,29 @@ All parameters are optional:
                 /* No SOCKS-proxy server found for the destination IP */
                 printl(LOG_INFO, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
+                /* Let's try speaking SOCKS-protocol with the client; if not, drop the connection */
                 if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
                         sizeof(S6_ADDR(daddr))))) {
-                        
-                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
-                        ts-warp dirctly: no NAT/redirection */
-                        printl(LOG_WARN, "Dropping loop connection with ts-warp");
-                        close(csock);
-                        exit(1);
-                }
+                            /*
+                                TODO:
+                                    * Implement SOCKS-server side
+                                    * Support hostnames in requests
+                            */
 
-// TODO: 
-//  * Implement SOCKS-server side
-//  * Support hostnames in requests
-//
-//                /* Let's try speaking SOCKS-protocol to the client */
-//                if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
-//                    (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
-//                        sizeof(S6_ADDR(daddr))))) {
 //                            if (socks5_serve_hello(csock)) {             /* Reply 0x00, we don't want auth */
 //                                addr_type = socks5_serve_request(csock, dest_raw);
 //                                /* TODO: modify ini_look_server() to support names */
-//                                s_ini = ini_look_server_name(dest_raw, addr_type);
-//                            } else {
-//                                /* Desination address:port is the same as ts-warp income ip:port, i.e., a client
-//                                contacted ts-warp dirctly: no NAT/redirection */
-//                                printl(LOG_WARN, "Dropping loop connection with ts-warp");
-//                                close(csock);
-//                                exit(1);
+//                                if ((s_ini = ini_look_server_name(dest_raw, addr_type)))
+//                                    goto connect_socks;
 //                            }
-//                }
+                            
+                            /* Desination address:port is the same as ts-warp income ip:port, i.e., a client
+                            contacted ts-warp dirctly: no NAT/redirection */
+                            printl(LOG_WARN, "Dropping loop connection with ts-warp");
+                            close(csock);
+                            exit(1);                            
+                }
 
                 /*  Direct connection with the destination address bypassing SOCKS */
                 printl(LOG_INFO, "Making a direct connection with the destination address: [%s]", inet2str(&daddr, buf));
@@ -456,7 +448,7 @@ All parameters are optional:
                     }
             else {
                 /* Start SOCKS proto -------------------------------------------------------------------------------- */
-
+/* connect_socks: */
                 if (s_ini->proxy_chain) {
                     /* SOCKS chain */
 

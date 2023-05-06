@@ -118,7 +118,7 @@ ini_section *read_ini(char *ifile_name);
 void show_ini(struct ini_section *ini, int loglvl);
 struct ini_section *delete_ini(struct ini_section *ini);
 int pushback_ini(struct ini_section **ini, struct ini_section *target);
-struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip);
+struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip, char *hostname);
 int create_chains(struct ini_section *ini, struct chain_list *chain);
 struct ini_section *getsection(struct ini_section *ini, char *name);
 int chk_inivar(void *v, char *vi, int d);

@@ -456,25 +456,25 @@ int pushback_ini(struct ini_section **ini, struct ini_section *target) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip) {
+struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip, char *hostname) {
     /* Lookup a SOCKS server ip in the list referred by ini */
 
     struct ini_section *s;
     struct ini_target *t;
     char buf1[INET_ADDRPORTSTRLEN], buf2[INET_ADDRPORTSTRLEN];
     char buf3[INET_ADDRPORTSTRLEN], buf4[INET_ADDRPORTSTRLEN];
-    char host[HOST_NAME_MAX], *domain = NULL;
+    char host[HOST_NAME_MAX] = {0}, *domain = NULL;
     int domainlen = 0;
 
-    host[0] = 0;
-    if (getnameinfo((struct sockaddr *)&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
-        printl(LOG_VERB, "Unable to resolve hostname: [%s] into IP", inet2str(&ip, buf1));
-    else
+    if (hostname) strncpy(host, hostname, sizeof(host) - 1);
+    if (!hostname && getnameinfo((struct sockaddr *)&ip, sizeof(ip), host, sizeof host, 0, 0, NI_NAMEREQD))
+            printl(LOG_VERB, "Not specified / Unable to resolve hostname: [%s] into IP", inet2str(&ip, buf1));
+    else 
         if ((domain = strchr(host, '.'))) {
             domain++;
             domainlen = strnlen(domain, HOST_NAME_MAX);
         }
-    
+
     printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]", inet2str(&ip, buf1), host, domain?:"");
 
     s = ini;
@@ -484,14 +484,27 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
         while (t) {
             switch(t->target_type) {
                 case INI_TARGET_HOST:
-                    if ((ip.ss_family == AF_INET && S4_ADDR(ip) == S4_ADDR(t->ip1) &&
-                        SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
-                        (ip.ss_family == AF_INET6 && !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
-                        SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
-                            printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in: [%s]",
-                                inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), s->section_name);
+                    if ((host[0] && strcasestr(t->name, host) &&
+                        (ip.ss_family == AF_INET &&
+                            SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2))) ||
+                        (ip.ss_family == AF_INET6 &&
+                            SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
+
+                            printl(LOG_VERB, "Found SOCKS server: [%s] to serve host: [%s] domain: [%s] in: [%s]",
+                                inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
                             return s;
-                    }
+                    } else 
+                        if ((ip.ss_family == AF_INET && 
+                                S4_ADDR(ip) == S4_ADDR(t->ip1) &&
+                                SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||
+                            (ip.ss_family == AF_INET6 &&
+                                !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
+                                SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
+
+                                printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in: [%s]",
+                                    inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), s->section_name);
+                                return s;
+                        }
                     break;
 
                 case INI_TARGET_DOMAIN:
