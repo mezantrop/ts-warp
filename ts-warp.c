@@ -395,7 +395,7 @@ All parameters are optional:
             printl(LOG_VERB, "A new client process started");
 
             if (!s_ini) {
-                /* No SOCKS-proxy server found for the destinbation IP */
+                /* No SOCKS-proxy server found for the destination IP */
                 printl(LOG_INFO, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
                 if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
@@ -408,6 +408,27 @@ All parameters are optional:
                         close(csock);
                         exit(1);
                 }
+
+// TODO: 
+//  * Implement SOCKS-server side
+//  * Support hostnames in requests
+//
+//                /* Let's try speaking SOCKS-protocol to the client */
+//                if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+//                    (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
+//                        sizeof(S6_ADDR(daddr))))) {
+//                            if (socks5_serve_hello(csock)) {             /* Reply 0x00, we don't want auth */
+//                                addr_type = socks5_serve_request(csock, dest_raw);
+//                                /* TODO: modify ini_look_server() to support names */
+//                                s_ini = ini_look_server_name(dest_raw, addr_type);
+//                            } else {
+//                                /* Desination address:port is the same as ts-warp income ip:port, i.e., a client
+//                                contacted ts-warp dirctly: no NAT/redirection */
+//                                printl(LOG_WARN, "Dropping loop connection with ts-warp");
+//                                close(csock);
+//                                exit(1);
+//                            }
+//                }
 
                 /*  Direct connection with the destination address bypassing SOCKS */
                 printl(LOG_INFO, "Making a direct connection with the destination address: [%s]", inet2str(&daddr, buf));
