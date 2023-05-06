@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.03    Current
+* 2023.05.06    Current
+  * `inifile.c`, `inifile.h`: `ini_look_server()` supports hostnames
   * `Makefile`: detect configuration targets are completed
   * `Makefile`: prevent `examples-general` and `examples-special` from running as `root`
   * `struct sockaddr` -> `struct sockaddr_storage` to handle IPv6 correctly
