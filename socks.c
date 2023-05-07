@@ -62,7 +62,7 @@ const char *socks5_status[] = {
     "Address type is not supported"
 };
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/* -- SOCKS client functions ---------------------------------------------------------------------------------------- */
 int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user) {
     /* Send SOCKS4 request */
 
@@ -299,4 +299,19 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_stora
     
     printl(LOG_VERB, "SOCKS5 server reply status: [%d]:[%s]", rep->status, socks5_status[rep->status]);
     return rep->status;
+}
+
+/* --SOCKS server part ---------------------------------------------------------------------------------------------- */
+int socks5_serve_hello(int socket) {
+    /* TODO: Implement */
+
+    /* return AUTH_METHOD_NOAUTH; */
+    return AUTH_METHOD_NOACCEPT;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+uint8_t socks5_serve_request(int socket, struct sockaddr_storage *daddr, char *dnane) {
+    /* TODO: Implement */
+
+    return SOCKS5_ATYPE_IPV4;
 }

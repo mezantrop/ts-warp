@@ -25,6 +25,12 @@
 
 
 /* -- Main program file --------------------------------------------------------------------------------------------- */
+#if defined(linux)
+    #define _GNU_SOURCE
+    #include <netinet/in.h>
+    #include <linux/netfilter_ipv4.h>
+#endif
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -46,11 +52,6 @@
 
 #include <sys/types.h>
 #include <pwd.h>
-
-#if defined(linux)
-    #include <netinet/in.h>
-    #include <linux/netfilter_ipv4.h>
-#endif
 
 #include "ts-warp.h"
 #include "network.h"
@@ -398,28 +399,14 @@ All parameters are optional:
                 /* No SOCKS-proxy server found for the destination IP */
                 printl(LOG_INFO, "No SOCKS server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
-                /* Let's try speaking SOCKS-protocol with the client; if not, drop the connection */
                 if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), 
-                        sizeof(S6_ADDR(daddr))))) {
-                            /*
-                                TODO:
-                                    * Implement SOCKS-server side
-                                    * Support hostnames in requests
-                            */
-
-//                            if (socks5_serve_hello(csock)) {             /* Reply 0x00, we don't want auth */
-//                                addr_type = socks5_serve_request(csock, dest_raw);
-//                                /* TODO: modify ini_look_server() to support names */
-//                                if ((s_ini = ini_look_server_name(dest_raw, addr_type)))
-//                                    goto connect_socks;
-//                            }
-                            
+                        sizeof(S6_ADDR(daddr))))) {                            
                             /* Desination address:port is the same as ts-warp income ip:port, i.e., a client
-                            contacted ts-warp dirctly: no NAT/redirection */
+                            contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as SOCKS server */
                             printl(LOG_WARN, "Dropping loop connection with ts-warp");
                             close(csock);
-                            exit(1);                            
+                            exit(1);
                 }
 
                 /*  Direct connection with the destination address bypassing SOCKS */
@@ -438,17 +425,68 @@ All parameters are optional:
                         sizeof(S6_ADDR(daddr))))) {
                         
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
-                        ts-warp directly: no NAT/redirection */                    
-                        printl(LOG_INFO, "Connecting the client with SOCKS server directly");
-                        if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
-                            printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr, buf));
+                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as SOCKS-server */
+                        printl(LOG_INFO, "Serving the client with embedded TS-Warp SOCKS-server");
+
+                        /*
+                            TODO:
+                                * Implement SOCKS-server side
+                                * Support hostnames in requests
+                        */
+
+                        if (socks5_serve_hello(csock) != AUTH_METHOD_NOACCEPT) {
+                            /* Actually we'll want AUTH_METHOD_NOAUTH */
+                            uint8_t addr_type;                                  /* TODO: Move var defs to the front! */
+                            char dname[SOCKS5_ATYPE_NAME_LEN];
+                            memset(&dname, 0, sizeof(dname) - 1);
+                            memset(&daddr, 0, sizeof(struct sockaddr_storage));
+                            
+                            if ((addr_type = socks5_serve_request(csock, &daddr, dname)) == SOCKS5_ATYPE_NAME)
+                                /* Now daddr must contain TCP-port number regardless of the addr_type */
+                                
+                                /* Let's find the real destination, the client wants to reach */
+                                s_ini = ini_look_server(ini_root, daddr, dname);
+                            else
+                                s_ini = ini_look_server(ini_root, daddr, NULL);
+
+                            if (!s_ini || 
+                                SA_FAMILY(s_ini->socks_server) == AF_INET ? \
+                                    S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
+                                    S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr)) {
+                                    
+                                    printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp SOCKS server",
+                                        dname[0] ? dname : inet2str(&daddr, buf));
+
+                                    if (dname[0]) {
+                                        /* Convert hostname and port to struct sockaddr_storage */
+                                        char *dport;
+                                        asprintf(&dport, "%i",
+                                            SA_FAMILY(daddr) == AF_INET ? SIN4_PORT(daddr) : SIN6_PORT(daddr));
+                                        daddr = str2inet(dname, dport);
+                                        free(dport);
+                                    }
+
+                                    if ((ssock = connect_desnation(*(struct sockaddr *)&daddr)) == -1) {
+                                        printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                            inet2str(&daddr, buf));
+                                        close(csock);
+                                        exit(1);
+                                    }
+                                    goto cfloop;
+                            }
+                            
+                            /* Pass the client to external SOCKS-servers */
+                            goto connect_socks;
+
+                        } else {
+                            printl(LOG_WARN, "Embedded TS-Warp SOCKS server doesn't accept the connection");
                             close(csock);
                             exit(1);
                         }
                     }
             else {
                 /* Start SOCKS proto -------------------------------------------------------------------------------- */
-/* connect_socks: */
+connect_socks:
                 if (s_ini->proxy_chain) {
                     /* SOCKS chain */
 
@@ -642,6 +680,7 @@ single_server:
                 }
             }
 
+cfloop:
             printl(LOG_VERB, "Starting connection-forward loop");
 
             /* -- Forward connections ------------------------------------------------------------------------------- */

@@ -236,3 +236,5 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_storage *daddr);
+int socks5_serve_hello(int socket);
+uint8_t socks5_serve_request(int socket, struct sockaddr_storage *daddr, char *dnane);
