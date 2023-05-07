@@ -303,9 +303,40 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_stora
 
 /* --SOCKS server part ---------------------------------------------------------------------------------------------- */
 int socks5_serve_hello(int socket) {
-    /* TODO: Implement */
+    /* Parse client's 'hello' request and send reply; Return AUTH_METHOD_NOAUTH if OK or AUTH_METHOD_NOACCEPT if NOK */
 
-    /* return AUTH_METHOD_NOAUTH; */
+    s5_request_hello req;
+    s5_reply_hello rep;
+    unsigned int na = 0;
+ 
+    rep.ver = PROXY_PROTO_SOCKS_V5;
+    rep.cauth = AUTH_METHOD_NOACCEPT;
+
+    /* Receive 'hello' request from SOCKS-client */
+    if ((recv(socket, &req, sizeof req, 0)) == -1) {
+        printl(LOG_CRIT, "Unable to receive 'hello' reques from SOCKS5 client");
+        /* Quit function immediately; no reply back */
+        return AUTH_METHOD_NOACCEPT;
+    }
+
+    if (req.ver != PROXY_PROTO_SOCKS_V5)
+        printl(LOG_WARN, "Unsupported version: [%i] in the request", req.ver);
+    else 
+        for (na = 0; na < req.nauth; na++)
+            if (req.auth[na] == AUTH_METHOD_NOAUTH) {
+                printl(LOG_VERB, "Selected SOCKS auth method number: [%i] - [%i]", na, AUTH_METHOD_NOAUTH);
+                rep.cauth = AUTH_METHOD_NOAUTH;
+                break;
+            }
+
+    /* Send 'hello' reply */
+    if (send(socket, &rep, sizeof rep, 0) == -1) {
+        printl(LOG_CRIT, "Unable to send 'hello' reply to the SOCKS5 server");
+        return AUTH_METHOD_NOACCEPT;
+    }
+
+    /* return rep.cauth; */
+    /* TODO: Remove the safety stub below and uncomment return statement above */
     return AUTH_METHOD_NOACCEPT;
 }
 

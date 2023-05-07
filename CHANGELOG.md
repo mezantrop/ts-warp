@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.06    Current
+* 2023.05.07    Current
+  * `socks.c`: `socks5_serve_hello()` added
   * `inifile.c`, `inifile.h`: `ini_look_server()` supports hostnames
   * `Makefile`: detect configuration targets are completed
   * `Makefile`: prevent `examples-general` and `examples-special` from running as `root`
