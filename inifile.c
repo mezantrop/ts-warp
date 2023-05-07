@@ -228,7 +228,7 @@ ini_section *read_ini(char *ifile_name) {
                     SIN4_FAMILY(c_targ->ip1) = AF_INET;
                     SIN4_FAMILY(c_targ->ip2) = AF_INET; 
  
-                    if (target_type == INI_TARGET_DOMAIN) {
+                    if (target_type == INI_TARGET_DOMAIN || target_type == INI_TARGET_HOST) {
                         d = entry.val;
                         strsep(&d, "±§!@#$%^&*()_+=`~,<>/\\|{}[]:\"'");         /* Delete unwanted chars from domain */
                         c_targ->name = strdup(entry.val);                       /* Domain */
@@ -493,7 +493,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                             printl(LOG_VERB, "Found SOCKS server: [%s] to serve host: [%s] domain: [%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
                             return s;
-                    } else 
+                    } else
                         if ((ip.ss_family == AF_INET && 
                                 S4_ADDR(ip) == S4_ADDR(t->ip1) &&
                                 SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) ||

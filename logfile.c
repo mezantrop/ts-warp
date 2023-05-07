@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-
 #include "logfile.h"
 #include "utility.h"
 #include "pidfile.h"
