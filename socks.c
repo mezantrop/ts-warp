@@ -203,7 +203,7 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_stora
     /* Perform SOCKS5 request; IPv4/IPv6 addresses: atype 1/4, Domain name: atype 3 */
 
     s5_reply_short *rep;
-    char buf[261];                                                      /* Max SOCKS5 reply size */
+    char buf[sizeof(s5_reply)];                                   /* Max SOCKS5 reply size */
     int rcount = 0;
     int atype_len = SOCKS5_ATYPE_NAME_LEN;
 
@@ -302,19 +302,19 @@ int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_stora
 }
 
 /* --SOCKS server part ---------------------------------------------------------------------------------------------- */
-int socks5_serve_hello(int socket) {
+int socks5_server_hello(int socket) {
     /* Parse client's 'hello' request and send reply; Return AUTH_METHOD_NOAUTH if OK or AUTH_METHOD_NOACCEPT if NOK */
 
     s5_request_hello req;
     s5_reply_hello rep;
-    unsigned int na = 0;
+    uint8_t na = 0;
  
     rep.ver = PROXY_PROTO_SOCKS_V5;
     rep.cauth = AUTH_METHOD_NOACCEPT;
 
     /* Receive 'hello' request from SOCKS-client */
     if ((recv(socket, &req, sizeof req, 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive 'hello' reques from SOCKS5 client");
+        printl(LOG_CRIT, "Unable to receive 'hello' reques from the SOCKS5 client");
         /* Quit function immediately; no reply back */
         return AUTH_METHOD_NOACCEPT;
     }
@@ -324,7 +324,7 @@ int socks5_serve_hello(int socket) {
     else 
         for (na = 0; na < req.nauth; na++)
             if (req.auth[na] == AUTH_METHOD_NOAUTH) {
-                printl(LOG_VERB, "Selected SOCKS auth method number: [%i] - [%i]", na, AUTH_METHOD_NOAUTH);
+                printl(LOG_VERB, "Selected SOCKS5 auth method number: [%i] - [%i]", na, AUTH_METHOD_NOAUTH);
                 rep.cauth = AUTH_METHOD_NOAUTH;
                 break;
             }
@@ -341,8 +341,58 @@ int socks5_serve_hello(int socket) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t socks5_serve_request(int socket, struct sockaddr_storage *daddr, char *dnane) {
-    /* TODO: Implement */
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *daddr, char *dname) {
+    s5_request *req;
+    s5_request_ipv4 *req4;
+    s5_request_ipv6 *req6;
+    char buf[sizeof(s5_request)];                         /* Max SOCKS5 request/reply size */
+    int rcount;
+    uint8_t atype = SOCKS5_ATYPE_IPV4;
+    uint8_t rep_status = SOCKS5_REPLY_OK;
 
-    return SOCKS5_ATYPE_IPV4;
+    if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1 || rcount < sizeof(s5_request_short)) {
+        /* Quit immediately; no reply to the client */
+        printl(LOG_WARN, "Unable to receive a request from the SOCKS5 client");
+        return 0;
+    }
+
+    /* Validate request */
+    req = (s5_request *)buf;
+    if (req->ver != PROXY_PROTO_SOCKS_V5) {
+        printl(LOG_WARN, "Client speaks unsupported protocol version: [%i]", req->ver);
+        rep_status = SOCKS5_REPLY_UNSUPPORTED;
+    }
+
+    switch (req->atype) {
+        case SOCKS5_ATYPE_IPV4:
+            req4 = (s5_request_ipv4 *)buf;
+            memcpy(&SIN4_ADDR(*daddr), req4->dstaddr, sizeof(struct in_addr));
+            SIN4_PORT(*daddr) = req4->dstport;
+            atype = SOCKS5_ATYPE_IPV4;
+        break;
+        
+        case SOCKS5_ATYPE_NAME:
+            memcpy(dname, req->dsthost + 1, req->dsthost[0]);
+            memset(daddr, 0, sizeof(&daddr));
+            SA_FAMILY(*daddr) = AF_INET;
+            SIN4_PORT(*daddr) = SIN4_PORT(req->dsthost + 1 + req->dsthost[0]);
+            atype = SOCKS5_ATYPE_NAME;
+        break;
+
+        case SOCKS5_ATYPE_IPV6:
+            req6 = (s5_request_ipv6 *)buf;
+            memcpy(&SIN6_ADDR(*daddr), req6->dstaddr, sizeof(struct in6_addr));
+            SIN6_PORT(*daddr) = req6->dstport;
+            atype = SOCKS5_ATYPE_IPV6;
+        break;
+    }
+
+    /* Send reply back */
+    req->cmd = rep_status;                          /* Status field in Peply is the same as Command field in Request */
+    if (send(socket, &req, sizeof req, 0) == -1) {
+        printl(LOG_CRIT, "Unable to send reply to the SOCKS5 client");
+        return 0;
+    }
+
+    return atype;
 }

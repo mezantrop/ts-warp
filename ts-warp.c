@@ -434,14 +434,14 @@ All parameters are optional:
                                 * Support hostnames in requests
                         */
 
-                        if (socks5_serve_hello(csock) != AUTH_METHOD_NOACCEPT) {
+                        if (socks5_server_hello(csock) != AUTH_METHOD_NOACCEPT) {
                             /* Actually we'll want AUTH_METHOD_NOAUTH */
                             uint8_t addr_type;                                  /* TODO: Move var defs to the front! */
                             char dname[SOCKS5_ATYPE_NAME_LEN];
                             memset(&dname, 0, sizeof(dname) - 1);
                             memset(&daddr, 0, sizeof(struct sockaddr_storage));
                             
-                            if ((addr_type = socks5_serve_request(csock, &daddr, dname)) == SOCKS5_ATYPE_NAME)
+                            if ((addr_type = socks5_server_request(csock, &daddr, dname)) == SOCKS5_ATYPE_NAME)
                                 /* Now daddr must contain TCP-port number regardless of the addr_type */
                                 
                                 /* Let's find the real destination, the client wants to reach */

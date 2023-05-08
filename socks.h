@@ -113,7 +113,7 @@ typedef struct {
 
 /* Address type: atype max length */
 #define SOCKS5_ATYPE_IPV4_LEN   4
-#define SOCKS5_ATYPE_NAME_LEN   256
+#define SOCKS5_ATYPE_NAME_LEN   256                 /* 1 + HOST_NAME_MAX */
 #define SOCKS5_ATYPE_IPV6_LEN   16
 
 typedef struct {
@@ -127,7 +127,7 @@ typedef struct {
                                                         0x01: IPv4 address
                                                         0x03: Domain name
                                                         0x04: IPv6 address */
-    uint8_t dsthost[258];                           /* Destination address + port in a net byte order:
+    uint8_t dsthost[1 + HOST_NAME_MAX + 2];         /* Destination address + port in a net byte order:
                                                         IPv4 address:   4 bytes
                                                         Domain name:    1 byte Length + 1-255 bytes Name
                                                         IPv6 address:   16 bytes
@@ -197,11 +197,7 @@ typedef struct {
                                                         0x01: IPv4 address
                                                         0x03: Domain name
                                                         0x04: IPv6 address */
-    uint8_t *bndaddr;                               /* Server bound address
-                                                        IPv4 address:   4 bytes
-                                                        Domain name:    1 byte Length + 1-255 bytes Name
-                                                        IPv6 address:   16 bytes */
-    uint16_t bndport;                               /* Bound port number in a network byte order */
+    uint8_t bndaddrport[1 + HOST_NAME_MAX + 2];     /* A buffer to accomodate all types of addresses and a port */
 } s5_reply;
 
 typedef struct {
@@ -236,5 +232,5 @@ int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *use
 int socks5_hello(int socket, unsigned int auth_method, ...);
 int socks5_auth(int socket, char *user, char *password);
 int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_storage *daddr);
-int socks5_serve_hello(int socket);
-uint8_t socks5_serve_request(int socket, struct sockaddr_storage *daddr, char *dnane);
+int socks5_server_hello(int socket);
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *daddr, char *dname);
