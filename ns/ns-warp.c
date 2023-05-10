@@ -216,7 +216,7 @@ int main (int argc, char* argv[]) {
 
 	memset(&oaddr, 0, sizeof(struct sockaddr_storage));
     SA_FAMILY(oaddr) = ires->ai_family;
-	if (bind(ssock, (struct sockaddr *)&oaddr, sizeof(oaddr)) != 0) {
+	if (bind(ssock, (struct sockaddr *)&oaddr, sizeof(struct sockaddr)) != 0) {
 		printl(LOG_CRIT, "Error binding socket for outgoing DNS-requests: [%s]", strerror(errno));
         exit(1);
     }
