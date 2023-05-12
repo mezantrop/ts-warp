@@ -107,6 +107,7 @@ typedef struct {
 #define SOCKS5_CMD_TCPBIND      0x02
 #define SOCKS5_CMD_UDPASSOCIATE 0x03
 /* Address type: atype */
+#define SOCKS5_ATYPE_NONE       0x00                /* NB! Non standard, for ts-warp only */
 #define SOCKS5_ATYPE_IPV4       0x01
 #define SOCKS5_ATYPE_NAME       0x03
 #define SOCKS5_ATYPE_IPV6       0x04
@@ -213,6 +214,54 @@ typedef struct {
                                                         0x07: Command not supported / protocol error
                                                         0x08: Address type not supported */
     uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Server bound address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t dstaddr[4];                             /* Destination address
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes */
+    uint16_t dstport;                               /* Dest port number in a network byte order */
+} s5_reply_ipv4;
+
+typedef struct {
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t status;                                 /* Returned status
+                                                        0x00: Request granted
+                                                        0x01: General failure
+                                                        0x02: Connection not allowed by ruleset
+                                                        0x03: Network unreachable
+                                                        0x04: Host unreachable
+                                                        0x05: Connection refused by destination host
+                                                        0x06: TTL expired
+                                                        0x07: Command not supported / protocol error
+                                                        0x08: Address type not supported */
+    uint8_t rsv;                                    /* 0x00: Reserved */
+    uint8_t atype;                                  /* Server bound address type
+                                                        0x01: IPv4 address
+                                                        0x03: Domain name
+                                                        0x04: IPv6 address */
+    uint8_t dstaddr[16];                            /* Destination address
+                                                        IPv4 address:   4 bytes
+                                                        Domain name:    1 byte Length + 1-255 bytes Name
+                                                        IPv6 address:   16 bytes */
+    uint16_t dstport;                               /* Dest port number in a network byte order */ 
+} s5_reply_ipv6;
+
+typedef struct {
+    uint8_t ver;                                    /* SOCKS version */
+    uint8_t status;                                 /* Returned status
+                                                        0x00: Request granted
+                                                        0x01: General failure
+                                                        0x02: Connection not allowed by ruleset
+                                                        0x03: Network unreachable
+                                                        0x04: Host unreachable
+                                                        0x05: Connection refused by destination host
+                                                        0x06: TTL expired
+                                                        0x07: Command not supported / protocol error
+                                                        0x08: Address type not supported */
+    uint8_t rsv;                                    /* 0x00: Reserved */
     uint8_t atype;                                  /* Server bound address type 0x01: IPv4 address */
 } s5_reply_short;
 
@@ -228,9 +277,9 @@ typedef struct {
 #define SOCKS5_REPLY_ATYPE_ERROR    0x08            /* Address type is not supported */
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-int socks4_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
-int socks5_hello(int socket, unsigned int auth_method, ...);
-int socks5_auth(int socket, char *user, char *password);
-int socks5_request(int socket, uint8_t cmd, uint8_t atype, struct sockaddr_storage *daddr);
+int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
+int socks5_client_hello(int socket, unsigned int auth_method, ...);
+int socks5_client_auth(int socket, char *user, char *password);
+int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *daddr, char *dname);
 int socks5_server_hello(int socket);
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *daddr, char *dname);
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct sockaddr_storage *daddr, char *dname);

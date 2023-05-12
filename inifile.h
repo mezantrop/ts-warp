@@ -122,4 +122,3 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
 int create_chains(struct ini_section *ini, struct chain_list *chain);
 struct ini_section *getsection(struct ini_section *ini, char *name);
 int chk_inivar(void *v, char *vi, int d);
-int socks5_atype(ini_section *ini, struct sockaddr_storage daddr);
