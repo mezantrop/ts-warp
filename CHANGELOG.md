@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.05.08    Current
+* 2023.05.12    Current
+  * Basic SOCKS5 server-side functions are implemented; `socks5_atype()` removed; Socks related functions refactored
+  * `ns\ns-warp.c` Outgoing socket fix
   * `socks.c`: `socks5_server_request()` added; `inifile.c`: minor fixes
   * `socks.c`: `socks5_serve_hello()` added
   * `inifile.c`, `inifile.h`: `ini_look_server()` supports hostnames

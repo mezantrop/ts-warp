@@ -599,27 +599,3 @@ int chk_inivar(void *v, char *vi, int ln) {
 
     return 0;
 }
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_atype(ini_section *ini, struct sockaddr_storage daddr) {
-    /* Return the SOCKS5 address type based on the address family and presence in NIT */
-    int sat = SOCKS5_ATYPE_IPV4;
-    int b = 0;
-
-    if (daddr.ss_family == AF_INET && S4_ADDR(ini->socks_server) != S4_ADDR(daddr)) {
-        if (ini->nit_domain && 
-            (S4_ADDR(ini->nit_ipaddr) & S4_ADDR(ini->nit_ipmask)) == (S4_ADDR(daddr) & S4_ADDR(ini->nit_ipmask)))
-                sat = SOCKS5_ATYPE_NAME;
-    } else {
-        /* AF_INET6 */
-        sat = SOCKS5_ATYPE_NAME;
-        for (b = 0; b < 16; ++b)
-            if ((S6_ADDR(ini->nit_ipaddr)[b] & S6_ADDR(ini->nit_ipmask)[b]) != (S6_ADDR(daddr)[b] & S6_ADDR(ini->nit_ipmask)[b])) {
-                sat = SOCKS5_ATYPE_IPV6;
-                break;
-            }
-    }
-
-    printl(LOG_VERB, "Selecting SOCKS5 address type: [%d]", sat);
-    return sat;
-}
