@@ -150,7 +150,7 @@ ini_section *read_ini(char *ifile_name) {
                         c_sect->socks_version != PROXY_PROTO_SOCKS_V5) {
                             printl(LOG_WARN,
                                 "LN: [%d] Detected unsupported SOCKS version: [%d]", ln, c_sect->socks_version);
-                            
+
                             c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
 
                             printl(LOG_WARN, 
@@ -186,7 +186,7 @@ ini_section *read_ini(char *ifile_name) {
                         } else {
                             printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_SOCKS_PASSWORD);
                             mexit(1, pfile_name);
-                        }                        
+                        }
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {
                     if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_NONE))
@@ -209,7 +209,7 @@ ini_section *read_ini(char *ifile_name) {
                     if ((m = strtol(entry.val2, NULL, 10)) && m < 33) {
                         SIN4_FAMILY(c_sect->nit_ipmask) = AF_INET;
                         S4_ADDR(c_sect->nit_ipmask) = htonl(~(0xFFFFFFFF >> m));
-                    } else 
+                    } else
                         c_sect->nit_ipmask = str2inet(entry.val2, NULL);
             } else {
                 target_type = INI_TARGET_NOTSET;
@@ -243,7 +243,7 @@ ini_section *read_ini(char *ifile_name) {
                                     c_targ->name = strdup(entry.val);                               /* Hostname? */
                                     break;
                                 }
-                        
+
                         default:
                             c_targ->ip1 = str2inet(entry.val1, entry.mod1);
                             if (entry.val2) {
@@ -265,8 +265,8 @@ ini_section *read_ini(char *ifile_name) {
                     } else if (c_targ->ip1.ss_family == AF_INET6) {
                         SIN6_PORT(c_targ->ip1) = entry.mod1 ? htons((int)strtol(entry.mod1, (char **)NULL, 10)) : 0;
                         SIN6_PORT(c_targ->ip2) = entry.mod2 ? htons((int)strtol(entry.mod2, (char **)NULL, 10)) : 0xFFFF;
-                    } 
-                    
+                    }
+
                     c_targ->next = NULL;
 
                     if (!c_sect->target_entry) c_sect->target_entry = c_targ; else l_targ->next = c_targ;
@@ -276,7 +276,7 @@ ini_section *read_ini(char *ifile_name) {
             free(entry.val);
         }
     }
-    
+
     create_chains(ini_root, chain_root);
 
     fclose(fini);
@@ -296,7 +296,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
             if ((s = getsection(ini, c->txt_section))) {
                 printl(LOG_VERB, "Section: [%s] has a chain link: [%s]", c->txt_section, c->txt_chain);
 
-                sc = s->proxy_chain; 
+                sc = s->proxy_chain;
                 p = c->txt_chain;
                 while ((chain_section = strsep(&p, ",")) != NULL) {
                     if ((sts = getsection(ini, chain_section))) {
@@ -304,7 +304,7 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                         st->chain_member = sts;
                         st->next = NULL;
                         if (sc) sc->next = st; else s->proxy_chain = st;
-                        printl(LOG_VERB, "Linking chain section: [%s]", st->chain_member->section_name); 
+                        printl(LOG_VERB, "Linking chain section: [%s]", st->chain_member->section_name);
                     } else
                         printl(LOG_VERB, "Chain section: [%s] linked from: [%s] does not really exist",
                             chain_section, s->section_name);
@@ -327,7 +327,7 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
     /* Get reference to the INI section by it's name */
 
     struct ini_section *s;
-    
+
     s = ini;
     while (s) {
         if (!strcmp(s->section_name, name)) {
