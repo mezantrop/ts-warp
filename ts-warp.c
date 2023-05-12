@@ -83,7 +83,7 @@ ini_section *ini_root;                                              /* Root sect
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int main(int argc, char* argv[]) { 
+int main(int argc, char* argv[]) {
 /* Usage:
   ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
 
@@ -382,7 +382,7 @@ All parameters are optional:
             mexit(1, pfile_name);
         }
 
-        if (cpid > 0) {                                                 
+        if (cpid > 0) {
             /* -- Main (parent process) ----------------------------------------------------------------------------- */
             setpgid(cpid, pid);
             close(csock);
@@ -426,7 +426,7 @@ All parameters are optional:
                 if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
                     (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
                         sizeof(S6_ADDR(daddr))))) {
-                        
+
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as SOCKS-server */
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp SOCKS-server");
@@ -436,20 +436,20 @@ All parameters are optional:
                             /* Actually we want only AUTH_METHOD_NOAUTH */
                             memset(&dname, 0, sizeof(dname) - 1);
                             memset(&daddr, 0, sizeof(struct sockaddr_storage));
-                            
+
                             if ((addr_type = socks5_server_request(csock,(struct sockaddr_storage *)(ires->ai_addr),
-                                    &daddr, dname)) == SOCKS5_ATYPE_NAME)
+                                    &daddr, dname)) != SOCKS5_ATYPE_NONE)
                                 /* Now daddr must contain TCP-port number regardless of the addr_type */
                                 /* Let's find the real destination, the client wants to reach */
                                 s_ini = ini_look_server(ini_root, daddr, dname);
                             else
                                 s_ini = ini_look_server(ini_root, daddr, NULL);
 
-                            if (!s_ini || 
+                            if (!s_ini ||
                                 SA_FAMILY(s_ini->socks_server) == AF_INET ? \
                                     S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
                                     S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr)) {
-                                    
+
                                     printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp SOCKS server",
                                         dname[0] ? dname : inet2str(&daddr, buf));
 
@@ -473,7 +473,7 @@ All parameters are optional:
                                 printl(LOG_INFO, "Serving request to [%s : %s] with external SOCKS, section name: [%s]",
                                     dname, inet2str(&daddr, buf), s_ini->section_name);
                             }
-                            
+
                             /* Pass the client to external SOCKS-servers */
                             goto connect_socks;
 
@@ -706,7 +706,7 @@ cfloop:
 
                 if (ret < 0) break;
                 if (ret == 0) continue;
-                if (ret > 0) {    
+                if (ret > 0) {
                     memset(buf, 0, BUF_SIZE);
                     if (FD_ISSET(csock, &rfd)) {
                         /* Client writes */

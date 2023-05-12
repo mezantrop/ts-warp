@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Autoincrement build number in version.h for the release or just exit for normal build
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------- #
+# Autoincrement build number in version.h for the release or just exit for normal build                                #
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # Copyright (c) 2022-2023, Mikhail Zakharov <zmey20000@yahoo.com>
 #
@@ -27,15 +27,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------- #
 [ -n "$1" -a "$1" = "RELEASE" ] || exit 0
-[ -z "$2" ] && vf="version.h" || vf="$2" 
+[ -z "$2" ] && vf="version.h" || vf="$2"
 
 awk -F '"' -v vf="$vf" '
     /#define PROG_VERSION_BUILD/    {
         printf("%s\"%d\"%s\n", $1, $2 + 1, $3)> vf; 
         next
-    }; 
-    
+    };
+
     {print >vf}
 ' $vf

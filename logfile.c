@@ -52,8 +52,8 @@ void printl(int level, char *fmt, ...) {
     va_start(ap, fmt);
     vsnprintf(mesg, sizeof mesg , fmt, ap);
     va_end(ap);
-    fprintf(lfile, "%04d.%02d.%02d %02d:%02d:%02d %s [%d]:\t%s\n", 
-        tstamp->tm_year + 1900, tstamp->tm_mon + 1, tstamp->tm_mday, tstamp->tm_hour, tstamp->tm_min, tstamp->tm_sec, 
+    fprintf(lfile, "%04d.%02d.%02d %02d:%02d:%02d %s [%d]:\t%s\n",
+        tstamp->tm_year + 1900, tstamp->tm_mon + 1, tstamp->tm_mday, tstamp->tm_hour, tstamp->tm_min, tstamp->tm_sec,
         LOG_LEVEL[level], pid, mesg);
 
     fflush(lfile);

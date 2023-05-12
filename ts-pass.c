@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     printf("%s\n", result);
-    
+
     free(xkey);
     free(result);
     exit(0);

@@ -44,7 +44,7 @@ char *init_xcrypt(int xkey_len) {
     char *xkey = NULL;
     char *urnd_name = URANDOM;
     int urnd_fd = 0; int i = 0;
-    
+
     xkey = (char *)malloc(xkey_len + 1);
 
     urnd_fd = open(urnd_name, O_RDONLY);
@@ -98,9 +98,9 @@ char *xdecrypt(char *hex_hash, char *prefix) {
     for (b = 0, s = int_hash; b + 1 <= hash_len; b += 2) {
         memcpy(&ch, hex_hash + b, 2);
         *s ++= (char)strtol(ch, NULL, 16);
-    }   
+    }
 
-    xkey_len = int_hash[0];    
+    xkey_len = int_hash[0];
     xkey = int_hash + sizeof(char);
     pref = xkey + xkey_len;
     pref_len = strlen(prefix);

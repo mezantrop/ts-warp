@@ -37,7 +37,7 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 int connect_desnation(struct sockaddr dest) {
     /* Establish TCP connetion with a det address */
-    
+
     int sock;
 
     if ((sock = socket(dest.sa_family, SOCK_STREAM, 0)) < 0) {
@@ -139,6 +139,6 @@ struct sockaddr_storage str2inet(char *str_addr, char *str_port) {
     } else
         a_ret = *(struct sockaddr_storage *)res->ai_addr;
 
-    freeaddrinfo(res);    
+    freeaddrinfo(res);
     return a_ret;
 }

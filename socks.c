@@ -241,7 +241,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
         }
 
         printl(LOG_VERB, "IPv4 SOCKS5 request sent");
-    
+
     } else if (atype == SOCKS5_ATYPE_IPV6) {
         atype_len = SOCKS5_ATYPE_IPV6_LEN;
         printl(LOG_VERB, "Preparing IPv6 SOCKS5 request");
@@ -263,7 +263,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
         printl(LOG_VERB, "Preparing NAME SOCKS5 request");
 
         atype_len = strlen(dname);
-     
+
         printl(LOG_VERB, "The name in the NAME SOCKS5 request: [%s]", dname);
 
         char *name = (char *)req + sizeof(s5_request_short);
@@ -305,7 +305,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
         printl(LOG_WARN, "SOCKS5 server speaks unsupported protocol v:[%d]", rep->ver);
         return SOCKS5_REPLY_KO;
     }
-    
+
     printl(LOG_VERB, "SOCKS5 server reply status: [%d]:[%s]", rep->status, socks5_status[rep->status]);
     return rep->status;
 }
@@ -317,7 +317,7 @@ int socks5_server_hello(int socket) {
     s5_request_hello req;
     s5_reply_hello rep;
     uint8_t na = 0;
- 
+
     rep.ver = PROXY_PROTO_SOCKS_V5;
     rep.cauth = AUTH_METHOD_NOACCEPT;
 
@@ -376,11 +376,12 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     switch (req->atype) {
         case SOCKS5_ATYPE_IPV4:
             req4 = (s5_request_ipv4 *)buf;
+            SA_FAMILY(*daddr) = AF_INET;
             memcpy(&SIN4_ADDR(*daddr), req4->dstaddr, sizeof(struct in_addr));
             SIN4_PORT(*daddr) = req4->dstport;
             atype = SOCKS5_ATYPE_IPV4;
         break;
-        
+
         case SOCKS5_ATYPE_NAME:
             memcpy(dname, req->dsthost + 1, req->dsthost[0]);
             memset(daddr, 0, sizeof(&daddr));
@@ -391,7 +392,8 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
 
         case SOCKS5_ATYPE_IPV6:
             req6 = (s5_request_ipv6 *)buf;
-            memcpy(&SIN6_ADDR(*daddr), req6->dstaddr, sizeof(struct in6_addr));     /* TODO: FIXME!!! */
+            SA_FAMILY(*daddr) = AF_INET6;
+            memcpy(&SIN6_ADDR(*daddr), req6->dstaddr, sizeof(struct in6_addr));
             SIN6_PORT(*daddr) = req6->dstport;
             atype = SOCKS5_ATYPE_IPV6;
         break; 
@@ -405,7 +407,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     rep->atype = SOCKS5_ATYPE_IPV4;
     memcpy(rep->dstaddr, &SIN4_ADDR(*iaddr), sizeof(rep->dstaddr));
     rep->dstport = SIN4_PORT(*iaddr);
-    
+
     if (send(socket, &buf, sizeof(rep)+2, 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the SOCKS5 client");
         return 0;
