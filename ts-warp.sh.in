@@ -143,11 +143,11 @@ _stop() {
     _check_root
     printf "Stopping ts-warp: "
     [ -f "$tswarp_pidfile" -a -s "$tswarp_pidfile" -a -r "$tswarp_pidfile" ] && {
-        cat "$tswarp_pidfile" | xargs kill -TERM  > /dev/null 2>&1 || pkill ts-warp
+        cat "$tswarp_pidfile" | xargs kill -TERM  > /dev/null 2>&1 || pkill -x ts-warp
     }
 
     [ -f "$tswarp_pidfile" ] && rm -f "$tswarp_pidfile"
-    pkill ts-warp
+    pkill -x ts-warp
 
     uname -s | grep -i 'Linux' >/dev/null || /sbin/pfctl -f /etc/pf.conf
 }
