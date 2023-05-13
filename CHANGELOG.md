@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.12    Current
+* 2023.05.13    Current
+  * `-P` flag to disable internal SOCKS5 server
   * `socks.c`: `socks5_server_request()` fix `SA_FAMILY()` for `AF_INET` and `AF_INET6`; Trimming redundant spaces
   * Basic SOCKS5 server-side functions are implemented; `socks5_atype()` removed; Socks related functions refactored
   * `ns\ns-warp.c` Outgoing socket fix
