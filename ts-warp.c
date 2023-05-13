@@ -85,7 +85,7 @@ ini_section *ini_root;                                              /* Root sect
 /* ------------------------------------------------------------------------------------------------------------------ */
 int main(int argc, char* argv[]) {
 /* Usage:
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h
 
 Version:
   TS-Warp-X.Y.Z
@@ -100,6 +100,7 @@ All parameters are optional:
   -d              Daemon mode
   -p file.pid     PID filename
   -f              Force start
+  -P              Disable internal SOCKS5 server
 
   -u user         A user to run ts-warp, default: nobody
 
@@ -111,6 +112,7 @@ All parameters are optional:
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
+    int P_flg = 0;                                                      /* Internal SOCKS5 server (1 - disable) */
 
     #if !defined(__APPLE__)
         /* This doesn't work in MacOS, it won't allow reading /dev/pf under non-root */
@@ -141,41 +143,53 @@ All parameters are optional:
     char dname[SOCKS5_ATYPE_NAME_LEN] = {0};
 
 
-    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fu:h")) != -1)
+    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fPu:h")) != -1)
         switch(flg) {
             case 'i':                                                   /* Our IP/name */
                 iaddr = strsep(&optarg, ":");                           /* IP:PORT */
                 if (optarg) iport = optarg;
-                break;
+            break;
+
             case 'c':                                                   /* INI-file */
                 ifile_name = optarg;
-                break;
+            break;
+
             case 'l': 
                 l_flg = 1; lfile_name = optarg;                         /* Logfile */
-                break;
+            break;
+
             case 'v':                                                   /* Log verbosity */
                 loglevel = toint(optarg);
                 if (loglevel < LOG_NONE || loglevel > LOG_VERB) {
                     fprintf(stderr, "Wrong -v verbosity level value: [%s]\n", optarg);
                     usage(1);
                 }
-                break;
+            break;
+
             case 'd':                                                   /* Daemon mode */
                 d_flg = 1; 
-                break;
+            break;
+
             case 'p':
                 pfile_name = optarg;                                    /* PID-file */
-                break;
+            break;
+
             case 'f':                                                   /* Force start */
                 f_flg = 1; 
-                break;
+            break;
+
+            case 'P':
+                P_flg = 1;                                              /* Disable internal SOCKS5 server  */
+            break;
+
             case 'u':
                 #if defined(__APPLE__)
                     fprintf(stderr, "Warning: -u option under macOS is not available\n");
                 #else
                     runas_user = optarg;
                 #endif 
-                break;
+            break;
+
             case 'h':                                                   /* Help */
             default:
                 (void)usage(0);
@@ -432,7 +446,7 @@ All parameters are optional:
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp SOCKS-server");
 
                         /* -- TS-Warp SOCK5 server ------------------------------------------------------------------ */
-                        if (socks5_server_hello(csock) != AUTH_METHOD_NOACCEPT) {
+                        if (!P_flg && socks5_server_hello(csock) != AUTH_METHOD_NOACCEPT) {
                             /* Actually we want only AUTH_METHOD_NOAUTH */
                             memset(&dname, 0, sizeof(dname) - 1);
                             memset(&daddr, 0, sizeof(struct sockaddr_storage));
@@ -446,9 +460,9 @@ All parameters are optional:
                                 s_ini = ini_look_server(ini_root, daddr, NULL);
 
                             if (!s_ini ||
-                                SA_FAMILY(s_ini->socks_server) == AF_INET ? \
+                                (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
                                     S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
-                                    S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr)) {
+                                    S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
 
                                     printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp SOCKS server",
                                         dname[0] ? dname : inet2str(&daddr, buf));
@@ -457,7 +471,7 @@ All parameters are optional:
                                         /* Convert hostname and port to struct sockaddr_storage */
                                         char *dport;
                                         asprintf(&dport, "%i",
-                                            SA_FAMILY(daddr) == AF_INET ? SIN4_PORT(daddr) : SIN6_PORT(daddr));
+                                            SA_FAMILY(daddr) == AF_INET ? htons(SIN4_PORT(daddr)) : htons(SIN6_PORT(daddr)));
                                         daddr = str2inet(dname, dport);
                                         free(dport);
                                     }
@@ -478,7 +492,7 @@ All parameters are optional:
                             goto connect_socks;
 
                         } else {
-                            printl(LOG_WARN, "Embedded TS-Warp SOCKS server doesn't accept the connection");
+                            printl(LOG_WARN, "Embedded TS-Warp SOCKS server does not accept connections");
                             close(csock);
                             exit(1);
                         }
@@ -827,7 +841,7 @@ void trap_signal(int sig) {
 void usage(int ecode) {
 #if !defined(__APPLE__)
     printf("Usage:\n\
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h\n\n\
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
@@ -840,6 +854,7 @@ All parameters are optional:\n\
   -d\t\t    Daemon mode\n\
   -p file.pid\t    PID filename, default: %s\n\
   -f\t\t    Force start\n\
+  -P\t\t    Disable internal SOCKS5 server\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s\n\
   \n\
@@ -847,7 +862,7 @@ All parameters are optional:\n\
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
 #else
     printf("Usage:\n\
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -h\n\n\
+  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
@@ -860,6 +875,7 @@ All parameters are optional:\n\
   -d\t\t    Daemon mode\n\
   -p file.pid\t    PID filename, default: %s\n\
   -f\t\t    Force start\n\
+  -P\t\t    Disable internal SOCKS5 server\n\
   \n\
   -h\t\t    This message\n\n", 
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);
