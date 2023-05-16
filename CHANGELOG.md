@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.13    Current
+* 2023.05.16    ts-warp-1.2.0, gui-warp-1.0.3, ns-warp-1.0.4
+  * Internal Socks5 server example in `ts-warp.ini`; [README.md](README.md) update
   * `ts-warp.sh`: `pkill -x` for correct `restart`
   * `-P` flag to disable internal SOCKS5 server
   * `socks.c`: `socks5_server_request()` fix `SA_FAMILY()` for `AF_INET` and `AF_INET6`; Trimming redundant spaces

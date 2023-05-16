@@ -4,13 +4,13 @@
 [![C/C++ CI - macOS](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml)
 [![C/C++ CI - Ubuntu](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml)
 
-## Transparent SOCKS proxy Wrapper
+## Transparent Socks proxy server and Wrapper
 
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 ### Goals and TODO list
 
-- [x] Create a socksifier service - transparent firewall-based redirector of TCP/IP connections to a SOCKS-proxy server
+- [x] Create a socksifier service - transparent firewall-based redirector of TCP/IP connections to a Socks-proxy server
 
 - Support platforms:
   - [x] macOS, FreeBSD and OpenBSD with PF
@@ -18,9 +18,9 @@
 
 - [x] IPv6 stack support
 - [x] Maintain simple configuration structure as INI-file
-- [x] Support basic SOCKS authentication methods
+- [x] Support basic Socks authentication methods
 - [x] Password encoding (obfuscation) in configuration files
-- [x] SOCKS proxy chains
+- [x] Socks proxy chains
 - [x] Daemon mode
 - [x] Front-end UI
 - [x] Installation script
@@ -28,8 +28,8 @@
 - [ ] UDP support
 - [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
 - [ ] (optional) HTTP proxy
-- [x] SOCKS workload balance modes: `Failover`/`Roundrobin`/`None`
-- [ ] Implement SOCKS-server with support of hostnames in requests
+- [x] Socks workload balance modes: `Failover`/`Roundrobin`/`None`
+- [x] Internal Socks5-server with support for hostnames in requests
 
 ### Changelog
 
@@ -72,7 +72,7 @@ systems you may need to invoke `su` instead:
 
 #### Configure TS-Warp
 
-Based on `<PREFIX>/etc/ts-warp.ini.sample` file create `<PREFIX>/etc/ts-warp.ini` to suite your SOCKS configuration.
+Based on `<PREFIX>/etc/ts-warp.ini.sample` file create `<PREFIX>/etc/ts-warp.ini` to suite your Socks configuration.
 For example:
 
   ```sh
@@ -120,7 +120,7 @@ $ sudo nano /usr/local/etc/ts-warp.sh
 
 There are two predefined sets of example firewall configuration files: **general** and **special**.
 
-Simple **general** rulesets redirect all outgoing TCP traffic through TS-Warp, which in it's turn dispatches it to SOCKS
+Simple **general** rulesets redirect all outgoing TCP traffic through TS-Warp, which in it's turn dispatches it to Socks
 servers or to the destination targets. More complex **special** firewall configuration contains rules to only redirect
 TCP traffic to TS-Warp that requires to be soxified. By default, to minimize system workload, `make` installs
 **special** firewall rulesets, but it is possible to switch between both options using:
