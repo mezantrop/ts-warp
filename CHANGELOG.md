@@ -13,7 +13,7 @@
   * `Makefile`: detect configuration targets are completed
   * `Makefile`: prevent `examples-general` and `examples-special` from running as `root`
   * `struct sockaddr` -> `struct sockaddr_storage` to handle IPv6 correctly
-  * `Makefile`: create `/etc` on `install-configs`/`install-examples` stage
+  * `Makefile`: create `etc` on `install-configs`/`install-examples` stage
   * `ts-warp_autofw.sh` block using as `root`; Added to `make all`/`make clean`
 
 * 2023.04.22    ts-warp-1.1.7, gui-warp-1.0.2, ns-warp-1.0.3
