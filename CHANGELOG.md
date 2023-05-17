@@ -1,11 +1,14 @@
 # CHANGELOG
 
+* 2023.05.17    Current
+  * The project renamed to "Transparent Socks Proxy and Traffic Wrapper" to match internal Socks server functionality.
+
 * 2023.05.16    ts-warp-1.2.0, gui-warp-1.0.3, ns-warp-1.0.4
   * Internal Socks5 server example in `ts-warp.ini`; [README.md](README.md) update
   * `ts-warp.sh`: `pkill -x` for correct `restart`
-  * `-P` flag to disable internal SOCKS5 server
+  * `-P` flag to disable internal Socks5 server
   * `socks.c`: `socks5_server_request()` fix `SA_FAMILY()` for `AF_INET` and `AF_INET6`; Trimming redundant spaces
-  * Basic SOCKS5 server-side functions are implemented; `socks5_atype()` removed; Socks related functions refactored
+  * Basic Socks5 server-side functions are implemented; `socks5_atype()` removed; Socks related functions refactored
   * `ns\ns-warp.c` Outgoing socket fix
   * `socks.c`: `socks5_server_request()` added; `inifile.c`: minor fixes
   * `socks.c`: `socks5_serve_hello()` added
@@ -51,7 +54,7 @@
   * `inifile.c`: Many minor logfile tweaks
   * `ts-warp.c`: `read_ini()` added more allowed characters in sections: `a-zA-Z0-9_\t -+()`
   * `inifile.c`, `pidlist.c`: `show_ini()`, `pidlist_show()` logs using `LOG_CRIT`
-  * `socks.c`, `socks.h`: Extended SOCKS status codes
+  * `socks.c`, `socks.h`: Extended Socks status codes
   * `ns-warp.c`: Cosmetic chanes
   * `ns-warp`:  `dns.c/forward_ip()` rewritten for speed; Many fixes and improvements
   * ~~`ns-warp.c`: `fork()` to reduce possible resolve timeout~~
@@ -63,11 +66,11 @@
   * `mk_pidfile()`: fix for NULL pwd structure
   * `ns-warp`: CIDR addresses for NIT-pools
   * `ts-warp.c`: Correct clients exit procedure
-  * `ts-warp.c`: Use empty SOCKS section name in the PID list for direct connections
+  * `ts-warp.c`: Use empty Socks section name in the PID list for direct connections
   * On Linux `nftables` rules and usage examples added
 
 * 2022.11.26    ts-warp-1.1.3, gui-warp-1.0, ns-warp-1.0.1
-  * SOCKS servers section Failover/Roundrobin/None modes enabled
+  * Socks servers section Failover/Roundrobin/None modes enabled
   * `README.md`, `examples\ts-warp.ini`: updated
   * Minor decorative formatting
   * `ts-warp.c`: Accepts `SIGUSR1` to show configuration and clients
@@ -87,7 +90,7 @@
   * Minor text/typos fixes
 
 * 2022.11.13    ts-warp-1.1.0, gui-warp-1.0, ns-warp-1.0.1
-  * SOCKS servers section Failover/Roundrobin/None modes
+  * Socks servers section Failover/Roundrobin/None modes
   * Minor description changes
   * Finally section names allowed characters are: a-zA-Z0-9_\t -
   * Client's processes tracking - for future usage
@@ -99,7 +102,7 @@
   * `ns-warp`: `str2inet():`: updated; `malloc` issues fixed
   * `network.c/str2inet():` simplified; `inifile.c` memory optimization; `CHANGELOG.md` minor changes
   * `TCP_KEEPALIVE`: with defaults for OpenBSD
-  * `socks.c`, `socks.h`: Drop connection (not exit) if a SOCKS server replies an error
+  * `socks.c`, `socks.h`: Drop connection (not exit) if a Socks server replies an error
   * `TCP_KEEPALIVE` enabled and respective options added where possible
 
 * 2022.10.19    ts-warp-1.0.14, gui-warp-1.0, ns-warp-1.0.0
@@ -119,9 +122,9 @@
 * 2022.10.01    ts-warp-1.0.11, gui-warp-1.0, ns-warp-1.0.0
   * NS-Warp published
   * `inifile.c`: create_chains(): Chain list traversal fix; Thanks Bart Couvreur for the bug-hunting
-  * `inifile.c`: `socks5_atype()`: Correct SOCKS5 address type selection
-  * `inifile.c`: `socks5_atype()`: SOCKS5 Address type selector: IPv4/IPv6/Name
-  * `socks5_request()`: SOCKS5_ATYPE_NAME added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
+  * `inifile.c`: `socks5_atype()`: Correct Socks5 address type selection
+  * `inifile.c`: `socks5_atype()`: Socks5 Address type selector: IPv4/IPv6/Name
+  * `socks5_request()`: `SOCKS5_ATYPE_NAME` added; `inifile.h`: NS_INI_ENTRY_NIT_POOL
   * `Makefile`: make uninstal
   * Minor decorative changes
   * `ts-warp.sh`: stop -f for macOS update
@@ -129,10 +132,10 @@
   * `examples/ts-warp_pf_macos.conf`: `en7` added as often used
   * `inifile.c`: `free(entry.val)` if unused
   * `inifile.c`: Skip variables not in sections
-  * Chains & SOCKSv4 rewritten
+  * Chains & Socks4 rewritten
 
 * 2022.08.08    ts-warp-1.0.10, gui-warp-1.0
-  * `ts-warp.c`: SOCKS Chains improvement
+  * `ts-warp.c`: Socks Chains improvement
   * `inifile.c`: Lowcase in section names and better domain names parsing
   * `utility.c`: `toint()` wrapping
   * `usage()`: moved from `utility.c` to `ts-warp.c`
@@ -140,7 +143,7 @@
 
 * 2022.08.06    ts-warp-1.0.9, gui-warp-1.0
   * `logfile.c`: Logging moved out of `utility.c`
-  * `README.md`: TODO: UDP redirection; Resolve remote names via SOCKS
+  * `README.md`: TODO: UDP redirection; Resolve remote names via Socks
   * `inifile.c`: `ini_look_server()`: `host[0] = 0` prevents garbage output if `getnameinfo()` fails. Thanks Juha Nurmela
   * `README.md` updated
   * `man\ts-warp.8`: updated
@@ -152,7 +155,7 @@
 
 * 2022.06.11    ts-warp-1.0.8, gui-warp-1.0
   * Better logging
-  * SOCKS4 added
+  * Socks4 added
   * `socks.c/socks.h`: `SOCKS5_ATYPE_*_LEN` for precise address-type matching
   * `utility.c`: mesg[256] -> mesg[STR_SIZE]
   * `iniline.c`: Set smaller buffers in `ini_look_server()`
@@ -195,9 +198,9 @@
     * Network routines moved from `utility` and `socks` modules into `network`
     * Various minor cleanups and refactoring
   * Correct IPv6 address comparison
-  * Enable ts-warp daemon acting as a SOCKS-server when NAT/redirection enabled
+  * Enable ts-warp daemon acting as a Socks-server when NAT/redirection enabled
   * Manage non-NAT/redirected connnections with ts-warp daemon, so it's possible to specify ts-warp daemon as
-    a SOCKS-server in userland. Don't forget to add the respective section with a real SOCKS server in `ts-warp.ini` or
+    a Socks-server in userland. Don't forget to add the respective section with a real Socks server in `ts-warp.ini` or
     uncomment the `[DEFAULT]` one to catch all the unhandled requests.
   * Skip Domain check in `ini_look_server()` if target IP doesn't resolve
 

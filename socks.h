@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                          */
+/* TS-Warp - Transparent Socks proxy server and traffic Wrapper                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -24,16 +24,16 @@
 */
 
 
-/* -- SOCKS protocol definitions ------------------------------------------------------------------------------------ */
+/* -- Socks protocol definitions ------------------------------------------------------------------------------------ */
 #define PROXY_PROTO_SOCKS_V4    4
 #define PROXY_PROTO_SOCKS_V5    5
 
-/* -- SOCKS V4 ------------------------------------------------------------------------------------------------------ */
+/* -- Socks4 -------------------------------------------------------------------------------------------------------- */
 #define SOCKS4_CMD_TCPCONNECT   0x01
 #define SOCKS4_CMD_TCPBIND      0x02
 
 typedef struct {
-    uint8_t ver;                /* SOCKS version */
+    uint8_t ver;                /* Socks version */
     uint8_t cmd;                /* Command
                                     0x01: TCP Connect; 
                                     0x02: TCP port Binding */
@@ -53,13 +53,13 @@ typedef struct {
     uint32_t dstaddr;           /* IPv4 Address 4 bytes in network byte order */
 } s4_reply;
 
-/* SOCKS4 server replies. Only 0x5a and 0x5b are interesting */
+/* Socks4 server replies. Only 0x5a and 0x5b are interesting */
 #define SOCKS4_REPLY_OK         0x5a                /* Request granted */
 #define SOCKS4_REPLY_KO         0x5b                /* Request rejected or failed */
 #define SOCKS4_REPLY_KO_IDENT1  0x5c                /* Request failed because client is not running identd */
 #define SOCKS4_REPLY_KO_IDENT2  0x5d                /* Request failed because client's identd couldn't confirm user */
 
-/* -- SOCKS V5 ------------------------------------------------------------------------------------------------------ */
+/* -- Socks5 -------------------------------------------------------------------------------------------------------- */
 #define AUTH_MAX_METHODS        255
 
 #define AUTH_METHOD_NOAUTH      0x00
@@ -78,18 +78,18 @@ typedef struct {
 #define AUTH_METHOD_NOACCEPT    0xFF                /* No methods accepted by server */
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t nauth;                                  /* Number of auth methods */
     uint8_t auth[AUTH_MAX_METHODS];                 /* Authentication methods */
 } s5_request_hello;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t cauth;                                  /* Chosen auth method */
 } s5_reply_hello;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t idlen;                                  /* Username length */
     uint8_t *id;                                    /* ID 1-255 chars */
     uint8_t pwlen;                                  /* Password length */
@@ -97,11 +97,11 @@ typedef struct {
 } s5_request_auth;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t status;                                 /* 0x00: OK, else KO */
 } s5_reply_auth;
 
-/* Useful SOCKS5 request field definitions of s5_request* structures */
+/* Useful Socks5 request field definitions of s5_request* structures */
 /* Command: cmd */
 #define SOCKS5_CMD_TCPCONNECT   0x01
 #define SOCKS5_CMD_TCPBIND      0x02
@@ -118,7 +118,7 @@ typedef struct {
 #define SOCKS5_ATYPE_IPV6_LEN   16
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t cmd;                                    /* Command
                                                         0x01: TCP Connect;
                                                         0x02: TCP port Binding, e.g. FTP;
@@ -136,7 +136,7 @@ typedef struct {
 } s5_request;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t cmd;                                    /* Command
                                                         0x01: TCP Connect;
                                                         0x02: TCP port Binding, e.g. FTP;
@@ -154,7 +154,7 @@ typedef struct {
 } s5_request_ipv4;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t cmd;                                    /* Command
                                                         0x01: TCP Connect;
                                                         0x02: TCP port Binding, e.g. FTP;
@@ -172,7 +172,7 @@ typedef struct {
 } s5_request_ipv6;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t cmd;                                    /* Command
                                                         0x01: TCP Connect; 
                                                         0x02: TCP port Binding, e.g. FTP;
@@ -182,7 +182,7 @@ typedef struct {
 } s5_request_short;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t status;                                 /* Returned status
                                                         0x00: Request granted
                                                         0x01: General failure
@@ -202,7 +202,7 @@ typedef struct {
 } s5_reply;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t status;                                 /* Returned status
                                                         0x00: Request granted
                                                         0x01: General failure
@@ -226,7 +226,7 @@ typedef struct {
 } s5_reply_ipv4;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t status;                                 /* Returned status
                                                         0x00: Request granted
                                                         0x01: General failure
@@ -250,7 +250,7 @@ typedef struct {
 } s5_reply_ipv6;
 
 typedef struct {
-    uint8_t ver;                                    /* SOCKS version */
+    uint8_t ver;                                    /* Socks version */
     uint8_t status;                                 /* Returned status
                                                         0x00: Request granted
                                                         0x01: General failure
@@ -265,7 +265,7 @@ typedef struct {
     uint8_t atype;                                  /* Server bound address type 0x01: IPv4 address */
 } s5_reply_short;
 
-/* SOCKS5 reply statuses */
+/* Socks5 reply statuses */
 #define SOCKS5_REPLY_OK             0x00            /* Request granted */
 #define SOCKS5_REPLY_KO             0x01            /* General failure */
 #define SOCKS5_REPLY_DENIED         0x02            /* Connection not allowed by ruleset */

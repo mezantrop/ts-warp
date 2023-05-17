@@ -144,7 +144,7 @@ make_hosts() {
 
 # ---------------------------------------------------------------------------- #
 make_socks() {
-    # Collect SOCKS server information
+    # Collect Socks server information
 
     sservers_raw=`printf "%s\n" "$cfg" |
         grep socks_server |

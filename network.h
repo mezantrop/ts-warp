@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                          */
+/* TS-Warp - Transparent Socks proxy server and traffic Wrapper                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -57,7 +57,7 @@
 #define LISTEN_IPV6     "::1"                                           /* on this IPv6 address */
 #define LISTEN_DEFAULT  LISTEN_IPV4
 #define LISTEN_PORT     "10800"                                         /* This is our TCP port */
-#define SOCKS_PORT      "1080"                                          /* That is remote SOCKS server port */
+#define SOCKS_PORT      "1080"                                          /* That is remote Socks server port */
 
 #define INET_ADDRPORTSTRLEN INET6_ADDRSTRLEN + 6    /* MAX: ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff + ':' + '65535' */
 
