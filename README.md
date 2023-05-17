@@ -4,32 +4,32 @@
 [![C/C++ CI - macOS](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml)
 [![C/C++ CI - Ubuntu](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml)
 
-## Transparent Socks proxy server and Wrapper
+## Transparent Socks proxy server and traffic Wrapper
 
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-### Goals and TODO list
+### Features, TODO list
 
-- [x] Create a socksifier service - transparent firewall-based redirector of TCP/IP connections to a Socks-proxy server
+- [x] Socksifier service - transparent firewall-based redirector of TCP/IP connections to Socks-proxy server(s)
+- [x] Internal Socks5-server with support for hostnames in requests
 
-- Support platforms:
+- Supported platforms:
   - [x] macOS, FreeBSD and OpenBSD with PF
   - [x] Linux with nftables or iptables
 
-- [x] IPv6 stack support
-- [x] Maintain simple configuration structure as INI-file
-- [x] Support basic Socks authentication methods
-- [x] Password encoding (obfuscation) in configuration files
 - [x] Socks proxy chains
+- [x] Socks workload balance modes: `Failover`/`Roundrobin`/`None`
+- [x] Basic Socks authentication (username/password)
+- [x] IPv6 stack support
+- [x] Simple configuration structure as INI-like file
+- [x] Password encoding (obfuscation) in configuration files
+- [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
 - [x] Daemon mode
 - [x] Front-end UI
-- [x] Installation script
+- [x] Installation script (via Makefile)
 - [ ] Documentation
 - [ ] UDP support
-- [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
 - [ ] (optional) HTTP proxy
-- [x] Socks workload balance modes: `Failover`/`Roundrobin`/`None`
-- [x] Internal Socks5-server with support for hostnames in requests
 
 ### Changelog
 

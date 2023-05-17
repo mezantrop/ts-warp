@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                          */
+/* TS-Warp - Transparent Socks proxy server and traffic Wrapper                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -149,12 +149,12 @@ ini_section *read_ini(char *ifile_name) {
                     if (c_sect->socks_version != PROXY_PROTO_SOCKS_V4 &&
                         c_sect->socks_version != PROXY_PROTO_SOCKS_V5) {
                             printl(LOG_WARN,
-                                "LN: [%d] Detected unsupported SOCKS version: [%d]", ln, c_sect->socks_version);
+                                "LN: [%d] Detected unsupported Socks version: [%d]", ln, c_sect->socks_version);
 
                             c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
 
                             printl(LOG_WARN, 
-                                "LN: [%d] Resetting SOCKS version to default: [%d]", ln, c_sect->socks_version);
+                                "LN: [%d] Resetting Socks version to default: [%d]", ln, c_sect->socks_version);
                         }
             } else 
                 if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
@@ -368,7 +368,7 @@ void show_ini(struct ini_section *ini, int loglvl) {
             s->section_name, ini_balance[s->section_balance], inet2str(&s->socks_server, ip1), s->socks_version,
             s->socks_user?:"", s->socks_password ? "********" : "");
 
-        /* Display SOCKS chain */
+        /* Display Socks chain */
         if (s->proxy_chain) {
             printl(loglvl, "Socks Chain:");
             c = s->proxy_chain;
@@ -411,7 +411,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
 
         /* Delete socks chain */
         if (ini->proxy_chain) {
-            printl(LOG_VERB, "DELETE SOCKS Chain:");
+            printl(LOG_VERB, "DELETE Socks Chain:");
             c = ini->proxy_chain;
             while (c) {
                 printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
@@ -420,7 +420,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
                 c = cc;
             }
         } else
-            printl(LOG_VERB, "No SOCKS Chain detected");
+            printl(LOG_VERB, "No Socks Chain detected");
 
         /* Delete target_* entries */
         t = ini->target_entry;
@@ -469,7 +469,7 @@ int pushback_ini(struct ini_section **ini, struct ini_section *target) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip, char *hostname) {
-    /* Lookup a SOCKS server ip in the list referred by ini */
+    /* Lookup a Socks server ip in the list referred by ini */
 
     struct ini_section *s;
     struct ini_target *t;
@@ -502,7 +502,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                         (ip.ss_family == AF_INET6 &&
                             SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found SOCKS server: [%s] to serve HOST: [%s : %s] in: [%s]",
+                            printl(LOG_VERB, "Found Socks server: [%s] to serve HOST: [%s : %s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), host[0]?host:"-",
                                 inet2str(&ip, buf2), s->section_name);
                             return s;
@@ -514,7 +514,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                                 !memcmp(S6_ADDR(ip), S6_ADDR(t->ip1), sizeof(S6_ADDR(ip))) &&
                                 SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
 
-                                printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s : %s] in: [%s]",
+                                printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s : %s] in: [%s]",
                                     inet2str(&s->socks_server, buf1), host[0]?host:"-",
                                     inet2str(&ip, buf2), s->section_name);
                                 return s;
@@ -528,7 +528,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                         (ip.ss_family == AF_INET6 &&
                             SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found SOCKS server: [%s] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
+                            printl(LOG_VERB, "Found Socks server: [%s] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
                             return s;
                     }
@@ -540,7 +540,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                         if ((S4_ADDR(ip) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) &&
                             SIN4_PORT(ip) >= SIN4_PORT(t->ip1) && SIN4_PORT(ip) <= SIN4_PORT(t->ip2)) {
 
-                                printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
+                                printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
                                     inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), inet2str(&t->ip1, buf3), 
                                     inet2str(&t->ip2, buf4), s->section_name);
                                 return s;
@@ -552,7 +552,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                             if ((S6_ADDR(ip)[b] & S6_ADDR(t->ip2)[b]) != (S6_ADDR(t->ip1)[b] & S6_ADDR(t->ip2)[b]))
                                 break;
 
-                        printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
+                        printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
                             inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), inet2str(&t->ip1, buf3),
                             inet2str(&t->ip2, buf4), s->section_name);
                         return s;
@@ -568,7 +568,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_sto
                         memcmp(S6_ADDR(ip), S6_ADDR(t->ip2), sizeof(S6_ADDR(ip))) < 0 &&
                         SIN6_PORT(ip) >= SIN6_PORT(t->ip1) && SIN6_PORT(ip) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found SOCKS server: [%s] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
+                            printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
                                 inet2str(&s->socks_server, buf1), inet2str(&ip, buf2), inet2str(&t->ip1, buf3),
                                 inet2str(&t->ip2, buf4), s->section_name);
                             return s;

@@ -2,7 +2,7 @@
 
 ## DNS responder/proxy for TS-Warp
 
-NS-Warp allows to perform remote name resolution via SOCKS proxy server for transparent TS-Warp initiated connections
+NS-Warp allows to perform remote name resolution via Socks proxy server for transparent TS-Warp initiated connections
 and solve the issue if a target hostname is not known to a local DNS and you have to connect using an IP-address.
 
 NS-Warp uses an IP subnet to define Name to IP translation Table (NIT), to temporary associate hostnames with

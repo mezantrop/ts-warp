@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* TS-Warp - Transparent SOCKS proxy Wrapper                                                                          */
+/* TS-Warp - Transparent Socks proxy server and traffic Wrapper                                                       */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -34,12 +34,12 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct ini_section {
     char *section_name;                                                 /* Section name */
-    uint8_t section_balance;                                            /* Balance SOCKS server on accessibility */
-    struct sockaddr_storage socks_server;                               /* SOCKS server IP-address and Port */
-    uint8_t socks_version;                                              /* SOCKS version: 4 | 5 */
-    char *socks_user;                                                   /* SOCKS server username */
-    char *socks_password;                                               /* SOCKS server user password */
-    struct socks_chain *proxy_chain;                                    /* SOCKS proxy chain */
+    uint8_t section_balance;                                            /* Balance Socks server on accessibility */
+    struct sockaddr_storage socks_server;                               /* Socks server IP-address and Port */
+    uint8_t socks_version;                                              /* Socks version: 4 | 5 */
+    char *socks_user;                                                   /* Socks server username */
+    char *socks_password;                                               /* Socks server user password */
+    struct socks_chain *proxy_chain;                                    /* Socks proxy chain */
     struct ini_target *target_entry;                                    /* List of target definitions */
 
     /*NIT Pool specification */
@@ -68,7 +68,7 @@ typedef struct ini_target {
     struct ini_target *next;                                /* The next range entry */
 } ini_target;
 
-typedef struct socks_chain {                                /* SOCKS server chains */
+typedef struct socks_chain {                                /* Socks server chains */
     struct ini_section *chain_member;
     struct socks_chain *next;
 } socks_chain;
