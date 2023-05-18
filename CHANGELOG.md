@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.17    Current
+* 2023.05.18    Current
+  * `network.c`: `str2inet()` correct `struct addrinfo` into `struct sockaddr_storage` mapping
   * The project renamed to "Transparent Socks Proxy and Traffic Wrapper" to match internal Socks server functionality.
 
 * 2023.05.16    ts-warp-1.2.0, gui-warp-1.0.3, ns-warp-1.0.4
