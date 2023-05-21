@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.18    Current
+* 2023.05.21    Current
+  * `ts-warp.c`: Socks processing moved into `process_socks()`
   * `network.c`: `str2inet()` correct `struct addrinfo` into `struct sockaddr_storage` mapping
   * The project renamed to "Transparent Socks Proxy and Traffic Wrapper" to match internal Socks server functionality.
 
