@@ -37,6 +37,7 @@
 #include <strings.h>
 #include <stdlib.h>
 
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
 #include <sys/types.h>
@@ -77,7 +78,7 @@ char *pfile_name = PID_FILE_NAME;
 int cn = 1;                                                         /* Active clients number */
 pid_t pid, mpid;                                                    /* Current and main daemon PID */
 struct pid_list *pids = NULL;                                       /* List of active clients with PIDs and Sections */
-int isock, ssock, csock;                                            /* Sockets for in/out/clients */
+int Ssock, isock, ssock, csock;                                     /* Sockets for Internal-Socks/in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
  
 #if !defined(linux)
@@ -129,7 +130,8 @@ All parameters are optional:
     socklen_t caddrlen;                                                 /* Client address len */
     struct sockaddr_storage daddr;                                      /* Client destination address */
 
-    fd_set rfd;
+    fd_set sfd;                                                         /* Internal servers FDs */
+    fd_set rfd;                                                         /* Connection FDs */
     struct timeval tv;
 
     char buf[BUF_SIZE];                                                 /* Multipurpose buffer */
@@ -276,73 +278,85 @@ All parameters are optional:
     show_ini(ini_root, LOG_VERB);
 
     /* -- Create socket for the incoming connections ---------------------------------------------------------------- */
-    if ((isock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
+    if ((Ssock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
         printl(LOG_CRIT, "Error creating a socket for incoming connections");
         mexit(1, pfile_name);
     }
+    /* Internal servers to be non-blocking, so we can check which one acceps connection */
+    fcntl(Ssock, F_SETFL, O_NONBLOCK);
     printl(LOG_VERB, "Our socket for incoming connections created");
 
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
-        if (setsockopt(isock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+        if (setsockopt(Ssock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for incoming connections");
         else printl(LOG_INFO, "TCP_NODELAY option enabled");
     #endif
 
     int keepalive_opt = 1;
-    if (setsockopt(isock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+    if (setsockopt(Ssock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for incoming connections");
 
     #if !defined(__OpenBSD__)
         #if !defined(__APPLE__)
             keepalive_opt = TCP_KEEPIDLE_S;
-            if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+            if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
                 printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for incoming connections");
         #endif 
 
         keepalive_opt = TCP_KEEPCNT_N;
-        if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+        if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for incoming connections");
     
         keepalive_opt = TCP_KEEPINTVL_S;
-        if (setsockopt(isock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+        if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for incoming connections");
     #endif          /* __OpenBSD__ */
 
     int raddr = 1;
-    if (setsockopt(isock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+    if (setsockopt(Ssock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting incomming socket to be reusable");
 
     /* -- Bind incoming connections socket -------------------------------------------------------------------------- */
-    if (bind(isock, ires->ai_addr, ires->ai_addrlen) < 0) {
+    if (bind(Ssock, ires->ai_addr, ires->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding socket for the incoming connections");
-        close(isock);
+        close(Ssock);
         mexit(1, pfile_name);
     }
     printl(LOG_VERB, "The socket for incoming connections succesfully bound");
 
     /* -- Start listening for clients ------------------------------------------------------------------------------- */
-    if (listen(isock, SOMAXCONN) == -1) {
+    if (listen(Ssock, SOMAXCONN) == -1) {
         printl(LOG_CRIT, "Error listening the socket for incoming connections");
-        close(isock);
+        close(Ssock);
         mexit(1, pfile_name);
     }
     printl(LOG_INFO, "Listening for incoming connections");
 
     /* -- Process clients ------------------------------------------------------------------------------------------- */
     while (1) {
+        /* TODO: Add more sockets for internal servers: FD_SET(), select(), FD_ISSET() */
+        FD_ZERO(&sfd);
+        FD_SET(Ssock, &sfd);
+
+        /* select() blocks forever until socket is ready */
+        if (select(Ssock + 1, &sfd, NULL, NULL, NULL) < 0) continue;
+
+        /* Check which of the internal servers has a pending connection */
+        isock = FD_ISSET(Ssock, &sfd) ? Ssock : Ssock;
+
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
         if ((csock = accept(isock, (struct sockaddr *)&caddr, &caddrlen)) < 0) {
             printl(LOG_CRIT, "Error accepting incoming connection");
             return 1;
         }
-
+        fcntl(csock, F_SETFL, ~O_NONBLOCK);                         /* Don't block client connections */
         printl(LOG_INFO, "Client: [%d], IP: [%s] accepted", cn++, inet2str(&caddr, buf));
 
         /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-        socklen_t daddrlen = sizeof daddr;                              /* Client dest address len */
+        socklen_t daddrlen = sizeof daddr;                          /* Client dest address len */
         #if defined(linux)
             /* On Linux && nftabeles/iptables */
             memset(&daddr, 0, daddrlen); 
@@ -405,12 +419,16 @@ All parameters are optional:
 
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
-            close(isock);
 
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
-            ssock = process_socks(csock, &daddr, ires, s_ini, P_flg);
+            /* Check which of the internal servers require processing */
+            if (isock == Ssock) {
+                close(Ssock);
+                ssock = process_socks(csock, &daddr, ires, s_ini, P_flg);
+            } else                                                          /* TODO: Add here more internal servers */
+                break;
 
             printl(LOG_VERB, "Starting connection-forward loop");
 
@@ -509,8 +527,8 @@ void trap_signal(int sig) {
         case SIGQUIT:
         case SIGTERM:
             if (getpid() == mpid) {                                 /* The main daemon */
-                shutdown(isock, SHUT_RDWR);
-                close(isock);
+                shutdown(Ssock, SHUT_RDWR);
+                close(Ssock);
                 #if !defined(linux)
                     pf_close(pfd);
                 #endif
