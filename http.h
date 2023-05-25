@@ -25,4 +25,4 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t http_server_request(int socket, char *url);
+char *http_server_request(int socket, struct sockaddr_storage *daddr, char *dname);

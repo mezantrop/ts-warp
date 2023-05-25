@@ -58,6 +58,7 @@
 #include "network.h"
 #include "utility.h"
 #include "socks.h"
+#include "http.h"
 #include "inifile.h"
 #include "logfile.h"
 #include "pidfile.h"
@@ -92,8 +93,8 @@ Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -S IP:Port      Local IP address and port for incoming SOCKS requests
-  -i IP:Port      Local IP address and port for incoming SOCKS requests (to be deprecated in future releases)
+  -S IP:Port      Local IP address and port for incoming Socks requests
+  -i IP:Port      Local IP address and port for incoming Socks requests (to be deprecated in future releases)
   -H IP:Port      Local IP address and port for incoming HTTP requests
   -c file.ini     Configuration file
 
@@ -517,18 +518,17 @@ All parameters are optional:
                             sizeof(S6_ADDR(daddr))))) {
 
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
-                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as SOCKS-server */
-                        printl(LOG_INFO, "Serving the client with embedded TS-Warp SOCKS-server");
+                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
+                        printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
 
                         if (P_flg || socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
-                            printl(LOG_WARN, "Embedded TS-Warp SOCKS server does not accept connections");
+                            printl(LOG_WARN, "Embedded TS-Warp Socks server does not accept connections");
                             close(csock);
                             exit(1);
                         }
 
                         memset(&dname, 0, sizeof(dname) - 1);
                         memset(&daddr, 0, sizeof(struct sockaddr_storage));
-
                         if ((socks5_server_request(csock,(struct sockaddr_storage *)(ires->ai_addr),
                                 &daddr, dname)) != SOCKS5_ATYPE_NONE)
                             /* Now daddr must contain TCP-port number regardless of the addr_type */
@@ -563,10 +563,10 @@ All parameters are optional:
                             goto cfloop;
 
                         } else
-                            printl(LOG_INFO, "Serving request to [%s : %s] with external SOCKS, section name: [%s]",
+                            printl(LOG_INFO, "Serving request to [%s : %s] with external Socks, section name: [%s]",
                                 dname, inet2str(&daddr, buf), s_ini->section_name);
 
-                        /* Pass the client to external SOCKS-servers - proxy forwarding */
+                        /* Pass the client to external Socks-servers - proxy forwarding */
                     }
                 } else
                     if (isock == Hsock) {
@@ -574,12 +574,25 @@ All parameters are optional:
                         close(Ssock);
                         close(Hsock);
                         /* TODO: Implement HTTP proxy */
-                        
+
+                    if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                        (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                            sizeof(S6_ADDR(daddr))))) {
+
+                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
+                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
+                        printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
+
+                        memset(&dname, 0, sizeof(dname) - 1);
+                        memset(&daddr, 0, sizeof(struct sockaddr_storage));
+                        http_server_request(csock, &daddr, dname);
+
                         printl(LOG_CRIT, "Internal HTTP proxy is not implemented yet! Dropping the connection");
                         close(csock);
                         exit(1);
-                        
+
                         /* goto cfloop; */
+                    }
 
                 } else
                     break;
@@ -938,8 +951,8 @@ void usage(int ecode) {
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -S IP:Port\t    Local IP address and port for incoming SOCKS requests\n\
-  -i IP:Port\t    Local IP address and port for incoming SOCKS requests (to be deprecated in future releases)\n\
+  -S IP:Port\t    Local IP address and port for incoming Socks requests\n\
+  -i IP:Port\t    Local IP address and port for incoming Socks requests (to be deprecated in future releases)\n\
   -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
