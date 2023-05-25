@@ -66,9 +66,6 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int process_socks(int csock, struct sockaddr_storage *daddr, struct addrinfo *ires, ini_section *s_ini, int P_flg);
-
-/* ------------------------------------------------------------------------------------------------------------------ */
 int loglevel = LOG_LEVEL_DEFAULT;
 FILE *lfile = NULL;
 char *ifile_name = INI_FILE_NAME;
@@ -78,7 +75,7 @@ char *pfile_name = PID_FILE_NAME;
 int cn = 1;                                                         /* Active clients number */
 pid_t pid, mpid;                                                    /* Current and main daemon PID */
 struct pid_list *pids = NULL;                                       /* List of active clients with PIDs and Sections */
-int Ssock, isock, ssock, csock;                                     /* Sockets for Internal-Socks/in/out/clients */
+int Ssock, Hsock, isock, ssock, csock;                              /* Sockets for Internal-Socks&HTTP/in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
  
 #if !defined(linux)
@@ -89,13 +86,15 @@ ini_section *ini_root;                                              /* Root sect
 /* ------------------------------------------------------------------------------------------------------------------ */
 int main(int argc, char* argv[]) {
 /* Usage:
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h
+  ts-warp -S IP:Port -i IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h
 
 Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -i IP:Port      Incoming local IP address and port
+  -S IP:Port      Local IP address and port for incoming SOCKS requests
+  -i IP:Port      Local IP address and port for incoming SOCKS requests (to be deprecated in future releases)
+  -H IP:Port      Local IP address and port for incoming HTTP requests
   -c file.ini     Configuration file
 
   -l file.log     Log filename
@@ -111,8 +110,11 @@ All parameters are optional:
   -h              This message */
 
     int flg;                                                            /* Command-line options flag */
-    char *iaddr = LISTEN_DEFAULT;                                       /* Our (incomming) address and... */
-    char *iport = LISTEN_PORT;                                          /* ...a port to accept clients */
+    char *iaddr = LISTEN_DEFAULT;                                       /* Internal Socks address and... */
+    char *iport = LISTEN_SOCKS_PORT;                                    /* ...a port to accept clients */
+    char *Haddr = LISTEN_DEFAULT;                                       /* Internal HTTP address and... */
+    char *Hport = LISTEN_HTTP_PORT;                                     /* ...a port to accept clients */
+
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
@@ -123,18 +125,22 @@ All parameters are optional:
         char *runas_user = RUNAS_USER;                                  /* A user to run ts-warp */
     #endif
 
-    struct addrinfo ihints, *ires = NULL;                               /* TS-Warp incoming address info structures */
+    struct addrinfo ihints, *ires = NULL, *hres = NULL;                 /* TS-Warp incoming addresses info structures */
     ini_section *s_ini = NULL;                                          /* Current section of the INI-file */
 
     struct sockaddr_storage caddr;                                      /* Client address */
     socklen_t caddrlen;                                                 /* Client address len */
     struct sockaddr_storage daddr;                                      /* Client destination address */
+    char dname[SOCKS5_ATYPE_NAME_LEN] = {0};                            /* Client destination name */
+
+    unsigned char auth_method;                                          /* Socks5 accepted auth method */
 
     fd_set sfd;                                                         /* Internal servers FDs */
     fd_set rfd;                                                         /* Connection FDs */
     struct timeval tv;
 
     char buf[BUF_SIZE];                                                 /* Multipurpose buffer */
+    char suf[STR_SIZE];                                                 /* String buffer */
     int ret;                                                            /* Various function return codes */
     int rec, snd;                                                       /* received/sent bytes */
     pid_t cpid;                                                         /* Child PID */
@@ -143,10 +149,16 @@ All parameters are optional:
     struct ini_section *push_ini = NULL;                                /* variables */
 
 
-    while ((flg = getopt(argc, argv, "i:c:l:v:dp:fPu:h")) != -1)
+    while ((flg = getopt(argc, argv, "i:S:H:c:l:v:dp:fPu:h")) != -1)
         switch(flg) {
-            case 'i':                                                   /* Our IP/name */
+            case 'S':                                                   /* Internal Socks server IP/name */
+            case 'i':                                                   /* Will be deprecated in release */
                 iaddr = strsep(&optarg, ":");                           /* IP:PORT */
+                if (optarg) iport = optarg;
+            break;
+
+            case 'H':                                                   /* Internal HTTP server IP/name */
+                Haddr = strsep(&optarg, ":");                           /* IP:PORT */
                 if (optarg) iport = optarg;
             break;
 
@@ -196,7 +208,9 @@ All parameters are optional:
         }
 
     if (!iaddr[0]) iaddr = LISTEN_DEFAULT;
-    if (!iport[0]) iport = LISTEN_PORT;
+    if (!iport[0]) iport = LISTEN_SOCKS_PORT;
+    if (!Haddr[0]) Haddr = LISTEN_DEFAULT;
+    if (!Hport[0]) Hport = LISTEN_HTTP_PORT;
 
     /* Open log-file */
     if (!d_flg && !l_flg) {
@@ -267,84 +281,125 @@ All parameters are optional:
     ihints.ai_socktype = SOCK_STREAM;
     ihints.ai_flags = AI_PASSIVE;
     if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
-        printl(LOG_CRIT, "Error resolving ts-warp address [%s]: %s", iaddr, gai_strerror(ret));
+        printl(LOG_CRIT, "Error resolving ts-warp Socks address [%s]: %s", iaddr, gai_strerror(ret));
         mexit(1, pfile_name);
     }
-
-    printl(LOG_INFO, "ts-warp address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ts-warp Socks address [%s] succesfully resolved to [%s]",
         iaddr, inet2str((struct sockaddr_storage *)(ires->ai_addr), buf));
+
+    if ((ret = getaddrinfo(Haddr, Hport, &ihints, &hres)) > 0) {
+        printl(LOG_CRIT, "Error resolving ts-warp HTTP address [%s]: %s", Haddr, gai_strerror(ret));
+        mexit(1, pfile_name);
+    }
+    printl(LOG_INFO, "ts-warp HTTP address [%s] succesfully resolved to [%s]",
+        Haddr, inet2str((struct sockaddr_storage *)(hres->ai_addr), buf));
+
 
     ini_root = read_ini(ifile_name);
     show_ini(ini_root, LOG_VERB);
 
-    /* -- Create socket for the incoming connections ---------------------------------------------------------------- */
+    /* -- Create sockets for incoming connections ------------------------------------------------------------------- */
     if ((Ssock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
-        printl(LOG_CRIT, "Error creating a socket for incoming connections");
+        printl(LOG_CRIT, "Error creating a socket for Socks incoming connections");
         mexit(1, pfile_name);
     }
+
+    if ((Hsock = socket(hres->ai_family, hres->ai_socktype, hres->ai_protocol)) == -1) {
+        printl(LOG_CRIT, "Error creating a socket for HTTP incoming connections");
+        mexit(1, pfile_name);
+    }
+
     /* Internal servers to be non-blocking, so we can check which one acceps connection */
     fcntl(Ssock, F_SETFL, O_NONBLOCK);
-    printl(LOG_VERB, "Our socket for incoming connections created");
+    fcntl(Hsock, F_SETFL, O_NONBLOCK);
+    printl(LOG_VERB, "Sockets for incoming connections created");
 
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for incoming connections");
-        else printl(LOG_INFO, "TCP_NODELAY option enabled");
+            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Socks incoming connections");
+        else printl(LOG_INFO, "TCP_NODELAY option for Socks socket enabled");
+        if (setsockopt(Hsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for HTTP incoming connections");
+        else printl(LOG_INFO, "TCP_NODELAY option for HTTP socket enabled");
     #endif
 
     int keepalive_opt = 1;
     if (setsockopt(Ssock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for incoming connections");
+        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Socks incoming connections");
+    if (setsockopt(Hsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for HTTP incoming connections");
 
     #if !defined(__OpenBSD__)
         #if !defined(__APPLE__)
             keepalive_opt = TCP_KEEPIDLE_S;
             if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
-                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for incoming connections");
+                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Socks incoming connections");
+            if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for HTTP incoming connections");
         #endif 
 
         keepalive_opt = TCP_KEEPCNT_N;
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for incoming connections");
-    
+            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Socks incoming connections");
+        if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for HTTP incoming connections");
+
         keepalive_opt = TCP_KEEPINTVL_S;
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for incoming connections");
+            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Socks incoming connections");
+        if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for HTTP incoming connections");
     #endif          /* __OpenBSD__ */
 
     int raddr = 1;
     if (setsockopt(Ssock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting incomming socket to be reusable");
+        printl(LOG_WARN, "Error setting Socks incomming socket to be reusable");
+    if (setsockopt(Hsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting HTTP incomming socket to be reusable");
 
     /* -- Bind incoming connections socket -------------------------------------------------------------------------- */
     if (bind(Ssock, ires->ai_addr, ires->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding socket for the incoming connections");
+        printl(LOG_CRIT, "Error binding socket for Socks incoming connections");
         close(Ssock);
         mexit(1, pfile_name);
     }
-    printl(LOG_VERB, "The socket for incoming connections succesfully bound");
+    printl(LOG_VERB, "The socket for Socks incoming connections succesfully bound");
+
+    if (bind(Hsock, hres->ai_addr, hres->ai_addrlen) < 0) {
+        printl(LOG_CRIT, "Error binding socket for HTTP incoming connections");
+        close(Hsock);
+        mexit(1, pfile_name);
+    }
+    printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
 
     /* -- Start listening for clients ------------------------------------------------------------------------------- */
     if (listen(Ssock, SOMAXCONN) == -1) {
-        printl(LOG_CRIT, "Error listening the socket for incoming connections");
+        printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
         close(Ssock);
         mexit(1, pfile_name);
     }
-    printl(LOG_INFO, "Listening for incoming connections");
+    printl(LOG_INFO, "Listening for Socks incoming connections");
+
+    if (listen(Hsock, SOMAXCONN) == -1) {
+        printl(LOG_CRIT, "Error listening the socket for HTTP incoming connections");
+        close(Hsock);
+        mexit(1, pfile_name);
+    }
+    printl(LOG_INFO, "Listening for HTTP incoming connections");
 
     /* -- Process clients ------------------------------------------------------------------------------------------- */
     while (1) {
-        /* TODO: Add more sockets for internal servers: FD_SET(), select(), FD_ISSET() */
         FD_ZERO(&sfd);
         FD_SET(Ssock, &sfd);
+        FD_SET(Hsock, &sfd);
 
         /* select() blocks forever until socket is ready */
-        if (select(Ssock + 1, &sfd, NULL, NULL, NULL) < 0) continue;
+        if (select(Hsock > Ssock ? Hsock + 1 : Ssock + 1, &sfd, NULL, NULL, NULL) < 0) continue;
 
         /* Check which of the internal servers has a pending connection */
-        isock = FD_ISSET(Ssock, &sfd) ? Ssock : Ssock;
+        isock = FD_ISSET(Ssock, &sfd) ? Ssock : Hsock;
 
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
@@ -373,7 +428,7 @@ All parameters are optional:
 
         printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr, buf));
 
-        /* Process the PIDs list: remove exitted clients and execute workload balance functions */
+        /* -- Process the PIDs list: remove exitted clients and execute workload balance functions ------------------ */
         c = pids;
         while (c) {
             if (c == pids && c->status >= 0) {                      /* Remove pidlist root entry */
@@ -384,7 +439,7 @@ All parameters are optional:
                 free(c->section_name);
                 free(c);
                 c = pids;
-            }  
+            }
 
             if (c && c->next && c->next->status >= 0) {             /* Remove a pidlist entry */
                 d = c->next;
@@ -395,7 +450,7 @@ All parameters are optional:
                 free(d->section_name);
                 free(d);
             }
-            
+
             if (c) c = c->next;
         }
 
@@ -423,16 +478,330 @@ All parameters are optional:
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
-            /* Check which of the internal servers require processing */
-            if (isock == Ssock) {
-                close(Ssock);
-                ssock = process_socks(csock, &daddr, ires, s_ini, P_flg);
-            } else                                                          /* TODO: Add here more internal servers */
-                break;
+            if (!s_ini) {
+                /* -- No proxy server found for the destination IP -------------------------------------------------- */
+                printl(LOG_INFO, "No proxy server is defined for the destination: [%s]", inet2str(&daddr, buf));
 
+                if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.ss_family == AF_INET6 && 
+                        !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr)))) ||
+                    (daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*hres->ai_addr)) ||
+                    (daddr.ss_family == AF_INET6 &&
+                        !memcmp(S6_ADDR(daddr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr))))) {
+
+                    /* Desination address:port is the same as ts-warp incominig (Socks or HTTP) ip:port, i.e., a client
+                    contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as proxy server */
+                    printl(LOG_WARN, "Dropping loop connection with ts-warp");
+                    close(csock);
+                    exit(1);
+                }
+
+                /*  -- Direct connection with the destination address bypassing proxy ------------------------------- */
+                printl(LOG_INFO, "Making a direct connection with the destination address: [%s]", inet2str(&daddr, buf));
+                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr, buf));
+                    close(csock);
+                    exit(1);
+                }
+
+                printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr, buf));
+            } else
+                /* -- Internal TS-Warp proxy servers ---------------------------------------------------------------- */
+                if (isock == Ssock) {
+                    /* -- Internal Socks5 server with AUTH_METHOD_NOAUTH support only ------------------------------- */
+                    close(Ssock);
+                    close(Hsock);
+
+                    if ((daddr.ss_family == AF_INET && S4_ADDR(daddr) == S4_ADDR(*ires->ai_addr)) ||
+                        (daddr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr), S6_ADDR(*ires->ai_addr),
+                            sizeof(S6_ADDR(daddr))))) {
+
+                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
+                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as SOCKS-server */
+                        printl(LOG_INFO, "Serving the client with embedded TS-Warp SOCKS-server");
+
+                        if (P_flg || socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
+                            printl(LOG_WARN, "Embedded TS-Warp SOCKS server does not accept connections");
+                            close(csock);
+                            exit(1);
+                        }
+
+                        memset(&dname, 0, sizeof(dname) - 1);
+                        memset(&daddr, 0, sizeof(struct sockaddr_storage));
+
+                        if ((socks5_server_request(csock,(struct sockaddr_storage *)(ires->ai_addr),
+                                &daddr, dname)) != SOCKS5_ATYPE_NONE)
+                            /* Now daddr must contain TCP-port number regardless of the addr_type */
+                            /* Let's find the real destination, the client wants to reach */
+                            s_ini = ini_look_server(ini_root, daddr, dname);
+                        else
+                            s_ini = ini_look_server(ini_root, daddr, NULL);
+
+                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
+                            S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
+                            S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
+
+                            printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp SOCKS server",
+                                dname[0] ? dname : inet2str(&daddr, buf));
+
+                            if (dname[0]) {
+                                /* Convert hostname and port to struct sockaddr_storage */
+                                char *dport;
+                                asprintf(&dport, "%i",
+                                    SA_FAMILY(daddr) == AF_INET ? htons(SIN4_PORT(daddr)) : htons(SIN6_PORT(daddr)));
+                                daddr = str2inet(dname, dport);
+                                free(dport);
+                            }
+
+                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr)) == -1) {
+                                printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                    inet2str(&daddr, buf));
+                                close(csock);
+                                exit(1);
+                            }
+
+                            goto cfloop;
+
+                        } else
+                            printl(LOG_INFO, "Serving request to [%s : %s] with external SOCKS, section name: [%s]",
+                                dname, inet2str(&daddr, buf), s_ini->section_name);
+
+                        /* Pass the client to external SOCKS-servers - proxy forwarding */
+                    }
+                } else
+                    if (isock == Hsock) {
+                        /* -- Internal HTTP server  ----------------------------------------------------------------- */
+                        close(Ssock);
+                        close(Hsock);
+                        /* TODO: Implement HTTP proxy */
+                        
+                        printl(LOG_CRIT, "Internal HTTP proxy is not implemented yet! Dropping the connection");
+                        close(csock);
+                        exit(1);
+                        
+                        /* goto cfloop; */
+
+                } else
+                    break;
+
+            /* -- Start proxy forwarding ---------------------------------------------------------------------------- */
+            if (s_ini->proxy_chain) {
+
+                /* -- Proxy chains ---------------------------------------------------------------------------------- */
+                struct socks_chain *sc = s_ini->proxy_chain;
+
+                printl(LOG_INFO, "Connecting a CHAIN: [%s] Socks server: [%s]", sc->chain_member->section_name,
+                    inet2str(&sc->chain_member->socks_server, buf));
+
+                /* Connect the first member of the chain */
+                if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->socks_server)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with CHAIN Socks server: [%s]", 
+                        inet2str(&sc->chain_member->socks_server, buf));
+                    close(csock);
+                    exit(2);
+                }
+
+                while (sc) {
+                    if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V5) {
+                        if (sc->chain_member->socks_user)
+                            auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                        else
+                            auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
+
+                        switch (auth_method) {
+                            case AUTH_METHOD_NOAUTH:
+                                /* No authentication required */
+                            break;
+
+                            case AUTH_METHOD_UNAME:
+                                /* Perform user/password auth */
+                                if (socks5_client_auth(ssock, sc->chain_member->socks_user, sc->chain_member->socks_password)) {
+                                    printl(LOG_WARN, "CHAIN Socks5 server rejected user: [%s]", sc->chain_member->socks_user);
+                                    close(csock);
+                                    exit(2);
+                                }
+                            break;
+
+                            case AUTH_METHOD_GSSAPI:
+                            case AUTH_METHOD_CHAP:
+                            case AUTH_METHOD_CRAM:
+                            case AUTH_METHOD_SSL:
+                            case AUTH_METHOD_NDS:
+                            case AUTH_METHOD_MAF:
+                            case AUTH_METHOD_JPB:
+                                printl(LOG_CRIT, "CHAIN Socks5 server accepted unsupported auth-method: [%d]", auth_method);
+                                close(csock);
+                                exit(2);
+                            case AUTH_METHOD_NOACCEPT:
+                            default:
+                                printl(LOG_WARN, "No auth methods were accepted by CHAIN Socks5 server");
+                                close(csock);
+                                exit(2);
+                        }
+
+                        if (sc->next) {
+                            /* We want to connect with the next chain member */                                
+                            printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
+                                inet2str(&sc->chain_member->socks_server, suf),
+                                inet2str(&sc->next->chain_member->socks_server, buf));
+
+                            if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT,
+                                &sc->next->chain_member->socks_server, NULL) > 0) {
+                                    printl(LOG_WARN, "CHAIN Socks5 server returned an error");
+                                    close(csock);
+                                    exit(2);
+                            }
+                        } else {
+                            /* We are at the end of the chain, so connect with the section server */
+                            printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
+                                inet2str(&sc->chain_member->socks_server, suf),
+                                inet2str(&s_ini->socks_server, buf));
+
+                            if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &s_ini->socks_server, NULL) > 0) {
+                                printl(LOG_WARN, "Socks5 server returned an error");
+                                printl(LOG_WARN, "CHAIN Socks5 server returned an error");
+                                close(csock);
+                                exit(2);
+                            }
+
+                            goto single_server;
+                        }
+                    } else if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V4)
+                        if (sc->next) {
+                            /* We want to connect with the next chain member */
+                            printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
+                                inet2str(&sc->chain_member->socks_server, suf),
+                                inet2str(&sc->next->chain_member->socks_server, buf));
+
+                            if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                    (struct sockaddr_in *)&sc->next->chain_member->socks_server,
+                                    sc->next->chain_member->socks_user) > 0) {
+
+                                        printl(LOG_WARN, "CHAIN Socks4 server returned an error");
+                                        close(csock);
+                                        exit(2);
+                            }
+                        } else {
+                            /* We are at the end of the chain, so connect with the section server */
+                            printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
+                                inet2str(&sc->chain_member->socks_server, buf),
+                                inet2str(&s_ini->socks_server, buf));
+
+                            if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                                    (struct sockaddr_in *)&s_ini->socks_server, s_ini->socks_user) > 0) {
+
+                                        printl(LOG_WARN, "Socks4 server returned an error");
+                                        printl(LOG_WARN, "CHAIN Socks4 server returned an error");
+                                        close(csock);
+                                        exit(2);
+                            }
+                            goto single_server;
+                        }
+                    else {
+                        /* Must be cleared already by read_ini() */
+                        printl(LOG_WARN, "Detected unsupported CHAIN Socks version: [%d]",
+                            s_ini->proxy_chain->chain_member->socks_version);
+                        close(csock);
+                        exit(2);
+                    }
+                    sc = sc->next;
+                }
+            } else {
+                /* -- Single Proxy-server connection (no chains) ---------------------------------------------------- */
+                printl(LOG_INFO, "Connecting the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+
+                if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+                    close(csock);
+                    exit(2);
+                }
+
+                printl(LOG_INFO, "Succesfully connected with the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+
+                single_server:
+
+                if (s_ini->socks_version == PROXY_PROTO_SOCKS_V5) {
+
+                    printl(LOG_VERB, "Initiate Socks5 protocol: hello: [%s]", inet2str(&s_ini->socks_server, buf));
+
+                    if (s_ini->socks_user)
+                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                    else
+                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
+
+                    switch (auth_method) {
+                        case AUTH_METHOD_NOAUTH:                    /* No authentication required */
+                        break;
+
+                        case AUTH_METHOD_UNAME:                     /* Perform user/password auth */
+                            if (socks5_client_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
+                                printl(LOG_WARN, "Socks rejected user: [%s]", s_ini->socks_user);
+                                close(csock);
+                                exit(2);
+                            }
+                        break;
+
+                        case AUTH_METHOD_GSSAPI:
+                        case AUTH_METHOD_CHAP:
+                        case AUTH_METHOD_CRAM:
+                        case AUTH_METHOD_SSL:
+                        case AUTH_METHOD_NDS:
+                        case AUTH_METHOD_MAF:
+                        case AUTH_METHOD_JPB:
+                            printl(LOG_WARN, "Socks server accepted unsupported auth-method: [%d]", auth_method);
+                            close(csock);
+                            exit(2);
+                        case AUTH_METHOD_NOACCEPT:
+                        default:
+                            printl(LOG_WARN, "No auth methods were accepted by Socks server");
+                            close(csock);
+                            exit(2);
+                    }
+
+                    printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]", 
+                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr, buf));
+
+                    /* -- Perform NIT Lookup ------------------------------------------------------------------------ */
+                    if (daddr.ss_family == AF_INET && S4_ADDR(s_ini->socks_server) != S4_ADDR(daddr)) {
+                        if (s_ini->nit_domain &&
+                            (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr) &
+                                S4_ADDR(s_ini->nit_ipmask)))
+                                    if (getnameinfo((const struct sockaddr *)&daddr, sizeof(daddr), 
+                                        dname, sizeof(dname), 0, 0, NI_NAMEREQD)) {
+                                            printl(LOG_WARN, "Unable to resolve client destination address [%s] via NIT",
+                                                inet2str(&daddr, buf));
+                                            close(csock);
+                                            exit(2);
+                                    }
+                    }
+
+                    if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr, dname) > 0) {    
+                        printl(LOG_CRIT, "Socks server returned an error");
+                        close(csock);
+                        exit(2);
+                    }
+                } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
+                    printl(LOG_VERB, "Initiate Socks4 protocol: request: [%s] -> [%s]",
+                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr, buf));
+                    if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
+                            (struct sockaddr_in *)&daddr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
+                
+                        printl(LOG_WARN, "Socks4 server returned an error");
+                        close(csock);
+                        exit(2);
+                    }
+                } else {
+                    /* Must be cleared already by read_ini() */
+                    printl(LOG_WARN, "Detected unsupported Socks version: [%d]", s_ini->socks_version);
+                    close(csock);
+                    exit(2);
+                }
+            }
+            
+            /* -- Forward connections ------------------------------------------------------------------------------- */
+            cfloop:
             printl(LOG_VERB, "Starting connection-forward loop");
 
-            /* -- Forward connections ------------------------------------------------------------------------------- */
             while (1) {
                 FD_ZERO(&rfd);
                 FD_SET(csock, &rfd);
@@ -565,11 +934,13 @@ void trap_signal(int sig) {
 void usage(int ecode) {
 #if !defined(__APPLE__)
     printf("Usage:\n\
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h\n\n\
+  ts-warp -S IP:Port -i IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -i IP:Port\t    Incoming local IP address and port\n\
+  -S IP:Port\t    Local IP address and port for incoming SOCKS requests\n\
+  -i IP:Port\t    Local IP address and port for incoming SOCKS requests (to be deprecated in future releases)\n\
+  -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
   -l file.log\t    Log filename, default: %s\n\
@@ -605,312 +976,4 @@ All parameters are optional:\n\
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);
 #endif
     exit(ecode);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-int process_socks(int csock, struct sockaddr_storage *daddr, struct addrinfo *ires, ini_section *s_ini, int P_flg) {
-    unsigned char auth_method;                                          /* Socks5 accepted auth method */
-    char buf[BUF_SIZE];                                                 /* Multipurpose buffer */
-    char suf[STR_SIZE];                                                 /* String buffer */    
-    char dname[SOCKS5_ATYPE_NAME_LEN] = {0};
-    uint8_t addr_type;
-
-
-    if (!s_ini) {
-        /* No Socks-proxy server found for the destination IP */
-        printl(LOG_INFO, "No Socks server is defined for the destination: [%s]", inet2str(daddr, buf));
-
-        if ((daddr->ss_family == AF_INET && S4_ADDR(*daddr) == S4_ADDR(*ires->ai_addr)) ||
-            (daddr->ss_family == AF_INET6 && !memcmp(S6_ADDR(*daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(*daddr))))) {                            
-
-            /* Desination address:port is the same as ts-warp income ip:port, i.e., a client
-            contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as Socks server */
-            printl(LOG_WARN, "Dropping loop connection with ts-warp");
-            close(csock);
-            exit(1);
-        }
-
-        /*  Direct connection with the destination address bypassing Socks */
-        printl(LOG_INFO, "Making a direct connection with the destination address: [%s]", inet2str(daddr, buf));
-        if ((ssock = connect_desnation(*(struct sockaddr *)daddr)) == -1) {
-            printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(daddr, buf));
-            close(csock);
-            exit(1);
-        }
-
-        printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(daddr, buf));
-    } else
-        /* We have found a Socks-proxy server for the destination */
-        if ((daddr->ss_family == AF_INET && S4_ADDR(*daddr) == S4_ADDR(*ires->ai_addr)) ||
-            (daddr->ss_family == AF_INET6 && !memcmp(S6_ADDR(*daddr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(*daddr))))) {
-
-            /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
-            ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
-            printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
-
-            /* -- TS-Warp SOCK5 server ------------------------------------------------------------------ */
-            if (!P_flg && socks5_server_hello(csock) != AUTH_METHOD_NOACCEPT) {
-                /* Actually we want only AUTH_METHOD_NOAUTH */
-                memset(&dname, 0, sizeof(dname) - 1);
-                memset(daddr, 0, sizeof(struct sockaddr_storage));
-
-                if ((addr_type = socks5_server_request(csock, (struct sockaddr_storage *)(ires->ai_addr),
-                    daddr, dname)) != SOCKS5_ATYPE_NONE)
-                    
-                    /* Now daddr must contain TCP-port number regardless of the addr_type */
-                    /* Let's find the real destination, the client wants to reach */
-                    s_ini = ini_look_server(ini_root, *daddr, dname);
-                else
-                    s_ini = ini_look_server(ini_root, *daddr, NULL);
-
-                if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
-                    S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
-                    S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
-
-                    printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp Socks server",
-                        dname[0] ? dname : inet2str(daddr, buf));
-
-                    if (dname[0]) {
-                        /* Convert hostname and port to struct sockaddr_storage */
-                        char *dport;
-                        asprintf(&dport, "%i", SA_FAMILY(*daddr) == AF_INET ? htons(SIN4_PORT(*daddr)) : htons(SIN6_PORT(*daddr)));
-                        *daddr = str2inet(dname, dport);
-                        free(dport);
-                    }
-
-                    if ((ssock = connect_desnation(*(struct sockaddr *)daddr)) == -1) {
-                        printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(daddr, buf));
-                        close(csock);
-                        exit(1);
-                    }
-
-                    return ssock;
-                } else
-                    printl(LOG_INFO, "Serving request to [%s : %s] with external Socks, section name: [%s]",
-                        dname, inet2str(daddr, buf), s_ini->section_name);
-
-                /* Pass the client to external Socks-servers */
-                goto connect_socks;
-
-            } else {
-                printl(LOG_WARN, "Embedded TS-Warp Socks server does not accept connections");
-                close(csock);
-                exit(1);
-            }
-        }
-    else {
-        /* Start Socks proto -------------------------------------------------------------------------------- */
-connect_socks:
-        if (s_ini->proxy_chain) {
-            /* Socks chain */
-
-            struct socks_chain *sc = s_ini->proxy_chain;
-
-            printl(LOG_INFO, "Connecting a CHAIN: [%s] Socks server: [%s]", sc->chain_member->section_name,
-                inet2str(&sc->chain_member->socks_server, buf));
-
-            /* Connect the first member of the chain */
-            if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->socks_server)) == -1) {
-                printl(LOG_WARN, "Unable to connect with CHAIN Socks server: [%s]", 
-                    inet2str(&sc->chain_member->socks_server, buf));
-                close(csock);
-                exit(2);
-            }
-
-            while (sc) {
-                if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V5) {
-                    if (sc->chain_member->socks_user)
-                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
-                    else
-                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
-                    
-                    switch (auth_method) {
-                        case AUTH_METHOD_NOAUTH:
-                            /* No authentication required */
-                        break;
-                        
-                        case AUTH_METHOD_UNAME:
-                            /* Perform user/password auth */
-                            if (socks5_client_auth(ssock, sc->chain_member->socks_user, sc->chain_member->socks_password)) {
-                                printl(LOG_WARN, "CHAIN Socks5 server rejected user: [%s]", sc->chain_member->socks_user);
-                                close(csock);
-                                exit(2);
-                            }
-                        break;
-
-                        case AUTH_METHOD_GSSAPI:
-                        case AUTH_METHOD_CHAP:
-                        case AUTH_METHOD_CRAM:
-                        case AUTH_METHOD_SSL:
-                        case AUTH_METHOD_NDS:
-                        case AUTH_METHOD_MAF:
-                        case AUTH_METHOD_JPB:
-                            printl(LOG_CRIT, "CHAIN Socks5 server accepted unsupported auth-method: [%d]", auth_method);
-                            close(csock);
-                            exit(2);
-                        case AUTH_METHOD_NOACCEPT:
-                        default:
-                            printl(LOG_WARN, "No auth methods were accepted by CHAIN Socks5 server");
-                            close(csock);
-                            exit(2);
-                    }
-
-                    if (sc->next) {
-                        /* We want to connect with the next chain member */                                
-                        printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
-                            inet2str(&sc->chain_member->socks_server, suf),
-                            inet2str(&sc->next->chain_member->socks_server, buf));
-
-                        if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                            &sc->next->chain_member->socks_server, NULL) > 0) {
-                                printl(LOG_WARN, "CHAIN Socks5 server returned an error");
-                                close(csock);
-                                exit(2);
-                        }
-                    } else {
-                        /* We are at the end of the chain, so connect with the section server */
-                        printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
-                            inet2str(&sc->chain_member->socks_server, suf),
-                            inet2str(&s_ini->socks_server, buf));
-
-                        if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &s_ini->socks_server, NULL) > 0) {
-                            printl(LOG_WARN, "Socks5 server returned an error");
-                            printl(LOG_WARN, "CHAIN Socks5 server returned an error");
-                            close(csock);
-                            exit(2);
-                        }
-
-                        goto single_server;
-                    }
-                } else if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V4) {
-                    if (sc->next) {
-                        /* We want to connect with the next chain member */
-                        printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
-                            inet2str(&sc->chain_member->socks_server, suf),
-                            inet2str(&sc->next->chain_member->socks_server, buf));
-
-                        if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                                (struct sockaddr_in *)&sc->next->chain_member->socks_server,
-                                sc->next->chain_member->socks_user) > 0) {
-
-                                    printl(LOG_WARN, "CHAIN Socks4 server returned an error");
-                                    close(csock);
-                                    exit(2);
-                        }
-                    } else {
-                        /* We are at the end of the chain, so connect with the section server */
-                        printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
-                            inet2str(&sc->chain_member->socks_server, buf),
-                            inet2str(&s_ini->socks_server, buf));
-
-                        if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                                (struct sockaddr_in *)&s_ini->socks_server, s_ini->socks_user) > 0) {
-
-                                    printl(LOG_WARN, "Socks4 server returned an error");
-                                    printl(LOG_WARN, "CHAIN Socks4 server returned an error");
-                                    close(csock);
-                                    exit(2);
-                        }
-                        goto single_server;
-                    }
-                } else {
-                    /* Must be cleared already by read_ini() */
-                    printl(LOG_WARN, "Detected unsupported CHAIN Socks version: [%d]",
-                        s_ini->proxy_chain->chain_member->socks_version);
-                    close(csock);
-                    exit(2);
-                }
-                sc = sc->next;
-            }
-        } else {
-            /* Only a single Socks server: no chain */
-            printl(LOG_INFO, "Connecting the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
-
-            if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
-                printl(LOG_WARN, "Unable to connect with Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
-                close(csock);
-                exit(2);
-            }
-
-            printl(LOG_INFO, "Succesfully connected with the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
-single_server:
-            if (s_ini->socks_version == PROXY_PROTO_SOCKS_V5) {
-
-                printl(LOG_VERB, "Initiate Socks5 protocol: hello: [%s]", inet2str(&s_ini->socks_server, buf));
-
-                if (s_ini->socks_user)
-                    auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
-                else
-                    auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
-
-                switch (auth_method) {
-                    case AUTH_METHOD_NOAUTH:                    /* No authentication required */
-                    break;
-                    
-                    case AUTH_METHOD_UNAME:                     /* Perform user/password auth */
-                        if (socks5_client_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
-                            printl(LOG_WARN, "Socks rejected user: [%s]", s_ini->socks_user);
-                            close(csock);
-                            exit(2);
-                        }
-                    break;
-                    
-                    case AUTH_METHOD_GSSAPI:
-                    case AUTH_METHOD_CHAP:
-                    case AUTH_METHOD_CRAM:
-                    case AUTH_METHOD_SSL:
-                    case AUTH_METHOD_NDS:
-                    case AUTH_METHOD_MAF:
-                    case AUTH_METHOD_JPB:
-                        printl(LOG_WARN, "Socks server accepted unsupported auth-method: [%d]", auth_method);
-                        close(csock);
-                        exit(2);
-                    case AUTH_METHOD_NOACCEPT:
-                    default:
-                        printl(LOG_WARN, "No auth methods were accepted by Socks server");
-                        close(csock);
-                        exit(2);
-                }
-
-                printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]", 
-                    inet2str(&s_ini->socks_server, suf), inet2str(daddr, buf));
-
-                /* -- Perform NIT Lookup -------------------------------------------------------------------- */
-                if (daddr->ss_family == AF_INET && S4_ADDR(s_ini->socks_server) != S4_ADDR(*daddr)) {
-                    if (s_ini->nit_domain && 
-                        (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(*daddr) &
-                            S4_ADDR(s_ini->nit_ipmask)))
-                                if (getnameinfo((const struct sockaddr *)&daddr, sizeof(daddr), 
-                                    dname, sizeof(dname), 0, 0, NI_NAMEREQD)) {
-                                        printl(LOG_WARN, "Unable to resolve client destination address [%s] via NIT",
-                                            inet2str(daddr, buf));
-                                        close(csock);
-                                        exit(2);
-                                }
-                }
-
-                if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, daddr, dname) > 0) {    
-                    printl(LOG_CRIT, "Socks server returned an error");
-                    close(csock);
-                    exit(2);
-                }
-            } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
-                printl(LOG_VERB, "Initiate Socks4 protocol: request: [%s] -> [%s]",
-                    inet2str(&s_ini->socks_server, suf), inet2str(daddr, buf));
-                if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                        (struct sockaddr_in *)&daddr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
-                            printl(LOG_WARN, "Socks4 server returned an error");
-                            close(csock);
-                            exit(2);
-                }
-            } else {
-                /* Must be cleared already by read_ini() */
-                printl(LOG_WARN, "Detected unsupported Socks version: [%d]", s_ini->socks_version);
-                close(csock);
-                exit(2);
-            }
-        }
-    }
-
-    return ssock;
 }

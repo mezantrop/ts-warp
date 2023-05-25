@@ -1,10 +1,13 @@
 # CHANGELOG
 
-* 2023.05.22    Current
-  * `ts-warp.c`: Make clients to ts-warp connections non-blocking
+* 2023.05.25    Current
+  * Preparations for HTTP proxy implementation
+  * `ts-warp.c`: `process_socks()` removed due to unnecessary complexity
+  * `ts-warp`: `-i IP:Port` will be deprecated in the future releases in favour of `-S IP:Port` and `-H IP:Port`
+  * `ts-warp.c`: Make clients-to-ts-warp connections non-blocking
   * `ts-warp.c`: Socks processing moved into `process_socks()`
   * `network.c`: `str2inet()` correct `struct addrinfo` into `struct sockaddr_storage` mapping
-  * The project renamed to "Transparent Socks Proxy and Traffic Wrapper" to match internal Socks server functionality.
+  * The project renamed to "Transparent Socks Proxy and Traffic Wrapper" to match internal Socks server functionality
 
 * 2023.05.16    ts-warp-1.2.0, gui-warp-1.0.3, ns-warp-1.0.4
   * Internal Socks5 server example in `ts-warp.ini`; [README.md](README.md) update
