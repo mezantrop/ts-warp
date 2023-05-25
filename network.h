@@ -32,7 +32,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-
+/* -- Useful macros ------------------------------------------------------------------------------------------------- */
 /* Socket options: Keepalive, timeouts, ets */
 #if !defined (WITH_TCP_NODELAY)
    #define WITH_TCP_NODELAY 1
@@ -53,11 +53,12 @@
 #endif
 
 /* Used ports */
-#define LISTEN_IPV4     "127.0.0.1"                                     /* We listen on this IPv4 address or */
-#define LISTEN_IPV6     "::1"                                           /* on this IPv6 address */
-#define LISTEN_DEFAULT  LISTEN_IPV4
-#define LISTEN_PORT     "10800"                                         /* This is our TCP port */
-#define SOCKS_PORT      "1080"                                          /* That is remote Socks server port */
+#define LISTEN_IPV4         "127.0.0.1"             /* We listen on this IPv4 address or */
+#define LISTEN_IPV6         "::1"                   /* on this IPv6 address */
+#define LISTEN_DEFAULT      LISTEN_IPV4
+#define LISTEN_SOCKS_PORT   "10800"                 /* This is our TCP Socks port */
+#define SOCKS_PORT          "1080"                  /* That is remote Socks server port */
+#define LISTEN_HTTP_PORT    "8080"                  /* Our internal HTTP server port */
 
 #define INET_ADDRPORTSTRLEN INET6_ADDRSTRLEN + 6    /* MAX: ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff + ':' + '65535' */
 
