@@ -1,7 +1,7 @@
 # CHANGELOG
 
-* 2023.05.25    Current
-  * Preparations for HTTP proxy implementation
+* 2023.05.25    Current (HTTP proxy implementation in progress)
+  * `http.c`, `http.h`: included; `http_server_request()` in progress
   * `ts-warp.c`: `process_socks()` removed due to unnecessary complexity
   * `ts-warp`: `-i IP:Port` will be deprecated in the future releases in favour of `-S IP:Port` and `-H IP:Port`
   * `ts-warp.c`: Make clients-to-ts-warp connections non-blocking

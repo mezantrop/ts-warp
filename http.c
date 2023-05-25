@@ -26,10 +26,37 @@
 
 /* -- HTTP proxy (CONNECT method) implementation -------------------------------------------------------------------- */
 #include <stdarg.h>
+#include <string.h>
+#include <sys/socket.h>
 
 #include "http.h"
+#include "logfile.h"
+#include "utility.h"
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t http_server_request(int socket, char *url) {
-    return 0;
+char *http_server_request(int socket, struct sockaddr_storage *daddr, char *dname) {
+    char buf[64 * BUF_SIZE_1KB];
+    int rcount;
+    char *method = NULL, *host = NULL, *proto = NULL, *port = NULL, *query = NULL;
+
+
+    if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
+        /* Quit immediately; no reply to the client */
+        printl(LOG_WARN, "Unable to receive a request from the HTTP client");
+        return NULL;
+    }
+
+    /* Parse HTTP request */
+    buf[rcount] = '\0';
+    method = strtok(buf,  " \t\r\n");
+    host = strtok(NULL, ": \t");
+    port = strtok(NULL, " \t");
+    proto = strtok(NULL, " \t\r\n");
+    if ((query = strchr(host, '?'))) *query = '\0';                   /* Cut Query part from URI */
+
+    printl(LOG_VERB, "HTTP REQUEST: METHOD: [%s], HOST: [%s], PORT: [%s], PROTO: [%s], QUERY: [%s]",
+        method, host, port, proto, query);
+
+    return NULL;
 }
