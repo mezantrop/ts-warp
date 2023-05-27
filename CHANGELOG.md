@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.25    Current (HTTP proxy implementation in progress)
+* 2023.05.27    Current (HTTP proxy implementation in progress)
+  * `struct uvaddr` to combine `sockaddr_storage` and `char *` to replace `daddr` and `dname`
   * `http.c`, `http.h`: included; `http_server_request()` in progress
   * `ts-warp.c`: `process_socks()` removed due to unnecessary complexity
   * `ts-warp`: `-i IP:Port` will be deprecated in the future releases in favour of `-S IP:Port` and `-H IP:Port`

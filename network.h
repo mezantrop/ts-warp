@@ -91,6 +91,15 @@
     #define HOST_NAME_MAX 255
 #endif
 
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+typedef struct uvaddr {
+    struct sockaddr_storage ip_addr;
+    socklen_t ip_addrlen;
+    char name[HOST_NAME_MAX];
+} uvaddr;
+
+
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int connect_desnation(struct sockaddr dest);
 char *inet2str(struct sockaddr_storage *ai_addr, char *str_addr);

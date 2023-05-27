@@ -26,9 +26,9 @@
 
 /* -- Managing list of active clients ------------------------------------------------------------------------------- */
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
-#include "inifile.h"
 #include "logfile.h"
 #include "pidlist.h"
 
