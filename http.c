@@ -29,13 +29,14 @@
 #include <string.h>
 #include <sys/socket.h>
 
+#include "network.h"
 #include "http.h"
 #include "logfile.h"
 #include "utility.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *http_server_request(int socket, struct sockaddr_storage *daddr, char *dname) {
+char *http_server_request(int socket, struct uvaddr *daddr_u) {
     char buf[64 * BUF_SIZE_1KB];
     int rcount;
     char *method = NULL, *host = NULL, *proto = NULL, *port = NULL, *query = NULL;

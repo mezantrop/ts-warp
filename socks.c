@@ -35,10 +35,10 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include "utility.h"
 #include "network.h"
 #include "socks.h"
 #include "logfile.h"
-#include "utility.h"
 #include "version.h"
 
 extern char *pfile_name;
@@ -348,7 +348,7 @@ int socks5_server_hello(int socket) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct sockaddr_storage *daddr, char *dname) {
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr_u) {
     s5_request *req;
     s5_request_ipv4 *req4;
     s5_request_ipv6 *req6;
@@ -376,25 +376,29 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     switch (req->atype) {
         case SOCKS5_ATYPE_IPV4:
             req4 = (s5_request_ipv4 *)buf;
-            SA_FAMILY(*daddr) = AF_INET;
-            memcpy(&SIN4_ADDR(*daddr), req4->dstaddr, sizeof(struct in_addr));
-            SIN4_PORT(*daddr) = req4->dstport;
+            SA_FAMILY(daddr_u->ip_addr) = AF_INET;
+            memcpy(&SIN4_ADDR(daddr_u->ip_addr), req4->dstaddr, sizeof(struct in_addr));
+            SIN4_PORT(daddr_u->ip_addr) = req4->dstport;
             atype = SOCKS5_ATYPE_IPV4;
         break;
 
         case SOCKS5_ATYPE_NAME:
-            memcpy(dname, req->dsthost + 1, req->dsthost[0]);
-            memset(daddr, 0, sizeof(&daddr));
-            SA_FAMILY(*daddr) = AF_INET;
-            SIN4_PORT(*daddr) = (req->dsthost[2 + req->dsthost[0]] << 8) + req->dsthost[1 + req->dsthost[0]];
+            memcpy(&daddr_u->name, req->dsthost + 1, req->dsthost[0]);
+            daddr_u->ip_addr = str2inet(daddr_u->name, NULL);
+            if (SA_FAMILY(daddr_u->ip_addr) == AF_INET)
+                SIN4_PORT(daddr_u->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) + 
+                    req->dsthost[1 + req->dsthost[0]];    
+            else
+                SIN6_PORT(daddr_u->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) + 
+                    req->dsthost[1 + req->dsthost[0]];    
             atype = SOCKS5_ATYPE_NAME;
         break;
 
         case SOCKS5_ATYPE_IPV6:
             req6 = (s5_request_ipv6 *)buf;
-            SA_FAMILY(*daddr) = AF_INET6;
-            memcpy(&SIN6_ADDR(*daddr), req6->dstaddr, sizeof(struct in6_addr));
-            SIN6_PORT(*daddr) = req6->dstport;
+            SA_FAMILY(daddr_u->ip_addr) = AF_INET6;
+            memcpy(&SIN6_ADDR(daddr_u->ip_addr), req6->dstaddr, sizeof(struct in6_addr));
+            SIN6_PORT(daddr_u->ip_addr) = req6->dstport;
             atype = SOCKS5_ATYPE_IPV6;
         break; 
     }

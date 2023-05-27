@@ -282,4 +282,4 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...);
 int socks5_client_auth(int socket, char *user, char *password);
 int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *daddr, char *dname);
 int socks5_server_hello(int socket);
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct sockaddr_storage *daddr, char *dname);
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr_u);
