@@ -23,6 +23,10 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+#define HTTP_REQUEST_METHOD_GET     "GET"
+#define HTTP_REQUEST_METHOD_CONNECT "CONNECT"
+*/
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 char *http_server_request(int socket, struct uvaddr *daddr_u);
