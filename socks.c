@@ -363,7 +363,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1 || rcount < sizeof(s5_request_short)) {
         /* Quit immediately; no reply to the client */
         printl(LOG_WARN, "Unable to receive a request from the Socks5 client");
-        return 0;
+        return SOCKS5_ATYPE_NONE;
     }
 
     /* Validate request */
@@ -404,9 +404,10 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     }
 
     /* Send reply back */
+    /* TODO: Add IPv6 and Name replies */
     rep = (s5_reply_ipv4 *)buf;
     rep->ver = PROXY_PROTO_SOCKS_V5;
-    rep->status = rep_status;                          /* Status field in Peply is the same as Command field in Request */
+    rep->status = rep_status;                          /* Status field in Reply is the same as Command field in Request */
     rep->rsv = 0;
     rep->atype = SOCKS5_ATYPE_IPV4;
     memcpy(rep->dstaddr, &SIN4_ADDR(*iaddr), sizeof(rep->dstaddr));
@@ -414,7 +415,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
 
     if (send(socket, &buf, sizeof(rep)+2, 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the Socks5 client");
-        return 0;
+        return SOCKS5_ATYPE_NONE;
     }
 
     return atype;

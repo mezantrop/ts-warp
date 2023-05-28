@@ -130,8 +130,7 @@ All parameters are optional:
 
     struct sockaddr_storage caddr;                                      /* Client address */
     socklen_t caddrlen;                                                 /* Client address len */
-    struct sockaddr_storage daddr;                                      /* Client destination address */
-    struct uvaddr daddr_u;                                              /* Client destination ip and/or name */
+    struct uvaddr daddr;                                                /* Client destination ip and/or name */
 
     unsigned char auth_method;                                          /* Socks5 accepted auth method */
 
@@ -412,26 +411,26 @@ All parameters are optional:
 
         /* -- Get the client original destination from NAT ---------------------------------------------------------- */
         
-        /* Initialize  daddr_u */
-        daddr_u.ip_addrlen = sizeof(daddr_u.ip_addr);
-        memset(&daddr_u.ip_addr, 0, daddr_u.ip_addrlen);
-        memset(&daddr_u.name, 0, sizeof(daddr_u.name) - 1);
+        /* Initialize  daddr */
+        daddr.ip_addrlen = sizeof(daddr.ip_addr);
+        memset(&daddr.ip_addr, 0, daddr.ip_addrlen);
+        memset(&daddr.name, 0, sizeof(daddr.name) - 1);
 
         #if defined(linux)
             /* On Linux && nftabeles/iptables */
-            memset(&daddr_u.ip_addr, 0, daddr_u.ip_addrlen);
-            daddr_u.ip_addr.ss_family = caddr.ss_family;
-            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr_u.ip_addr, &daddr_u.ip_addrlen);
+            memset(&daddr.ip_addr, 0, daddr.ip_addrlen);
+            daddr.ip_addr.ss_family = caddr.ss_family;
+            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr.ip_addrlen);
         #else
             /* On *BSD with PF */
-            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)ires->ai_addr, &daddr_u.ip_addr);
+            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)ires->ai_addr, &daddr.ip_addr);
         #endif
         if (ret != 0) {
             printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-            getpeername(csock, (struct sockaddr *)&daddr_u.ip_addr, &daddr_u.ip_addrlen);
+            getpeername(csock, (struct sockaddr *)&daddr.ip_addr, &daddr.ip_addrlen);
         }
 
-        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr_u.ip_addr, buf));
+        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr.ip_addr, buf));
 
         /* -- Process the PIDs list: remove exitted clients and execute workload balance functions ------------------ */
         c = pids;
@@ -460,7 +459,7 @@ All parameters are optional:
         }
 
         /* Find Socks server to serve the destination address in INI file */
-        s_ini = ini_look_server(ini_root, daddr_u);
+        s_ini = ini_look_server(ini_root, daddr);
         if (s_ini && s_ini->section_balance == SECTION_BALANCE_ROUNDROBIN) pushback_ini(&ini_root, s_ini);
 
         if ((cpid = fork()) == -1) {
@@ -486,14 +485,14 @@ All parameters are optional:
             if (!s_ini) {
                 /* -- No proxy server found for the destination IP -------------------------------------------------- */
                 printl(LOG_INFO, "No proxy server is defined for the destination: [%s]",
-                    inet2str(&daddr_u.ip_addr, buf));
+                    inet2str(&daddr.ip_addr, buf));
 
-                if ((daddr_u.ip_addr.ss_family == AF_INET && S4_ADDR(daddr_u.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr_u.ip_addr.ss_family == AF_INET6 && 
-                        !memcmp(S6_ADDR(daddr_u.ip_addr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr_u.ip_addr)))) ||
-                    (daddr_u.ip_addr.ss_family == AF_INET && S4_ADDR(daddr_u.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
-                    (daddr_u.ip_addr.ss_family == AF_INET6 &&
-                        !memcmp(S6_ADDR(daddr_u.ip_addr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr_u.ip_addr))))) {
+                if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                    (daddr.ip_addr.ss_family == AF_INET6 && 
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
+                    (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
+                    (daddr.ip_addr.ss_family == AF_INET6 &&
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                     /* Desination address:port is the same as ts-warp incominig (Socks or HTTP) ip:port, i.e., a client
                     contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as proxy server */
@@ -504,15 +503,15 @@ All parameters are optional:
 
                 /*  -- Direct connection with the destination address bypassing proxy ------------------------------- */
                 printl(LOG_INFO, "Making direct connection with the destination address: [%s]",
-                    inet2str(&daddr_u.ip_addr, buf));
+                    inet2str(&daddr.ip_addr, buf));
 
-                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr_u.ip_addr)) == -1) {
-                    printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr_u.ip_addr, buf));
+                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr.ip_addr, buf));
                     close(csock);
                     exit(1);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr_u.ip_addr, buf));
+                printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr.ip_addr, buf));
             } else
                 /* -- Internal TS-Warp proxy servers ---------------------------------------------------------------- */
                 if (isock == Ssock) {
@@ -520,9 +519,9 @@ All parameters are optional:
                     close(Ssock);
                     close(Hsock);
 
-                    if ((daddr_u.ip_addr.ss_family == AF_INET && S4_ADDR(daddr_u.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                        (daddr_u.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr_u.ip_addr),
-                            S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr_u.ip_addr))))) {
+                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                        (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
+                            S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
@@ -534,20 +533,23 @@ All parameters are optional:
                             exit(1);
                         }
 
-                        if ((socks5_server_request(csock, 
-                            (struct sockaddr_storage *)(ires->ai_addr), &daddr_u)) != SOCKS5_ATYPE_NONE)
-                                s_ini = ini_look_server(ini_root, daddr_u);
+                        if (!socks5_server_request(csock, (struct sockaddr_storage *)(ires->ai_addr), &daddr)) {
+                            printl(LOG_WARN, "Embedded TS-Warp Socks server lost connection with the client");
+                            close(csock);
+                            exit(1);
+                        }
 
+                        s_ini = ini_look_server(ini_root, daddr);
                         if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
                             S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
                             S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
 
-                            printl(LOG_INFO, "Serving request to: [%s] with embedded TS-Warp SOCKS server",
-                                daddr_u.name[0] ? daddr_u.name : inet2str(&daddr_u.ip_addr, buf));
+                            printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
 
-                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr_u.ip_addr)) == -1) {
+                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                                 printl(LOG_WARN, "Unable to connect with destination: [%s]",
-                                    inet2str(&daddr, buf));
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
                                 close(csock);
                                 exit(1);
                             }
@@ -556,7 +558,7 @@ All parameters are optional:
 
                         } else
                             printl(LOG_INFO, "Serving request to [%s : %s] with external Socks, section name: [%s]",
-                                daddr_u.name, inet2str(&daddr_u.ip_addr, buf), s_ini->section_name);
+                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
 
                         /* Pass the client to external Socks-servers - proxy forwarding */
                     }
@@ -567,15 +569,15 @@ All parameters are optional:
                         close(Hsock);
                         /* TODO: Implement HTTP proxy */
 
-                    if ((daddr_u.ip_addr.ss_family == AF_INET && S4_ADDR(daddr_u.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                        (daddr_u.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr_u.ip_addr), S6_ADDR(*ires->ai_addr),
-                            sizeof(S6_ADDR(daddr_u.ip_addr))))) {
+                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                        (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr),
+                            sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
 
-                        http_server_request(csock, &daddr_u);       /* TODO: Use daddr_u only! */
+                        http_server_request(csock, &daddr);
 
                         printl(LOG_CRIT, "Internal HTTP proxy is not implemented yet! Dropping the connection");
                         close(csock);
@@ -762,35 +764,33 @@ All parameters are optional:
                     }
 
                     printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]", 
-                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr_u.ip_addr, buf));
+                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr.ip_addr, buf));
 
                     /* -- Perform NIT Lookup ------------------------------------------------------------------------ */
-                    if (daddr_u.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->socks_server) != S4_ADDR(daddr_u.ip_addr)) {
+                    if (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->socks_server) != S4_ADDR(daddr.ip_addr)) {
                         if (s_ini->nit_domain &&
-                            (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr_u.ip_addr) &
+                            (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
                                 S4_ADDR(s_ini->nit_ipmask)))
-                                    if (getnameinfo((const struct sockaddr *)&daddr_u.ip_addr, sizeof(daddr_u.ip_addr), 
-                                        daddr_u.name, sizeof(daddr_u.name), 0, 0, NI_NAMEREQD)) {
+                                    if (getnameinfo((const struct sockaddr *)&daddr.ip_addr, sizeof(daddr.ip_addr), 
+                                        daddr.name, sizeof(daddr.name), 0, 0, NI_NAMEREQD)) {
                                             printl(LOG_WARN, "Unable to resolve client destination address [%s] via NIT",
-                                                inet2str(&daddr_u.ip_addr, buf));
+                                                inet2str(&daddr.ip_addr, buf));
                                             close(csock);
                                             exit(2);
                                     }
                     }
 
-                    /* TODO: Use daddr_u only! */
-                    if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr_u.ip_addr, daddr_u.name) > 0) {    
+                    if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr.ip_addr, daddr.name) > 0) {    
                         printl(LOG_CRIT, "Socks server returned an error");
                         close(csock);
                         exit(2);
                     }
                 } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
                     printl(LOG_VERB, "Initiate Socks4 protocol: request: [%s] -> [%s]",
-                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr_u.ip_addr, buf));
+                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                    /* TODO: Use daddr_u only! */
                     if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                            (struct sockaddr_in *)&daddr_u.ip_addr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
+                            (struct sockaddr_in *)&daddr.ip_addr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
                 
                         printl(LOG_WARN, "Socks4 server returned an error");
                         close(csock);

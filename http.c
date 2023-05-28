@@ -50,13 +50,20 @@ char *http_server_request(int socket, struct uvaddr *daddr_u) {
 
     /* Parse HTTP request */
     buf[rcount] = '\0';
+    printl(LOG_VERB, "HTTP REQUEST: [%s]", buf);
     method = strtok(buf,  " \t\r\n");
-    host = strtok(NULL, ": \t");
-    port = strtok(NULL, " \t");
+    host = strtok(NULL, " \t");
     proto = strtok(NULL, " \t\r\n");
     if ((query = strchr(host, '?'))) *query = '\0';                   /* Cut Query part from URI */
 
-    printl(LOG_VERB, "HTTP REQUEST: METHOD: [%s], HOST: [%s], PORT: [%s], PROTO: [%s], QUERY: [%s]",
+/*
+    if (!strncasecmp(method, HTTP_REQUEST_METHOD_GET, sizeof(HTTP_REQUEST_METHOD_GET))) {
+    } else if (!strncasecmp(method, HTTP_REQUEST_METHOD_GET, sizeof(HTTP_REQUEST_METHOD_GET))) {
+    } else {
+        return NULL;
+    }
+*/
+    printl(LOG_VERB, "HTTP REQUEST PARSED: METHOD: [%s], HOST: [%s], PORT: [%s], PROTO: [%s], QUERY: [%s]",
         method, host, port, proto, query);
 
     return NULL;
