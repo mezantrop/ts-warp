@@ -77,7 +77,7 @@ pid_t pid, mpid;                                                    /* Current a
 struct pid_list *pids = NULL;                                       /* List of active clients with PIDs and Sections */
 int Ssock, Hsock, isock, ssock, csock;                              /* Sockets for Internal-Socks&HTTP/in/out/clients */
 ini_section *ini_root;                                              /* Root section of the INI-file */
- 
+
 #if !defined(linux)
     int pfd;                                                        /* PF device-file on *BSD */
 #endif
@@ -131,6 +131,7 @@ All parameters are optional:
     struct sockaddr_storage caddr;                                      /* Client address */
     socklen_t caddrlen;                                                 /* Client address len */
     struct uvaddr daddr;                                                /* Client destination ip and/or name */
+    unsigned int daddr_len;
 
     unsigned char auth_method;                                          /* Socks5 accepted auth method */
 
@@ -165,7 +166,7 @@ All parameters are optional:
                 ifile_name = optarg;
             break;
 
-            case 'l': 
+            case 'l':
                 l_flg = 1; lfile_name = optarg;                         /* Logfile */
             break;
 
@@ -178,7 +179,7 @@ All parameters are optional:
             break;
 
             case 'd':                                                   /* Daemon mode */
-                d_flg = 1; 
+                d_flg = 1;
             break;
 
             case 'p':
@@ -186,7 +187,7 @@ All parameters are optional:
             break;
 
             case 'f':                                                   /* Force start */
-                f_flg = 1; 
+                f_flg = 1;
             break;
 
             case 'P':
@@ -198,7 +199,7 @@ All parameters are optional:
                     fprintf(stderr, "Warning: -u option under macOS is not available\n");
                 #else
                     runas_user = optarg;
-                #endif 
+                #endif
             break;
 
             case 'h':                                                   /* Help */
@@ -230,7 +231,7 @@ All parameters are optional:
         pfd = pf_open();                                                /* Open PF device-file on *BSD */
     #endif
 
-    #if !defined(__APPLE__)  
+    #if !defined(__APPLE__)
         struct passwd *pwd = getpwnam(runas_user);
     #endif
 
@@ -337,7 +338,7 @@ All parameters are optional:
                 printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Socks incoming connections");
             if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
                 printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for HTTP incoming connections");
-        #endif 
+        #endif
 
         keepalive_opt = TCP_KEEPCNT_N;
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
@@ -410,24 +411,24 @@ All parameters are optional:
         printl(LOG_INFO, "Client: [%d], IP: [%s] accepted", cn++, inet2str(&caddr, buf));
 
         /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-        
+
         /* Initialize  daddr */
-        daddr.ip_addrlen = sizeof(daddr.ip_addr);
-        memset(&daddr.ip_addr, 0, daddr.ip_addrlen);
+        daddr_len = sizeof(daddr.ip_addr);
+        memset(&daddr.ip_addr, 0, daddr_len);
         memset(&daddr.name, 0, sizeof(daddr.name) - 1);
 
         #if defined(linux)
             /* On Linux && nftabeles/iptables */
-            memset(&daddr.ip_addr, 0, daddr.ip_addrlen);
+            memset(&daddr.ip_addr, 0, daddr_len);
             daddr.ip_addr.ss_family = caddr.ss_family;
-            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr.ip_addrlen);
+            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr_len);
         #else
             /* On *BSD with PF */
             ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)ires->ai_addr, &daddr.ip_addr);
         #endif
-        if (ret != 0) {
+        if (ret) {
             printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-            getpeername(csock, (struct sockaddr *)&daddr.ip_addr, &daddr.ip_addrlen);
+            getpeername(csock, (struct sockaddr *)&daddr.ip_addr, &daddr_len);
         }
 
         printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr.ip_addr, buf));
@@ -488,7 +489,7 @@ All parameters are optional:
                     inet2str(&daddr.ip_addr, buf));
 
                 if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                    (daddr.ip_addr.ss_family == AF_INET6 && 
+                    (daddr.ip_addr.ss_family == AF_INET6 &&
                         !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
                     (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
@@ -523,7 +524,7 @@ All parameters are optional:
                         (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
                             S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
-                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
+                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
 
@@ -557,7 +558,7 @@ All parameters are optional:
                             goto cfloop;
 
                         } else
-                            printl(LOG_INFO, "Serving request to [%s : %s] with external Socks, section name: [%s]",
+                            printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
                                 daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
 
                         /* Pass the client to external Socks-servers - proxy forwarding */
@@ -573,17 +574,36 @@ All parameters are optional:
                         (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr),
                             sizeof(S6_ADDR(daddr.ip_addr))))) {
 
-                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted 
+                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
 
-                        http_server_request(csock, &daddr);
+                        if (http_server_request(csock, &daddr)) {
+                            printl(LOG_WARN, "Embedded TS-Warp HTTP server lost connection with the client");
+                            close(csock);
+                            exit(1);
+                        }
 
-                        printl(LOG_CRIT, "Internal HTTP proxy is not implemented yet! Dropping the connection");
-                        close(csock);
-                        exit(1);
+                        s_ini = ini_look_server(ini_root, daddr);
+                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
+                            S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
+                            S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
 
-                        /* goto cfloop; */
+                            printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+
+                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                                printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                                close(csock);
+                                exit(1);
+                            }
+
+                            goto cfloop;
+
+                        } else
+                            printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
+                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
                     }
 
                 } else
@@ -600,7 +620,7 @@ All parameters are optional:
 
                 /* Connect the first member of the chain */
                 if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->socks_server)) == -1) {
-                    printl(LOG_WARN, "Unable to connect with CHAIN Socks server: [%s]", 
+                    printl(LOG_WARN, "Unable to connect with CHAIN Socks server: [%s]",
                         inet2str(&sc->chain_member->socks_server, buf));
                     close(csock);
                     exit(2);
@@ -645,7 +665,7 @@ All parameters are optional:
                         }
 
                         if (sc->next) {
-                            /* We want to connect with the next chain member */                                
+                            /* We want to connect with the next chain member */
                             printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
                                 inet2str(&sc->chain_member->socks_server, suf),
                                 inet2str(&sc->next->chain_member->socks_server, buf));
@@ -763,7 +783,7 @@ All parameters are optional:
                             exit(2);
                     }
 
-                    printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]", 
+                    printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]",
                         inet2str(&s_ini->socks_server, suf), inet2str(&daddr.ip_addr, buf));
 
                     /* -- Perform NIT Lookup ------------------------------------------------------------------------ */
@@ -771,7 +791,7 @@ All parameters are optional:
                         if (s_ini->nit_domain &&
                             (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
                                 S4_ADDR(s_ini->nit_ipmask)))
-                                    if (getnameinfo((const struct sockaddr *)&daddr.ip_addr, sizeof(daddr.ip_addr), 
+                                    if (getnameinfo((const struct sockaddr *)&daddr.ip_addr, sizeof(daddr.ip_addr),
                                         daddr.name, sizeof(daddr.name), 0, 0, NI_NAMEREQD)) {
                                             printl(LOG_WARN, "Unable to resolve client destination address [%s] via NIT",
                                                 inet2str(&daddr.ip_addr, buf));
@@ -780,7 +800,7 @@ All parameters are optional:
                                     }
                     }
 
-                    if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr.ip_addr, daddr.name) > 0) {    
+                    if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr.ip_addr, daddr.name) > 0) {
                         printl(LOG_CRIT, "Socks server returned an error");
                         close(csock);
                         exit(2);
@@ -791,7 +811,7 @@ All parameters are optional:
 
                     if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
                             (struct sockaddr_in *)&daddr.ip_addr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
-                
+
                         printl(LOG_WARN, "Socks4 server returned an error");
                         close(csock);
                         exit(2);
@@ -803,7 +823,7 @@ All parameters are optional:
                     exit(2);
                 }
             }
-            
+
             /* -- Forward connections ------------------------------------------------------------------------------- */
             cfloop:
             printl(LOG_VERB, "Starting connection-forward loop");
@@ -959,7 +979,7 @@ All parameters are optional:\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s\n\
   \n\
-  -h\t\t    This message\n\n", 
+  -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
 #else
     printf("Usage:\n\
@@ -978,7 +998,7 @@ All parameters are optional:\n\
   -f\t\t    Force start\n\
   -P\t\t    Disable internal Socks5 server\n\
   \n\
-  -h\t\t    This message\n\n", 
+  -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);
 #endif
     exit(ecode);

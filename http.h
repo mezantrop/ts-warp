@@ -23,10 +23,11 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
-#define HTTP_REQUEST_METHOD_GET     "GET"
-#define HTTP_REQUEST_METHOD_CONNECT "CONNECT"
-*/
+/* ------------------------------------------------------------------------------------------------------------------ */
+#include "version.h"
+
+
+#define HTTP_PROXY_REPLY_200    "HTTP/1.1 200 OK\r\nProxy-agent: "PROG_NAME_FULL"\r\n\r\n"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *http_server_request(int socket, struct uvaddr *daddr_u);
+int http_server_request(int socket, struct uvaddr *daddr);
