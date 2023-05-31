@@ -95,7 +95,6 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct uvaddr {
     struct sockaddr_storage ip_addr;
-    socklen_t ip_addrlen;
     char name[HOST_NAME_MAX];
 } uvaddr;
 

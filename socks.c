@@ -44,7 +44,7 @@
 extern char *pfile_name;
 
 const char *socks4_status[] = {
-    "OK", 
+    "OK",
     "Request rejected or failed",
     "Request failed because client is not running identd",
     "Request failed because client's identd couldn't confirm user"
@@ -52,10 +52,10 @@ const char *socks4_status[] = {
 
 const char *socks5_status[] = {
     "OK",
-    "General failure", 
+    "General failure",
     "Connection not allowed by ruleset",
     "Network unreacheable",
-    "Host unreacheable", 
+    "Host unreacheable",
     "Connection refused by target host",
     "TTL expired",
     "Command unsupported / protocol error",
@@ -69,9 +69,9 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
     s4_request req;
     s4_reply rep;
     int idlen = 0, rcount = 0;
-  
+
     printl(LOG_CRIT, "Preparing IPv4 Socks4 request");
-    
+
     /* Fill in the request */
     strcpy((char*)req.id, PROG_NAME);                       /* Sic! Some username is required by server! */
     idlen = strnlen((char *)req.id, STR_SIZE);
@@ -106,16 +106,16 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
         printl(LOG_CRIT, "Socks4 server speaks unsupported protocol v:[%d]", rep.nul);
         return SOCKS4_REPLY_KO;
     }
-    
+
     printl(LOG_VERB, "Socks4 server reply status: [%d]:[%s]", rep.status, socks4_status[rep.status - 0x5a]);
-    
+
     return rep.status;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_client_hello(int socket, unsigned int auth_method, ...) {
-    /* Send Socks5 Hello and receive a reply. 
-    
+    /* Send Socks5 Hello and receive a reply.
+
     Specify one mandatory auth_method, list the rest of auth methods as variadic arguments. Make sure the last of them
     is always AUTH_METHOD_NOACCEPT !!! */
 
@@ -152,13 +152,13 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
         printl(LOG_CRIT, "Unable to receive 'hello' reply from the Socks5 server");
         return AUTH_METHOD_NOACCEPT;
     }
-    
+
     /* Veryfy Socks version */
     if (rep.ver != PROXY_PROTO_SOCKS_V5) {
         printl(LOG_CRIT, "Socks5 server unsupported protocol: v[%d]", rep.ver);
         return AUTH_METHOD_NOACCEPT;
     }
-    
+
     printl(LOG_VERB, "Socks5 server accepted auth-method: [%d]", rep.cauth);
     return rep.cauth;
 }
@@ -214,7 +214,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
     else
         if (SA_FAMILY(*daddr) == AF_INET)
             atype = SOCKS5_ATYPE_IPV4;
-        else 
+        else
             if (SA_FAMILY(*daddr) == AF_INET6)
                 atype = SOCKS5_ATYPE_IPV6;
 
@@ -258,7 +258,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
         }
 
         printl(LOG_VERB, "IPv6 Socks5 request sent");
-   
+
     } else if (atype == SOCKS5_ATYPE_NAME) {
         printl(LOG_VERB, "Preparing NAME Socks5 request");
 
@@ -298,7 +298,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
     }
 
     rep = (s5_reply_short *)buf;
-    printl(LOG_VERB, "Socks5 reply: [%d][%d]:[%s], Bytes [%d]", rep->ver, 
+    printl(LOG_VERB, "Socks5 reply: [%d][%d]:[%s], Bytes [%d]", rep->ver,
         rep->status, socks5_status[rep->status], rcount);
 
     if (rep->ver != PROXY_PROTO_SOCKS_V5) {                             /* Report Socks5 general failure */
@@ -330,7 +330,7 @@ int socks5_server_hello(int socket) {
 
     if (req.ver != PROXY_PROTO_SOCKS_V5)
         printl(LOG_WARN, "Unsupported version: [%i] in the request", req.ver);
-    else 
+    else
         for (na = 0; na < req.nauth; na++)
             if (req.auth[na] == AUTH_METHOD_NOAUTH) {
                 printl(LOG_VERB, "Selected Socks5 auth method number: [%i] - [%i]", na, AUTH_METHOD_NOAUTH);
@@ -348,7 +348,7 @@ int socks5_server_hello(int socket) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr_u) {
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr) {
     s5_request *req;
     s5_request_ipv4 *req4;
     s5_request_ipv6 *req6;
@@ -376,35 +376,35 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     switch (req->atype) {
         case SOCKS5_ATYPE_IPV4:
             req4 = (s5_request_ipv4 *)buf;
-            SA_FAMILY(daddr_u->ip_addr) = AF_INET;
-            memcpy(&SIN4_ADDR(daddr_u->ip_addr), req4->dstaddr, sizeof(struct in_addr));
-            SIN4_PORT(daddr_u->ip_addr) = req4->dstport;
+            SA_FAMILY(daddr->ip_addr) = AF_INET;
+            memcpy(&SIN4_ADDR(daddr->ip_addr), req4->dstaddr, sizeof(struct in_addr));
+            SIN4_PORT(daddr->ip_addr) = req4->dstport;
             atype = SOCKS5_ATYPE_IPV4;
         break;
 
         case SOCKS5_ATYPE_NAME:
-            memcpy(&daddr_u->name, req->dsthost + 1, req->dsthost[0]);
-            daddr_u->ip_addr = str2inet(daddr_u->name, NULL);
-            if (SA_FAMILY(daddr_u->ip_addr) == AF_INET)
-                SIN4_PORT(daddr_u->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) + 
-                    req->dsthost[1 + req->dsthost[0]];    
+            memcpy(&daddr->name, req->dsthost + 1, req->dsthost[0]);
+            daddr->ip_addr = str2inet(daddr->name, NULL);
+            if (SA_FAMILY(daddr->ip_addr) == AF_INET)
+                SIN4_PORT(daddr->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) +
+                    req->dsthost[1 + req->dsthost[0]];
             else
-                SIN6_PORT(daddr_u->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) + 
-                    req->dsthost[1 + req->dsthost[0]];    
+                SIN6_PORT(daddr->ip_addr) = (req->dsthost[2 + req->dsthost[0]] << 8) +
+                    req->dsthost[1 + req->dsthost[0]];
             atype = SOCKS5_ATYPE_NAME;
         break;
 
         case SOCKS5_ATYPE_IPV6:
             req6 = (s5_request_ipv6 *)buf;
-            SA_FAMILY(daddr_u->ip_addr) = AF_INET6;
-            memcpy(&SIN6_ADDR(daddr_u->ip_addr), req6->dstaddr, sizeof(struct in6_addr));
-            SIN6_PORT(daddr_u->ip_addr) = req6->dstport;
+            SA_FAMILY(daddr->ip_addr) = AF_INET6;
+            memcpy(&SIN6_ADDR(daddr->ip_addr), req6->dstaddr, sizeof(struct in6_addr));
+            SIN6_PORT(daddr->ip_addr) = req6->dstport;
             atype = SOCKS5_ATYPE_IPV6;
-        break; 
+        break;
     }
 
     /* Send reply back */
-    /* TODO: Add IPv6 and Name replies */
+    /* TODO: Add IPv6 and Name replies; Make it standalone function */
     rep = (s5_reply_ipv4 *)buf;
     rep->ver = PROXY_PROTO_SOCKS_V5;
     rep->status = rep_status;                          /* Status field in Reply is the same as Command field in Request */

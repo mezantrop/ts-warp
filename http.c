@@ -36,35 +36,53 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *http_server_request(int socket, struct uvaddr *daddr_u) {
+int http_server_request(int socket, struct uvaddr *daddr) {
     char buf[64 * BUF_SIZE_1KB];
     int rcount;
-    char *method = NULL, *host = NULL, *proto = NULL, *port = NULL, *query = NULL;
+    char *method = NULL, *url = NULL, *proto = NULL;
+    char host[HOST_NAME_MAX] = {0};
+    uint16_t port = 80;
 
 
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
         /* Quit immediately; no reply to the client */
         printl(LOG_WARN, "Unable to receive a request from the HTTP client");
-        return NULL;
+        return 1;
     }
 
     /* Parse HTTP request */
     buf[rcount] = '\0';
-    printl(LOG_VERB, "HTTP REQUEST: [%s]", buf);
     method = strtok(buf,  " \t\r\n");
-    host = strtok(NULL, " \t");
+    url = strtok(NULL, " \t\r\n");
     proto = strtok(NULL, " \t\r\n");
-    if ((query = strchr(host, '?'))) *query = '\0';                   /* Cut Query part from URI */
 
-/*
-    if (!strncasecmp(method, HTTP_REQUEST_METHOD_GET, sizeof(HTTP_REQUEST_METHOD_GET))) {
-    } else if (!strncasecmp(method, HTTP_REQUEST_METHOD_GET, sizeof(HTTP_REQUEST_METHOD_GET))) {
-    } else {
-        return NULL;
+    /* printl(LOG_VERB, "URL: [%s]", url); */
+    if (sscanf(url, "https://%[a-zA-Z0-9.-]/", host) != 1)
+        if (sscanf(url, "http://%[a-zA-Z0-9.-]/", host) != 1)
+            if (sscanf(url, "%[a-zA-Z0-9.-]:%hu/", host, &port) != 2)
+                if (sscanf(url, "%[a-zA-Z0-9.-]:%hu", host, &port) != 2)
+                    if (sscanf(url, "%[a-zA-Z0-9.-]", host) != 1) {
+                        printl(LOG_WARN, "Unable to discover target host in the URL-part: [%s] of HTTP request", url);
+                        return 1;
+                    }
+
+
+    /* TODO: Validate the request */
+    strcpy(daddr->name, host);
+    daddr->ip_addr = str2inet(daddr->name, NULL);
+    if (SA_FAMILY(daddr->ip_addr) == AF_INET) SIN4_PORT(daddr->ip_addr) = htons(port);
+    else SIN6_PORT(daddr->ip_addr) = port;
+
+    /* TODO: Check  connection; Reply real status */
+    if (send(socket, HTTP_PROXY_REPLY_200, sizeof(HTTP_PROXY_REPLY_200), 0) == -1) {
+        printl(LOG_CRIT, "Unable to send reply to the HTTP client");
+        return 1;
     }
-*/
-    printl(LOG_VERB, "HTTP REQUEST PARSED: METHOD: [%s], HOST: [%s], PORT: [%s], PROTO: [%s], QUERY: [%s]",
-        method, host, port, proto, query);
 
-    return NULL;
+
+    printl(LOG_VERB, "HTTP REQUEST: URL: [%s] METHOD: [%s], HOST: [%s], PORT: [%hu], PROTO: [%s]",
+        url, method, host, port, proto);
+
+
+    return 0;
 }

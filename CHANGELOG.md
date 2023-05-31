@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.05.28    Current (HTTP proxy implementation in progress)
+* 2023.05.31    Current (HTTP proxy implementation in progress)
+  * Internal HTTP the first try: no checks, no external proxy, no proxy-chain, no external proxy
   * Socks5 server related tweaks; `daddr` refactoring
   * `struct uvaddr` to combine `sockaddr_storage` and `char *` to replace `daddr` and `dname`
   * `http.c`, `http.h`: included; `http_server_request()` in progress

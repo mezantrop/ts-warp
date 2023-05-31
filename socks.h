@@ -35,7 +35,7 @@
 typedef struct {
     uint8_t ver;                /* Socks version */
     uint8_t cmd;                /* Command
-                                    0x01: TCP Connect; 
+                                    0x01: TCP Connect;
                                     0x02: TCP port Binding */
     uint16_t dstport;           /* Dest port number in a network byte order */
     uint32_t dstaddr;           /* IPv4 Address 4 bytes in network byte order */
@@ -132,7 +132,7 @@ typedef struct {
                                                         IPv4 address:   4 bytes
                                                         Domain name:    1 byte Length + 1-255 bytes Name
                                                         IPv6 address:   16 bytes
-                                                        Dest port:      2 bytes */ 
+                                                        Dest port:      2 bytes */
 } s5_request;
 
 typedef struct {
@@ -150,7 +150,7 @@ typedef struct {
                                                         IPv4 address:   4 bytes
                                                         Domain name:    1 byte Length + 1-255 bytes Name
                                                         IPv6 address:   16 bytes */
-    uint16_t dstport;                               /* Dest port number in a network byte order */ 
+    uint16_t dstport;                               /* Dest port number in a network byte order */
 } s5_request_ipv4;
 
 typedef struct {
@@ -174,7 +174,7 @@ typedef struct {
 typedef struct {
     uint8_t ver;                                    /* Socks version */
     uint8_t cmd;                                    /* Command
-                                                        0x01: TCP Connect; 
+                                                        0x01: TCP Connect;
                                                         0x02: TCP port Binding, e.g. FTP;
                                                         0x03: associate a UDP port */
     uint8_t rsv;                                    /* 0x00: Reserved */
@@ -246,7 +246,7 @@ typedef struct {
                                                         IPv4 address:   4 bytes
                                                         Domain name:    1 byte Length + 1-255 bytes Name
                                                         IPv6 address:   16 bytes */
-    uint16_t dstport;                               /* Dest port number in a network byte order */ 
+    uint16_t dstport;                               /* Dest port number in a network byte order */
 } s5_reply_ipv6;
 
 typedef struct {
@@ -282,4 +282,4 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...);
 int socks5_client_auth(int socket, char *user, char *password);
 int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *daddr, char *dname);
 int socks5_server_hello(int socket);
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr_u);
+uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr);
