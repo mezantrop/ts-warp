@@ -29,9 +29,12 @@
 - [x] Installation script (via Makefile)
 - [ ] Documentation
 - [ ] UDP support
-- [ ] (optional) HTTP proxy
+- [ ] HTTP proxy
 
 ### Changelog
+
+**Attention! To incorporate HTTP proxy service, deprecated `socks_\*` variables will be replaced by `proxy_\*` ones
+in the upcoming 1.3.0 release! Be ready to replace them in `ts-warp.ini` file!**
 
 See it [here](CHANGELOG.md)
 
@@ -41,7 +44,7 @@ See it [here](CHANGELOG.md)
 
 - [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them
 - Or clone the repository running `git` in a terminal:
-  
+
   ```sh
   $ git clone https://github.com/mezantrop/ts-warp
   ```
@@ -58,14 +61,14 @@ Using terminal, in the directory with TS-Warp source code run as the normal user
 
 Typically, installation requires root privileges. Below we use `sudo` to achieve the goal, but on some operating
 systems you may need to invoke `su` instead:
-  
+
   ```sh
   $ sudo make install clean
   ```
-  
+
   This installs all the files under the `/usr/local` tree and after that cleans source codes from object and temporary
   created files. If a different installation path is required, set `PREFIX`:
-  
+
   ```sh
   $ sudo make install PREFIX=/path/to/install
   ```
@@ -79,7 +82,7 @@ For example:
   $ sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
   $ sudo nano /usr/local/etc/ts-warp.ini
   ```
-  
+
 *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
 
 ```sh
