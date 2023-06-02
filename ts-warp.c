@@ -513,6 +513,9 @@ All parameters are optional:
                 }
 
                 printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr.ip_addr, buf));
+
+                goto cfloop;
+
             } else
                 /* -- Internal TS-Warp proxy servers ---------------------------------------------------------------- */
                 if (isock == Ssock) {
