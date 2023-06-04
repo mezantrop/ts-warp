@@ -76,7 +76,7 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
     strcpy((char*)req.id, PROG_NAME);                       /* Sic! Some username is required by server! */
     idlen = strnlen((char *)req.id, STR_SIZE);
 
-    req.ver = PROXY_PROTO_SOCKS_V4;
+    req.ver = PROXY_PROTO_SOCKS_V4 - '0';
     req.cmd = cmd;
     req.dstaddr = S4_ADDR(*daddr);
     req.dstport = SIN4_PORT(*daddr);
@@ -138,7 +138,7 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
     va_end(ap);
 
     /* Fill the rest fields of 'hello' request structure */
-    req.ver = PROXY_PROTO_SOCKS_V5;
+    req.ver = PROXY_PROTO_SOCKS_V5 - '0';
     req.nauth = am;
 
     /* Send 'hello' request */
@@ -154,7 +154,7 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
     }
 
     /* Veryfy Socks version */
-    if (rep.ver != PROXY_PROTO_SOCKS_V5) {
+    if (rep.ver != PROXY_PROTO_SOCKS_V5 - '0') {
         printl(LOG_CRIT, "Socks5 server unsupported protocol: v[%d]", rep.ver);
         return AUTH_METHOD_NOACCEPT;
     }
@@ -219,7 +219,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
                 atype = SOCKS5_ATYPE_IPV6;
 
     s5_request_short *req = (s5_request_short *)buf;
-    req->ver = PROXY_PROTO_SOCKS_V5;
+    req->ver = PROXY_PROTO_SOCKS_V5 - '0';
     req->cmd = cmd;
     req->rsv = 0x0;
     req->atype = atype;
@@ -301,7 +301,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
     printl(LOG_VERB, "Socks5 reply: [%d][%d]:[%s], Bytes [%d]", rep->ver,
         rep->status, socks5_status[rep->status], rcount);
 
-    if (rep->ver != PROXY_PROTO_SOCKS_V5) {                             /* Report Socks5 general failure */
+    if (rep->ver != PROXY_PROTO_SOCKS_V5 - '0') {                             /* Report Socks5 general failure */
         printl(LOG_WARN, "Socks5 server speaks unsupported protocol v:[%d]", rep->ver);
         return SOCKS5_REPLY_KO;
     }
@@ -318,7 +318,7 @@ int socks5_server_hello(int socket) {
     s5_reply_hello rep;
     uint8_t na = 0;
 
-    rep.ver = PROXY_PROTO_SOCKS_V5;
+    rep.ver = PROXY_PROTO_SOCKS_V5 - '0';
     rep.cauth = AUTH_METHOD_NOACCEPT;
 
     /* Receive 'hello' request from Socks-client */
@@ -328,7 +328,7 @@ int socks5_server_hello(int socket) {
         return AUTH_METHOD_NOACCEPT;
     }
 
-    if (req.ver != PROXY_PROTO_SOCKS_V5)
+    if (req.ver != PROXY_PROTO_SOCKS_V5 - '0')
         printl(LOG_WARN, "Unsupported version: [%i] in the request", req.ver);
     else
         for (na = 0; na < req.nauth; na++)
@@ -368,7 +368,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
 
     /* Validate request */
     req = (s5_request *)buf;
-    if (req->ver != PROXY_PROTO_SOCKS_V5) {
+    if (req->ver != PROXY_PROTO_SOCKS_V5 - '0') {
         printl(LOG_WARN, "Client speaks unsupported protocol version: [%i]", req->ver);
         rep_status = SOCKS5_REPLY_UNSUPPORTED;
     }
@@ -406,7 +406,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     /* Send reply back */
     /* TODO: Add IPv6 and Name replies; Make it standalone function */
     rep = (s5_reply_ipv4 *)buf;
-    rep->ver = PROXY_PROTO_SOCKS_V5;
+    rep->ver = PROXY_PROTO_SOCKS_V5 - '0';
     rep->status = rep_status;                          /* Status field in Reply is the same as Command field in Request */
     rep->rsv = 0;
     rep->atype = SOCKS5_ATYPE_IPV4;

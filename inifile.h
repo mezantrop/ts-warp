@@ -28,17 +28,17 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h> 
+#include <netdb.h>
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct ini_section {
     char *section_name;                                                 /* Section name */
-    uint8_t section_balance;                                            /* Balance Socks server on accessibility */
-    struct sockaddr_storage socks_server;                               /* Socks server IP-address and Port */
-    uint8_t socks_version;                                              /* Socks version: 4 | 5 */
-    char *socks_user;                                                   /* Socks server username */
-    char *socks_password;                                               /* Socks server user password */
-    struct socks_chain *proxy_chain;                                    /* Socks proxy chain */
+    uint8_t section_balance;                                            /* Balance proxy server on accessibility */
+    struct sockaddr_storage proxy_server;                               /* Proxy server IP-address and Port */
+    uint8_t proxy_type;                                                 /* Proxy type Socks: '4', '5'  or HTTP: 'H' */
+    char *proxy_user;                                                   /* Proxy server username */
+    char *proxy_password;                                               /* Proxy server user password */
+    struct proxy_chain *p_chain;                                        /* Proxy chain */
     struct ini_target *target_entry;                                    /* List of target definitions */
 
     /*NIT Pool specification */
@@ -50,7 +50,7 @@ typedef struct ini_section {
 } ini_section;
 
 typedef struct ini_entry {          /* Parsed INI-entry: var=val1[[:mod1[-mod2]]/val2] */
-    char *var; 
+    char *var;
     char *val;                      /* Raw value: whatever right from the '=' char */
     char *val1;
     char *mod1;
@@ -67,10 +67,10 @@ typedef struct ini_target {
     struct ini_target *next;                                /* The next range entry */
 } ini_target;
 
-typedef struct socks_chain {                                /* Socks server chains */
+typedef struct proxy_chain {                                /* Proxy server chains */
     struct ini_section *chain_member;
-    struct socks_chain *next;
-} socks_chain;
+    struct proxy_chain *next;
+} proxy_chain;
 
 typedef struct chain_list {                                 /* Chains as they defind in the INI */
     char *txt_section;                                      /* section name */
@@ -90,6 +90,13 @@ typedef struct chain_list {                                 /* Chains as they de
 #define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
 #define INI_ENTRY_SECTION_BALANCE_ROUNDROBIN    "roundrobin"        /* 2 */
 
+#define INI_ENTRY_PROXY_SERVER      "proxy_server"
+#define INI_ENTRY_PROXY_CHAIN       "proxy_chain"
+#define INI_ENTRY_PROXY_TYPE        "proxy_type"                    /* HTTP, Socks4, Socks5 (default) */
+#define INI_ENTRY_PROXY_USER        "proxy_user"
+#define INI_ENTRY_PROXY_PASSWORD    "proxy_password"
+
+/* TODO: Deprecated INI_ENTRY_SOCKS_* variables to be removed */
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"
 #define INI_ENTRY_SOCKS_CHAIN       "socks_chain"
 #define INI_ENTRY_SOCKS_VERSION     "socks_version"

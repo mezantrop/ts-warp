@@ -544,9 +544,9 @@ All parameters are optional:
                         }
 
                         s_ini = ini_look_server(ini_root, daddr);
-                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
-                            S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
-                            S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
+                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
+                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
+                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
 
                             printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
@@ -588,9 +588,9 @@ All parameters are optional:
                         }
 
                         s_ini = ini_look_server(ini_root, daddr);
-                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->socks_server) == AF_INET ? \
-                            S4_ADDR(s_ini->socks_server) == S4_ADDR(*ires->ai_addr) : \
-                            S6_ADDR(s_ini->socks_server) == S6_ADDR(*ires->ai_addr))) {
+                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
+                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
+                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
 
                             printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
@@ -613,26 +613,27 @@ All parameters are optional:
                     break;
 
             /* -- Start proxy forwarding ---------------------------------------------------------------------------- */
-            if (s_ini->proxy_chain) {
+            if (s_ini->p_chain) {
 
                 /* -- Proxy chains ---------------------------------------------------------------------------------- */
-                struct socks_chain *sc = s_ini->proxy_chain;
+                struct proxy_chain *sc = s_ini->p_chain;
 
-                printl(LOG_INFO, "Connecting a CHAIN: [%s] Socks server: [%s]", sc->chain_member->section_name,
-                    inet2str(&sc->chain_member->socks_server, buf));
+                printl(LOG_INFO, "Connecting a CHAIN: [%s] proxy server: [%s] type [%c]", sc->chain_member->section_name,
+                    inet2str(&sc->chain_member->proxy_server, buf), sc->chain_member->proxy_type);
 
                 /* Connect the first member of the chain */
-                if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->socks_server)) == -1) {
-                    printl(LOG_WARN, "Unable to connect with CHAIN Socks server: [%s]",
-                        inet2str(&sc->chain_member->socks_server, buf));
+                if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->proxy_server)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with CHAIN proxy server: [%s] type [%c]",
+                        inet2str(&sc->chain_member->proxy_server, buf), sc->chain_member->proxy_type);
                     close(csock);
                     exit(2);
                 }
 
                 while (sc) {
-                    if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V5) {
-                        if (sc->chain_member->socks_user)
-                            auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                    if (sc->chain_member->proxy_type == PROXY_PROTO_SOCKS_V5) {
+                        if (sc->chain_member->proxy_user)
+                            auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
+                                AUTH_METHOD_NOACCEPT);
                         else
                             auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
 
@@ -643,10 +644,13 @@ All parameters are optional:
 
                             case AUTH_METHOD_UNAME:
                                 /* Perform user/password auth */
-                                if (socks5_client_auth(ssock, sc->chain_member->socks_user, sc->chain_member->socks_password)) {
-                                    printl(LOG_WARN, "CHAIN Socks5 server rejected user: [%s]", sc->chain_member->socks_user);
-                                    close(csock);
-                                    exit(2);
+                                if (socks5_client_auth(ssock, sc->chain_member->proxy_user,
+                                    sc->chain_member->proxy_password)) {
+
+                                        printl(LOG_WARN, "CHAIN Socks5 server rejected user: [%s]",
+                                            sc->chain_member->proxy_user);
+                                        close(csock);
+                                        exit(2);
                                 }
                             break;
 
@@ -657,7 +661,8 @@ All parameters are optional:
                             case AUTH_METHOD_NDS:
                             case AUTH_METHOD_MAF:
                             case AUTH_METHOD_JPB:
-                                printl(LOG_CRIT, "CHAIN Socks5 server accepted unsupported auth-method: [%d]", auth_method);
+                                printl(LOG_CRIT,
+                                    "CHAIN Socks5 server accepted unsupported auth-method: [%d]", auth_method);
                                 close(csock);
                                 exit(2);
                             case AUTH_METHOD_NOACCEPT:
@@ -670,11 +675,11 @@ All parameters are optional:
                         if (sc->next) {
                             /* We want to connect with the next chain member */
                             printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
-                                inet2str(&sc->chain_member->socks_server, suf),
-                                inet2str(&sc->next->chain_member->socks_server, buf));
+                                inet2str(&sc->chain_member->proxy_server, suf),
+                                inet2str(&sc->next->chain_member->proxy_server, buf));
 
                             if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT,
-                                &sc->next->chain_member->socks_server, NULL) > 0) {
+                                &sc->next->chain_member->proxy_server, NULL) > 0) {
                                     printl(LOG_WARN, "CHAIN Socks5 server returned an error");
                                     close(csock);
                                     exit(2);
@@ -682,10 +687,10 @@ All parameters are optional:
                         } else {
                             /* We are at the end of the chain, so connect with the section server */
                             printl(LOG_VERB, "Initiate CHAIN Socks5 protocol: request [%s] -> [%s]",
-                                inet2str(&sc->chain_member->socks_server, suf),
-                                inet2str(&s_ini->socks_server, buf));
+                                inet2str(&sc->chain_member->proxy_server, suf),
+                                inet2str(&s_ini->proxy_server, buf));
 
-                            if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &s_ini->socks_server, NULL) > 0) {
+                            if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &s_ini->proxy_server, NULL) > 0) {
                                 printl(LOG_WARN, "Socks5 server returned an error");
                                 printl(LOG_WARN, "CHAIN Socks5 server returned an error");
                                 close(csock);
@@ -694,16 +699,16 @@ All parameters are optional:
 
                             goto single_server;
                         }
-                    } else if (sc->chain_member->socks_version == PROXY_PROTO_SOCKS_V4)
+                    } else if (sc->chain_member->proxy_type == PROXY_PROTO_SOCKS_V4)
                         if (sc->next) {
                             /* We want to connect with the next chain member */
                             printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
-                                inet2str(&sc->chain_member->socks_server, suf),
-                                inet2str(&sc->next->chain_member->socks_server, buf));
+                                inet2str(&sc->chain_member->proxy_server, suf),
+                                inet2str(&sc->next->chain_member->proxy_server, buf));
 
                             if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                                    (struct sockaddr_in *)&sc->next->chain_member->socks_server,
-                                    sc->next->chain_member->socks_user) > 0) {
+                                    (struct sockaddr_in *)&sc->next->chain_member->proxy_server,
+                                    sc->next->chain_member->proxy_user) > 0) {
 
                                         printl(LOG_WARN, "CHAIN Socks4 server returned an error");
                                         close(csock);
@@ -712,11 +717,11 @@ All parameters are optional:
                         } else {
                             /* We are at the end of the chain, so connect with the section server */
                             printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
-                                inet2str(&sc->chain_member->socks_server, buf),
-                                inet2str(&s_ini->socks_server, buf));
+                                inet2str(&sc->chain_member->proxy_server, buf),
+                                inet2str(&s_ini->proxy_server, buf));
 
                             if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                                    (struct sockaddr_in *)&s_ini->socks_server, s_ini->socks_user) > 0) {
+                                    (struct sockaddr_in *)&s_ini->proxy_server, s_ini->proxy_user) > 0) {
 
                                         printl(LOG_WARN, "Socks4 server returned an error");
                                         printl(LOG_WARN, "CHAIN Socks4 server returned an error");
@@ -726,9 +731,8 @@ All parameters are optional:
                             goto single_server;
                         }
                     else {
-                        /* Must be cleared already by read_ini() */
-                        printl(LOG_WARN, "Detected unsupported CHAIN Socks version: [%d]",
-                            s_ini->proxy_chain->chain_member->socks_version);
+                        printl(LOG_WARN, "Detected unsupported CHAIN proxy type: [%c]",
+                            s_ini->p_chain->chain_member->proxy_type);
                         close(csock);
                         exit(2);
                     }
@@ -736,24 +740,28 @@ All parameters are optional:
                 }
             } else {
                 /* -- Single Proxy-server connection (no chains) ---------------------------------------------------- */
-                printl(LOG_INFO, "Connecting the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+                printl(LOG_INFO, "Connecting the proxy server: [%s] type [%c]",
+                    inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
-                if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->socks_server)) == -1) {
-                    printl(LOG_WARN, "Unable to connect with Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+                if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->proxy_server)) == -1) {
+                    printl(LOG_WARN, "Unable to connect with the proxy server: [%s] type [%c]",
+                        inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
                     close(csock);
                     exit(2);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with the Socks server: [%s]", inet2str(&s_ini->socks_server, buf));
+                printl(LOG_INFO, "Succesfully connected with the ptoxy server: [%s] type [%c]",
+                    inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
                 single_server:
 
-                if (s_ini->socks_version == PROXY_PROTO_SOCKS_V5) {
+                if (s_ini->proxy_type == PROXY_PROTO_SOCKS_V5) {
 
-                    printl(LOG_VERB, "Initiate Socks5 protocol: hello: [%s]", inet2str(&s_ini->socks_server, buf));
+                    printl(LOG_VERB, "Initiate Socks5 protocol: hello: [%s]", inet2str(&s_ini->proxy_server, buf));
 
-                    if (s_ini->socks_user)
-                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME, AUTH_METHOD_NOACCEPT);
+                    if (s_ini->proxy_user)
+                        auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_UNAME,
+                            AUTH_METHOD_NOACCEPT);
                     else
                         auth_method = socks5_client_hello(ssock, AUTH_METHOD_NOAUTH, AUTH_METHOD_NOACCEPT);
 
@@ -762,8 +770,8 @@ All parameters are optional:
                         break;
 
                         case AUTH_METHOD_UNAME:                     /* Perform user/password auth */
-                            if (socks5_client_auth(ssock, s_ini->socks_user, s_ini->socks_password)) {
-                                printl(LOG_WARN, "Socks rejected user: [%s]", s_ini->socks_user);
+                            if (socks5_client_auth(ssock, s_ini->proxy_user, s_ini->proxy_password)) {
+                                printl(LOG_WARN, "Socks rejected user: [%s]", s_ini->proxy_user);
                                 close(csock);
                                 exit(2);
                             }
@@ -787,10 +795,10 @@ All parameters are optional:
                     }
 
                     printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]",
-                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr.ip_addr, buf));
+                        inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
                     /* -- Perform NIT Lookup ------------------------------------------------------------------------ */
-                    if (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->socks_server) != S4_ADDR(daddr.ip_addr)) {
+                    if (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->proxy_server) != S4_ADDR(daddr.ip_addr)) {
                         if (s_ini->nit_domain &&
                             (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
                                 S4_ADDR(s_ini->nit_ipmask)))
@@ -808,12 +816,12 @@ All parameters are optional:
                         close(csock);
                         exit(2);
                     }
-                } else if (s_ini->socks_version == PROXY_PROTO_SOCKS_V4) {
+                } else if (s_ini->proxy_type == PROXY_PROTO_SOCKS_V4) {
                     printl(LOG_VERB, "Initiate Socks4 protocol: request: [%s] -> [%s]",
-                        inet2str(&s_ini->socks_server, suf), inet2str(&daddr.ip_addr, buf));
+                        inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
                     if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
-                            (struct sockaddr_in *)&daddr.ip_addr, s_ini->socks_user) != SOCKS4_REPLY_OK) {
+                            (struct sockaddr_in *)&daddr.ip_addr, s_ini->proxy_user) != SOCKS4_REPLY_OK) {
 
                         printl(LOG_WARN, "Socks4 server returned an error");
                         close(csock);
@@ -821,7 +829,7 @@ All parameters are optional:
                     }
                 } else {
                     /* Must be cleared already by read_ini() */
-                    printl(LOG_WARN, "Detected unsupported Socks version: [%d]", s_ini->socks_version);
+                    printl(LOG_WARN, "Detected unsupported proxy type: [%c]", s_ini->proxy_type);
                     close(csock);
                     exit(2);
                 }

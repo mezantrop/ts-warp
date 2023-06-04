@@ -26,6 +26,8 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 #include "version.h"
 
+#define PROXY_PROTO_HTTP        'H'
+
 
 #define HTTP_PROXY_REPLY_200    "HTTP/1.1 200 OK\r\nProxy-agent: "PROG_NAME_FULL"\r\n\r\n"
 

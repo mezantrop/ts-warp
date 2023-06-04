@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.06.02    Current (HTTP proxy implementation in progress)
+* 2023.06.04    Current (HTTP proxy implementation in progress)
+  * Unifying proxy definitions and various routines for Socks and HTTP protocols
   * Fix direct TCP connections
   * Internal HTTP the first try: no checks, no external proxy, no proxy-chain, no external proxy
   * Socks5 server related tweaks; `daddr` refactoring
