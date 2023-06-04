@@ -26,7 +26,7 @@
 
 /* -- INI-file processing ------------------------------------------------------------------------------------------- */
 #if defined(linux)
-#define _GNU_SOURCE 
+#define _GNU_SOURCE
 #endif
 
 #include <stdio.h>
@@ -37,10 +37,12 @@
 #include "utility.h"
 #include "network.h"
 #include "socks.h"
+#include "http.h"
 #include "logfile.h"
 #include "pidfile.h"
 #include "xedec.h"
 #include "inifile.h"
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 ini_section *read_ini(char *ifile_name) {
@@ -77,11 +79,11 @@ ini_section *read_ini(char *ifile_name) {
             c_sect = (struct ini_section *)malloc(sizeof(struct ini_section));
             c_sect->section_name = strndup(section, sizeof section);
             c_sect->section_balance = SECTION_BALANCE_FAILOVER;
-            memset(&c_sect->socks_server, 0, sizeof(struct sockaddr_storage));
-            c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
-            c_sect->socks_user = NULL;
-            c_sect->socks_password = NULL;
-            c_sect->proxy_chain = NULL;
+            memset(&c_sect->proxy_server, 0, sizeof(struct sockaddr_storage));
+            c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
+            c_sect->proxy_user = NULL;
+            c_sect->proxy_password = NULL;
+            c_sect->p_chain = NULL;
             c_sect->target_entry = NULL;
             c_sect->nit_domain = NULL;
             memset(&c_sect->nit_ipaddr, 0, sizeof(struct sockaddr_storage));
@@ -92,7 +94,7 @@ ini_section *read_ini(char *ifile_name) {
             if (!ini_root) ini_root = c_sect; else l_sect->next = c_sect;
             l_sect = c_sect;                                        /* lsect always points to the last section */
         } else {                                                    /* Entries within sections */
-            s = d = buffer; 
+            s = d = buffer;
             do {
                 while(isspace(*s)) s++;                             /* Remove whitespaces */
                 if ((!isascii(*s) || iscntrl(*s)) && *s != '\0') {  /* Ignore lines with non-ASCII or Control chars */
@@ -135,32 +137,32 @@ ini_section *read_ini(char *ifile_name) {
 
             printl(LOG_VERB, "LN: [%d] V: [%s] v1: [%s] v2: [%s] m1: [%s] m2: [%s]",
                 ln, entry.var, entry.val1?:"", entry.val2?:"",
-                !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD) ? "********" : entry.mod1?:"", entry.mod2?:"");
+                !strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) ? "********" : entry.mod1?:"", entry.mod2?:"");
 
-            /* Parse socks_* entries */
-            if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
-                chk_inivar(&c_sect->socks_server, INI_ENTRY_SOCKS_SERVER, ln);
-                c_sect->socks_server = str2inet(entry.val1, entry.mod1 ? entry.mod1 : "1080");
+            /* -- Parse proxy_* entries ----------------------------------------------------------------------------- */
+            /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
+            if (!strcasecmp(entry.var, INI_ENTRY_PROXY_SERVER) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
+                chk_inivar(&c_sect->proxy_server, INI_ENTRY_PROXY_SERVER, ln);
+                c_sect->proxy_server = str2inet(entry.val1, entry.mod1 ? entry.mod1 : "1080");
             } else
-                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_VERSION)) {
-                    chk_inivar(&c_sect->socks_version, INI_ENTRY_SOCKS_VERSION, ln);
-                    c_sect->socks_version = toint(entry.val);
-                    if (c_sect->socks_version != PROXY_PROTO_SOCKS_V4 &&
-                        c_sect->socks_version != PROXY_PROTO_SOCKS_V5) {
-                            printl(LOG_WARN,
-                                "LN: [%d] Detected unsupported Socks version: [%d]", ln, c_sect->socks_version);
-
-                            c_sect->socks_version = PROXY_PROTO_SOCKS_V5;
-
-                            printl(LOG_WARN, 
-                                "LN: [%d] Resetting Socks version to default: [%d]", ln, c_sect->socks_version);
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_TYPE)) {
+                    chk_inivar(&c_sect->proxy_type, INI_ENTRY_PROXY_TYPE, ln);
+                    c_sect->proxy_type = entry.val[0];
+                    if (c_sect->proxy_type != PROXY_PROTO_SOCKS_V4 &&
+                        c_sect->proxy_type != PROXY_PROTO_SOCKS_V5 &&
+                        toupper(c_sect->proxy_type) != PROXY_PROTO_HTTP) {
+                            printl(LOG_WARN, "LN: [%d] Resetting unsupported proxy type [%c] to default: [%c]",
+                                ln, c_sect->proxy_type, PROXY_PROTO_SOCKS_V5);
+                            c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
                         }
-            } else 
-                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
-                    if (chk_inivar(&c_sect->socks_user, INI_ENTRY_SOCKS_USER, ln)) free(c_sect->socks_user);
-                    c_sect->socks_user = strdup(entry.val);
             } else
-                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
+                /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_USER) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
+                    if (chk_inivar(&c_sect->proxy_user, INI_ENTRY_PROXY_USER, ln)) free(c_sect->proxy_user);
+                    c_sect->proxy_user = strdup(entry.val);
+            } else
+                /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_CHAIN) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_CHAIN)) {
                     chain_temp = (struct chain_list *)malloc(sizeof(struct chain_list));
                     chain_temp->txt_section = strdup(c_sect->section_name);
                     chain_temp->txt_chain = strdup(entry.val);
@@ -168,22 +170,23 @@ ini_section *read_ini(char *ifile_name) {
                     if (!chain_root) chain_root = chain_temp; else chain_this->next = chain_temp;
                     chain_this = chain_temp;
             } else
-                if (!strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
-                    if (chk_inivar(&c_sect->socks_password, INI_ENTRY_SOCKS_PASSWORD, ln))
-                            free(c_sect->socks_password);
+                /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
+                    if (chk_inivar(&c_sect->proxy_password, INI_ENTRY_PROXY_PASSWORD, ln))
+                            free(c_sect->proxy_password);
 
                         if (!strcasecmp(entry.val1, XEDEC_PLAIN))
-                            c_sect->socks_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
+                            c_sect->proxy_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
                                 printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash version!", ln);
                                 mexit(1, pfile_name);
                             }
 
-                            c_sect->socks_password = strdup(x);
+                            c_sect->proxy_password = strdup(x);
                             free(x);
                         } else {
-                            printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_SOCKS_PASSWORD);
+                            printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_PROXY_PASSWORD);
                             mexit(1, pfile_name);
                         }
             } else
@@ -199,7 +202,7 @@ ini_section *read_ini(char *ifile_name) {
                         c_sect->section_balance = SECTION_BALANCE_FAILOVER;
                     }
             } else
-                /* Parse nit_* entries */
+                /* -- Parse nit_* entries --------------------------------------------------------------------------- */
                 if (!strcasecmp(entry.var, NS_INI_ENTRY_NIT_POOL)) {
                     c_sect->nit_domain = strdup(entry.val1);
                     c_sect->nit_ipaddr = str2inet(entry.mod1, NULL);
@@ -212,7 +215,7 @@ ini_section *read_ini(char *ifile_name) {
                         c_sect->nit_ipmask = str2inet(entry.val2, NULL);
             } else {
                 target_type = INI_TARGET_NOTSET;
-                /* Parse target_* entries: var=val1[:mod1[-mod2]]/val2 */
+                /* -- Parse target_* entries: var=val1[:mod1[-mod2]]/val2 ------------------------------------------- */
                 if (!strcasecmp(entry.var, INI_ENTRY_TARGET_HOST)) target_type = INI_TARGET_HOST;
                 else if (!strcasecmp(entry.var, INI_ENTRY_TARGET_DOMAIN)) target_type = INI_TARGET_DOMAIN;
                 else if (!strcasecmp(entry.var, INI_ENTRY_TARGET_NETWORK)) target_type = INI_TARGET_NETWORK;
@@ -225,8 +228,8 @@ ini_section *read_ini(char *ifile_name) {
                     memset(&c_targ->ip1, 0, sizeof(struct sockaddr_storage));
                     memset(&c_targ->ip2, 0, sizeof(struct sockaddr_storage));
                     SIN4_FAMILY(c_targ->ip1) = AF_INET;
-                    SIN4_FAMILY(c_targ->ip2) = AF_INET; 
- 
+                    SIN4_FAMILY(c_targ->ip2) = AF_INET;
+
                     switch(target_type) {
                         case INI_TARGET_DOMAIN:
                             d = entry.val;
@@ -258,7 +261,7 @@ ini_section *read_ini(char *ifile_name) {
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
-                    if (c_targ->ip1.ss_family == AF_INET) { 
+                    if (c_targ->ip1.ss_family == AF_INET) {
                         SIN4_PORT(c_targ->ip1) = entry.mod1 ? htons((int)strtol(entry.mod1, (char **)NULL, 10)) : 0;
                         SIN4_PORT(c_targ->ip2) = entry.mod2 ? htons((int)strtol(entry.mod2, (char **)NULL, 10)) : 0xFFFF;
                     } else if (c_targ->ip1.ss_family == AF_INET6) {
@@ -285,7 +288,7 @@ ini_section *read_ini(char *ifile_name) {
 /* ------------------------------------------------------------------------------------------------------------------ */
 int create_chains(struct ini_section *ini, struct chain_list *chain) {
     struct ini_section *s, *sts;
-    struct socks_chain *sc, *st;
+    struct proxy_chain *sc, *st;
     struct chain_list *c, *cc;
     char *chain_section, *p;
 
@@ -295,14 +298,14 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
             if ((s = getsection(ini, c->txt_section))) {
                 printl(LOG_VERB, "Section: [%s] has a chain link: [%s]", c->txt_section, c->txt_chain);
 
-                sc = s->proxy_chain;
+                sc = s->p_chain;
                 p = c->txt_chain;
                 while ((chain_section = strsep(&p, ",")) != NULL) {
                     if ((sts = getsection(ini, chain_section))) {
-                        st = (struct socks_chain *)malloc(sizeof(struct socks_chain));
+                        st = (struct proxy_chain *)malloc(sizeof(struct proxy_chain));
                         st->chain_member = sts;
                         st->next = NULL;
-                        if (sc) sc->next = st; else s->proxy_chain = st;
+                        if (sc) sc->next = st; else s->p_chain = st;
                         printl(LOG_VERB, "Linking chain section: [%s]", st->chain_member->section_name);
                     } else
                         printl(LOG_VERB, "Chain section: [%s] linked from: [%s] does not really exist",
@@ -344,7 +347,7 @@ void show_ini(struct ini_section *ini, int loglvl) {
     /* Debug only function to print parsed INI-file. TODO: Remove in release? */
 
     struct ini_section *s;
-    struct socks_chain *c;
+    struct proxy_chain *c;
     struct ini_target *t;
     char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
@@ -363,14 +366,14 @@ void show_ini(struct ini_section *ini, int loglvl) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Server: [%s] Version: [%d] User/Password: [%s/%s]",
-            s->section_name, ini_balance[s->section_balance], inet2str(&s->socks_server, ip1), s->socks_version,
-            s->socks_user?:"", s->socks_password ? "********" : "");
+        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Proxy: [%s] Type: [%c] User/Password: [%s/%s]",
+            s->section_name, ini_balance[s->section_balance], inet2str(&s->proxy_server, ip1), s->proxy_type,
+            s->proxy_user?:"", s->proxy_password ? "********" : "");
 
         /* Display Socks chain */
-        if (s->proxy_chain) {
-            printl(loglvl, "Socks Chain:");
-            c = s->proxy_chain;
+        if (s->p_chain) {
+            printl(loglvl, "Proxy Chain:");
+            c = s->p_chain;
             while (c) {
                 printl(loglvl, "[%s] ->", c->chain_member->section_name);
                 c = c->next;
@@ -380,7 +383,7 @@ void show_ini(struct ini_section *ini, int loglvl) {
 
         /* Display NIT pool */
         if (s->nit_domain)
-            printl(loglvl, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s/%s]", 
+            printl(loglvl, "SHOW NIT Pool Domain: [%s], IP/Mask: [%s/%s]",
                 s->nit_domain, inet2str(&s->nit_ipaddr, ip1), inet2str(&s->nit_ipmask, ip2));
 
         /* Display target entries */
@@ -399,7 +402,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     /* Clean INI-data */
 
     struct ini_section *s;
-    struct socks_chain *c, *cc;
+    struct proxy_chain *c, *cc;
     struct ini_target *t, *tt;
     char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
@@ -408,10 +411,10 @@ struct ini_section *delete_ini(struct ini_section *ini) {
     while (ini) {
         printl(LOG_VERB, "DELETE Section: [%s]", ini->section_name);
 
-        /* Delete socks chain */
-        if (ini->proxy_chain) {
-            printl(LOG_VERB, "DELETE Socks Chain:");
-            c = ini->proxy_chain;
+        /* Delete proxy chain */
+        if (ini->p_chain) {
+            printl(LOG_VERB, "DELETE Proxy Chain:");
+            c = ini->p_chain;
             while (c) {
                 printl(LOG_VERB, "[%s] ->", c->chain_member->section_name);
                 cc = c->next;
@@ -419,7 +422,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
                 c = cc;
             }
         } else
-            printl(LOG_VERB, "No Socks Chain detected");
+            printl(LOG_VERB, "No Proxy Chain detected");
 
         /* Delete target_* entries */
         t = ini->target_entry;
@@ -435,10 +438,10 @@ struct ini_section *delete_ini(struct ini_section *ini) {
             t = tt;
         }
 
-        /* Delete socks_* entries */
+        /* Delete proxy_* entries */
         s = ini->next;
-        if (ini->socks_user && ini->socks_user[0]) free(ini->socks_user);
-        if (ini->socks_password && ini->socks_password[0]) free(ini->socks_password);
+        if (ini->proxy_user && ini->proxy_user[0]) free(ini->proxy_user);
+        if (ini->proxy_password && ini->proxy_password[0]) free(ini->proxy_password);
         if (ini->nit_domain && ini->nit_domain[0]) free(ini->nit_domain);
 
         /* Delete the section name */
@@ -446,7 +449,7 @@ struct ini_section *delete_ini(struct ini_section *ini) {
         free(ini);
         ini = s;
     }
-    return (ini); 
+    return (ini);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -454,7 +457,7 @@ int pushback_ini(struct ini_section **ini, struct ini_section *target) {
     struct ini_section *c = *ini;
 
     if (!c || !target->next) return 1;              /* We don't need to move anything */
-    
+
     if (c == target) *ini = c->next;
     while (c->next) {
         if (c->next == target) c->next = c->next->next;
@@ -467,7 +470,6 @@ int pushback_ini(struct ini_section **ini, struct ini_section *target) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-/* struct ini_section *ini_look_server(struct ini_section *ini, struct sockaddr_storage ip, char *hostname) { */
 struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_u) {
     /* Lookup a Socks server ip in the list referred by ini */
 
@@ -478,14 +480,13 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
     char host[HOST_NAME_MAX] = {0}, *domain = NULL;
     int domainlen = 0;
 
+
     if (addr_u.name[0]) strncpy(host, addr_u.name, sizeof(host));
-    if (!addr_u.name[0] && getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr), host, sizeof host, 0, 0, NI_NAMEREQD))
-            printl(LOG_VERB, "Not specified / Unable to resolve hostname: [%s] into IP", inet2str(&addr_u.ip_addr, buf1));
-    else 
-        if ((domain = strchr(host, '.'))) {
-            domain++;
-            domainlen = strnlen(domain, HOST_NAME_MAX);
-        }
+    if (!addr_u.name[0] &&
+        getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr), host, sizeof host, 0, 0, NI_NAMEREQD))
+            printl(LOG_VERB, "Unspecified / irresolvable hostname: [%s]", inet2str(&addr_u.ip_addr, buf1));
+    else
+        if ((domain = strchr(host, '.'))) { domain++; domainlen = strnlen(domain, HOST_NAME_MAX); }
 
     printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]", inet2str(&addr_u.ip_addr, buf1), host, domain?:"");
 
@@ -498,24 +499,28 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                 case INI_TARGET_HOST:
                     if ((host[0] && t->name && strcasestr(t->name, host) &&
                         (addr_u.ip_addr.ss_family == AF_INET &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) && SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
+                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
+                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
                         (addr_u.ip_addr.ss_family == AF_INET6 &&
-                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) && SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
+                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found Socks server: [%s] to serve HOST: [%s : %s] in: [%s]",
-                                inet2str(&s->socks_server, buf1), host[0]?host:"-",
+                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s : %s] in: [%s]",
+                                inet2str(&s->proxy_server, buf1), s->proxy_type, host[0] ? host : "-",
                                 inet2str(&addr_u.ip_addr, buf2), s->section_name);
                             return s;
                     } else
-                        if ((addr_u.ip_addr.ss_family == AF_INET && 
+                        if ((addr_u.ip_addr.ss_family == AF_INET &&
                                 S4_ADDR(addr_u.ip_addr) == S4_ADDR(t->ip1) &&
-                                SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) && SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
+                                SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
+                                SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
                             (addr_u.ip_addr.ss_family == AF_INET6 &&
                                 !memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip1), sizeof(S6_ADDR(addr_u.ip_addr))) &&
-                                SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) && SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                                SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
+                                SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
 
-                                printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s : %s] in: [%s]",
-                                    inet2str(&s->socks_server, buf1), host[0]?host:"-",
+                                printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s : %s] in: [%s]",
+                                    inet2str(&s->proxy_server, buf1), s->proxy_type, host[0] ? host : "-",
                                     inet2str(&addr_u.ip_addr, buf2), s->section_name);
                                 return s;
                         }
@@ -524,12 +529,14 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                 case INI_TARGET_DOMAIN:
                     if ((domainlen && strcasestr(t->name, domain) &&
                         (addr_u.ip_addr.ss_family == AF_INET &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) && SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
+                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
+                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
                         (addr_u.ip_addr.ss_family == AF_INET6 &&
-                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) && SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
+                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found Socks server: [%s] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
-                                inet2str(&s->socks_server, buf1), host, t->name, s->section_name);
+                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
+                                inet2str(&s->proxy_server, buf1), s->proxy_type, host, t->name, s->section_name);
                             return s;
                     }
                 break;
@@ -538,11 +545,13 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                     if (addr_u.ip_addr.ss_family == AF_INET) {
                         /* IP & MASK_from_ini vs IP_from_ini & MASK_from_ini */
                         if ((S4_ADDR(addr_u.ip_addr) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) && SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) {
+                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
+                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) {
 
-                                printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
-                                    inet2str(&s->socks_server, buf1), inet2str(&addr_u.ip_addr, buf2), inet2str(&t->ip1, buf3), 
-                                    inet2str(&t->ip2, buf4), s->section_name);
+                                printl(LOG_VERB,
+                                    "Found proxy: [%s] type [%c] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
+                                    inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
+                                    inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4), s->section_name);
                                 return s;
                         }
                     } else if (addr_u.ip_addr.ss_family == AF_INET6) {
@@ -552,25 +561,28 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                             if ((S6_ADDR(addr_u.ip_addr)[b] & S6_ADDR(t->ip2)[b]) != (S6_ADDR(t->ip1)[b] & S6_ADDR(t->ip2)[b]))
                                 break;
 
-                        printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
-                            inet2str(&s->socks_server, buf1), inet2str(&addr_u.ip_addr, buf2), inet2str(&t->ip1, buf3),
-                            inet2str(&t->ip2, buf4), s->section_name);
+                        printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
+                            inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
+                            inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4), s->section_name);
                         return s;
                     }
                 break;
 
                 case INI_TARGET_RANGE:
                     if ((addr_u.ip_addr.ss_family == AF_INET &&
-                        ntohl(S4_ADDR(addr_u.ip_addr)) >= ntohl(S4_ADDR(t->ip1)) && ntohl(S4_ADDR(addr_u.ip_addr)) <= ntohl(S4_ADDR(t->ip2)) &&
-                        SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) && SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
+                            ntohl(S4_ADDR(addr_u.ip_addr)) >= ntohl(S4_ADDR(t->ip1)) &&
+                            ntohl(S4_ADDR(addr_u.ip_addr)) <= ntohl(S4_ADDR(t->ip2)) &&
+                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
+                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
                         (addr_u.ip_addr.ss_family == AF_INET6 &&
-                        memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip1), sizeof(S6_ADDR(addr_u.ip_addr))) > 0 &&
-                        memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip2), sizeof(S6_ADDR(addr_u.ip_addr))) < 0 &&
-                        SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) && SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                            memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip1), sizeof(S6_ADDR(addr_u.ip_addr))) > 0 &&
+                            memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip2), sizeof(S6_ADDR(addr_u.ip_addr))) < 0 &&
+                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
+                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
 
-                            printl(LOG_VERB, "Found Socks server: [%s] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
-                                inet2str(&s->socks_server, buf1), inet2str(&addr_u.ip_addr, buf2), inet2str(&t->ip1, buf3),
-                                inet2str(&t->ip2, buf4), s->section_name);
+                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
+                                inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
+                                inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4), s->section_name);
                             return s;
                     }
                 break;
@@ -588,8 +600,8 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
 /* ------------------------------------------------------------------------------------------------------------------ */
 int chk_inivar(void *v, char *vi, int ln) {
     /* Check if an INI-file variable already has a value in memory. Here:
-        *v      a variable in memory, 
-        *vi     a variable name in the INI-file (just for logging) 
+        *v      a variable in memory,
+        *vi     a variable name in the INI-file (just for logging)
         ln      a line number in the ini-file (for logging only) */
 
     if (*(int *)v) {

@@ -25,8 +25,8 @@
 
 
 /* -- Socks protocol definitions ------------------------------------------------------------------------------------ */
-#define PROXY_PROTO_SOCKS_V4    4
-#define PROXY_PROTO_SOCKS_V5    5
+#define PROXY_PROTO_SOCKS_V4    '4'
+#define PROXY_PROTO_SOCKS_V5    '5'
 
 /* -- Socks4 -------------------------------------------------------------------------------------------------------- */
 #define SOCKS4_CMD_TCPCONNECT   0x01
