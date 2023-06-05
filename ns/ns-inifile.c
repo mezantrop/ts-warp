@@ -100,14 +100,14 @@ nit *read_ini(char *ifile_name) {
                 if ((m = strtol(entry.mod1, NULL, 10)) && m < 33) {
                     SIN4_FAMILY(c_nit->ip_mask) = AF_INET;
                     S4_ADDR(c_nit->ip_mask) = htonl(~(0xFFFFFFFF >> m));
-                } else 
+                } else
                     c_nit->ip_mask = str2inet(entry.mod1, NULL);
-            }            
+            }
             c_nit->next = NULL;
             c_nit->iname = 0;
 
             if (SA_FAMILY(c_nit->ip_addr) == AF_INET) {
-                nit_size = ~ntohl(S4_ADDR(c_nit->ip_mask)); 
+                nit_size = ~ntohl(S4_ADDR(c_nit->ip_mask));
                 printl(LOG_VERB, "Netmask: [%0X] Pool size: [%0X]", S4_ADDR(c_nit->ip_mask), nit_size);
             } else {
                 nit_size = NS_NIT_IPV6_POOL_SIZE;
@@ -128,7 +128,7 @@ nit *read_ini(char *ifile_name) {
         if (entry.val) free(entry.val);
     }
 
-    fclose(fini);    
+    fclose(fini);
     return nit_root;
 }
 
@@ -141,7 +141,7 @@ void show_ini(struct nit *nit_root) {
     s = nit_root;
     while (s) {
         nit_size = ~ntohl(S4_ADDR(s->ip_mask));
-        printl(LOG_VERB, "Domain: [%s] Pool: [%s] Netmask: [%s] Pool size: [%d]", 
+        printl(LOG_VERB, "Domain: [%s] Pool: [%s] Netmask: [%s] Pool size: [%d]",
             s->domain, inet2str(&s->ip_addr, ip1), inet2str(&s->ip_mask, ip2), nit_size);
 
         printl(LOG_VERB, "Pool contents:", nit_size);
@@ -170,9 +170,9 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_st
             printl(LOG_VERB, "Found: [%s] as part of domain: [%s]", name, s->domain);
 
             if (SA_FAMILY(s->ip_addr) == af) {
-                if (af == AF_INET) 
-                    nit_size = ~ntohl(S4_ADDR(s->ip_mask)); 
-                else 
+                if (af == AF_INET)
+                    nit_size = ~ntohl(S4_ADDR(s->ip_mask));
+                else
                     nit_size = NS_NIT_IPV6_POOL_SIZE;
 
                 for (i = 0; i < nit_size; i++)
@@ -182,7 +182,7 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_st
                         r_ip = s->ip_addr;
                         if (af == AF_INET)
                             ((struct sockaddr_in *)&r_ip)->sin_addr.s_addr += htonl(i);
-                        else 
+                        else
                             /* A dirty hack to increase the first only 4 bytes of the IPv6 adress */
                             #if defined(linux)
                                 ((struct sockaddr_in6 *)&r_ip)->sin6_addr.__in6_u.__u6_addr32[0] += i;
@@ -201,7 +201,7 @@ int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_st
                 r_ip = s->ip_addr;
                 if (af == AF_INET)
                     ((struct sockaddr_in *)&r_ip)->sin_addr.s_addr += htonl(s->iname);
-                else 
+                else
                     /* A dirty hack to increase the first only 4 bytes of the IPv6 adress */
                     #if defined(linux)
                         ((struct sockaddr_in6 *)&r_ip)->sin6_addr.__in6_u.__u6_addr32[0] += s->iname;
@@ -237,11 +237,11 @@ int nit_lookup_ip(struct nit *nit_root, struct sockaddr_storage *ip, char *name)
 
     s = nit_root;
     while (s) {
-/*        printl(LOG_VERB, "IP/MASK [%08X] & [%08X] = [%08X]", 
+/*        printl(LOG_VERB, "IP/MASK [%08X] & [%08X] = [%08X]",
             S4_ADDR(s->ip_addr), ~ntohl(S4_ADDR(s->ip_mask)), (ntohl(S4_ADDR(s->ip_addr) & ~S4_ADDR(s->ip_mask))));
 
-        printl(LOG_VERB, "[%08X]&[%08X] = [%08X] ? [%08X]&[%08X] = [%08X]", 
-            S4_ADDR(s->ip_addr), S4_ADDR(s->ip_mask), (S4_ADDR(s->ip_addr) & S4_ADDR(s->ip_mask)), 
+        printl(LOG_VERB, "[%08X]&[%08X] = [%08X] ? [%08X]&[%08X] = [%08X]",
+            S4_ADDR(s->ip_addr), S4_ADDR(s->ip_mask), (S4_ADDR(s->ip_addr) & S4_ADDR(s->ip_mask)),
             S4_ADDR(*ip), S4_ADDR(s->ip_mask), (S4_ADDR(*ip) & S4_ADDR(s->ip_mask)));
 */
         if ((S4_ADDR(s->ip_addr) & S4_ADDR(s->ip_mask)) == (S4_ADDR(*ip) & S4_ADDR(s->ip_mask))) {

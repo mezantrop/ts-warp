@@ -33,7 +33,7 @@
 #include "pidfile.h"
 #include "utility.h"
 
- 
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 int connect_desnation(struct sockaddr dest) {
     /* Establish TCP connetion with a det address */
@@ -61,7 +61,7 @@ int connect_desnation(struct sockaddr dest) {
             printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for outgoing connections");
     #endif
 
-    /* Timeout for a new not yet established connections on FreeBSD/Darwin, 
+    /* Timeout for a new not yet established connections on FreeBSD/Darwin,
     or a number of retries on Linux, or nothing on OpenBSD */
     #if defined(__FreeBSD__)
         int keepinit = TCP_KEEPINIT_S;
@@ -138,7 +138,7 @@ struct sockaddr_storage str2inet(char *str_addr, char *str_port) {
         printl(LOG_CRIT, "Error resolving address [%s]:[%s]: [%s]", str_addr, str_port, gai_strerror(ret));
     else
         memmove(&a_ret, res->ai_addr, res->ai_addrlen);
- 
+
     freeaddrinfo(res);
     return a_ret;
 }

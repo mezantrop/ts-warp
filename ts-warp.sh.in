@@ -67,14 +67,14 @@ _start() {
         Linux)
             if [ "`nft -v`" ] ; then
                 printf "Using NFTABLES Firewall "
-                [ -f "$tswarp_prefix"/etc/ts-warp_nftables.sh ]  && 
+                [ -f "$tswarp_prefix"/etc/ts-warp_nftables.sh ]  &&
                     "$tswarp_prefix"/etc/ts-warp_nftables.sh || {
                         printf "FATAL: Unable to find ts-warp_nftables.sh\n"
                         exit 1
                     }
             elif [ "`iptables -V`" ] ; then
-                    printf "Using IPTABLES Firewall " 
-                    [ -f "$tswarp_prefix"/etc/ts-warp_iptables.sh ] && 
+                    printf "Using IPTABLES Firewall "
+                    [ -f "$tswarp_prefix"/etc/ts-warp_iptables.sh ] &&
                     "$tswarp_prefix"/etc/ts-warp_iptables.sh || {
                         printf "FATAL: Unable to find ts-warp_iptables.sh\n"
                         exit 1
@@ -175,15 +175,15 @@ _restart() {
 
 # ---------------------------------------------------------------------------- #
 _check_root() {
-    [ `id -u` -ne 0 ] && { 
+    [ `id -u` -ne 0 ] && {
         printf "Fatal: You must be root to proceed\n"
-        exit 1 
+        exit 1
     }
 }
 
 # ---------------------------------------------------------------------------- #
 _usage() {
-    printf "Usage:\n\tts-warp.sh start|stop|reload|restart [options]\n" 
+    printf "Usage:\n\tts-warp.sh start|stop|reload|restart [options]\n"
     printf "\tts-warp.sh status\n"
     exit 1
 }

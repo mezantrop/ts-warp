@@ -4,7 +4,7 @@
 
 # Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
 #
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the 
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:
 #
 # 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
@@ -138,7 +138,7 @@ install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -d $(PREFIX)/var/run/
 
 uninstall:
-	rm -f $(PREFIX)/bin/ts-warp 
+	rm -f $(PREFIX)/bin/ts-warp
 	rm -f $(PREFIX)/bin/ts-pass
 	rm -f $(PREFIX)/bin/ts-warp_autofw.sh
 	rm -f $(PREFIX)/etc/ts-warp.sh
@@ -157,7 +157,7 @@ clean:
 inifile.o: inifile.h
 natlook.o: natlook.h
 network.o: network.h
-logfile.o: logfile.h 
+logfile.o: logfile.h
 pidfile.o: pidfile.h
 pidlist.o: pidlist.h
 socks.o: socks.h

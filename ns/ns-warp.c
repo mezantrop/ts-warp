@@ -83,7 +83,7 @@ int main (int argc, char* argv[]) {
 
     fd_set rfd;
     struct timeval tv;
-    
+
     int rec, snd;                                                       /* received/sent bytes */
     unsigned char dns_buf[2 * STR_SIZE];                                /* DNS messages buffer */
     dns_header *dnsh;                                                   /* Pointer to DNS message header */
@@ -110,7 +110,7 @@ int main (int argc, char* argv[]) {
                     break;
                 case 'c':                                               /* INI-file */
                     ifile_name = optarg; break;
-                case 'l': 
+                case 'l':
                     l_flg = 1; lfile_name = optarg; break;              /* Logfile */
                 case 'v':                                               /* Log verbosity */
                     loglevel = (uint8_t)toint(optarg); break;
@@ -233,7 +233,7 @@ int main (int argc, char* argv[]) {
 
     printl(LOG_INFO, "DNS-server address [%s] succesfully resolved to [%s]", saddr,
         inet2str((struct sockaddr_storage *)sres->ai_addr, str_buf));
-    
+
     /* -- Process requests ------------------------------------------------------------------------------------------ */
     while (1) {
         FD_ZERO(&rfd);
@@ -244,8 +244,8 @@ int main (int argc, char* argv[]) {
         tv.tv_usec = 10000;
 
         ret = select(ssock > isock ? ssock + 1: isock + 1, &rfd, 0, 0, &tv);
-        
-        if (ret < 0) break;   
+
+        if (ret < 0) break;
         if (ret == 0) continue;
         if (ret > 0) {
             memset(dns_buf, 0, sizeof(dns_buf));
@@ -296,8 +296,8 @@ int main (int argc, char* argv[]) {
                     dnsq_raw = malloc(dnsq_siz);
                     memcpy(dnsq_raw, dns_buf + sizeof(dns_header), dnsq_siz);
 
-                    printl(LOG_VERB, 
-                        "DNS Query ID: [%04X] HEADER Flags: [%04X] Qdcount: [%04X] QUESTION Name: [%s] Type: [%04X] Class [%04X]", 
+                    printl(LOG_VERB,
+                        "DNS Query ID: [%04X] HEADER Flags: [%04X] Qdcount: [%04X] QUESTION Name: [%s] Type: [%04X] Class [%04X]",
                         ntohs(dnsh->id), ntohs(dnsh->flags), ntohs(dnsh->qdcount), dnsq.name, dnsq.type, dnsq.classc);
 
                     if (dnsq.classc == 0x0001) {                        /* != IN */
@@ -305,7 +305,7 @@ int main (int argc, char* argv[]) {
                             case NS_MESSAGE_TYPE_A:
                                 switch (nit_lookup_name(nit_root, dnsq.name, AF_INET, &q_ip)) {
                                     case 0:
-                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             dnsq.name, inet2str(&q_ip, str_buf));
                                         if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
                                             continue;
@@ -330,9 +330,9 @@ int main (int argc, char* argv[]) {
                             case NS_MESSAGE_TYPE_AAAA:
                                 switch (nit_lookup_name(nit_root, dnsq.name, AF_INET6, &q_ip)) {
                                     case 0:
-                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             dnsq.name, inet2str(&q_ip, str_buf));
-                                        
+
                                         if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
                                             continue;
                                         free(dnsq.name);
@@ -357,7 +357,7 @@ int main (int argc, char* argv[]) {
                                 q_ip = forward_ip(dnsq.name);
                                 switch (nit_lookup_ip(nit_root, &q_ip, q_name)) {
                                     case 0:
-                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]", 
+                                        printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             q_name, inet2str(&q_ip, str_buf));
                                         rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
                                         free(dnsq.name);
@@ -390,7 +390,7 @@ int main (int argc, char* argv[]) {
                     /* Debug */
                     /* show_ini(nit_root); */
                 }
-                
+
                 /* -------------------------------------------------------------------------------------------------- */
                 snd = sendto(ssock, dns_buf, rec, 0, sres->ai_addr, sres->ai_addrlen);
                 if (snd == -1) {
@@ -401,7 +401,7 @@ int main (int argc, char* argv[]) {
                 if (rec != snd)
                     printl(LOG_CRIT, "C:[%d] -> S:[%d] bytes", rec, snd);
                 else
-                    printl(LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);                    
+                    printl(LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
             } else {
                 /* -- DNS server writes ----------------------------------------------------------------------------- */
                 printl(LOG_VERB, "DNS server sends a message");
@@ -483,7 +483,7 @@ All parameters are optional:\n\
   -p file.pid\t    PID filename, default: %s\n\
   \n\
   -u user\t    User to run NS-Warp from, default: %s\n\
-  -h\t\t    This message\n\n", 
+  -h\t\t    This message\n\n",
   NS_PROG_NAME, NS_PROG_VERSION, NS_INI_FILE_NAME, NS_LOG_FILE_NAME, LOG_LEVEL_DEFAULT, NS_PID_FILE_NAME, RUNAS_USER);
 
     exit(ecode);

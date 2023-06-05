@@ -51,22 +51,22 @@ struct sockaddr_storage rev_addr(struct sockaddr_storage *ip) {
     else {
         #if defined(linux)
             ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[3]);
-            ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[3] = 
+            ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[3] =
                 htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[0]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[0] = ipv6_quad;
 
             ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[2]);
-            ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[2] = 
+            ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[2] =
                 htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[1]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[1] = ipv6_quad;
         #else
             ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[3]);
-            ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[3] = 
+            ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[3] =
                 htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[0]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[0] = ipv6_quad;
 
             ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[2]);
-            ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[2] = 
+            ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[2] =
                 htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[1]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[1] = ipv6_quad;
         #endif
@@ -80,7 +80,7 @@ char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip) {
 
     const char *rev_d = DNS_REV_LOOKUP_SUFFIX_IPV4;
     struct sockaddr_storage sa;
-    
+
     if (!rev_ip) return NULL;
 
     sa = *ip;
@@ -145,7 +145,7 @@ int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct s
     }
 
     /* Fill in the header */
-    dnsh = (dns_header *)rbuf;   
+    dnsh = (dns_header *)rbuf;
     dnsh->id = id;
     dnsh->flags = 0x8085;                                           /* Standard query response, No error */
     dnsh->qdcount = 0x0100;
@@ -153,11 +153,11 @@ int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct s
     dnsh->nscount = 0x0000;
     dnsh->arcount = 0x0000;
 
-    /* Add the query part */    
+    /* Add the query part */
     memcpy(rbuf + sizeof(dns_header), dnsq_raw, dnsq_siz);
 
     /* Add answer part */
-    dnsa = (dns_answer_ref *)(rbuf + sizeof(dns_header) + dnsq_siz); 
+    dnsa = (dns_answer_ref *)(rbuf + sizeof(dns_header) + dnsq_siz);
     dnsa->name_ref = 0x0CC0;
     dnsa->type = SA_FAMILY(*ip) == AF_INET ? 0x0100 : 0x1C00;
     dnsa->classr = 0x0100;
@@ -186,7 +186,7 @@ int dns_reply_ptr(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, char *
 
 
     /* Fill in the header */
-    dnsh = (dns_header *)rbuf;   
+    dnsh = (dns_header *)rbuf;
     dnsh->id = id;
     dnsh->flags = 0x8085;                                           /* Standard query response, No error */
     dnsh->qdcount = 0x0100;
@@ -194,11 +194,11 @@ int dns_reply_ptr(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, char *
     dnsh->nscount = 0x0000;
     dnsh->arcount = 0x0000;
 
-    /* Add the query part */    
+    /* Add the query part */
     memcpy(rbuf + sizeof(dns_header), dnsq_raw, dnsq_siz);
 
     /* Add answer part */
-    dnsa = (dns_answer_ref *)(rbuf + sizeof(dns_header) + dnsq_siz); 
+    dnsa = (dns_answer_ref *)(rbuf + sizeof(dns_header) + dnsq_siz);
     dnsa->name_ref = 0x0CC0;
     dnsa->type = 0x0C00;                                            /* PTR */
     dnsa->classr = 0x0100;
@@ -210,7 +210,7 @@ int dns_reply_ptr(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, char *
         sl = strlen(s);
         *rdata = sl;
         rdata++;
-        strcpy(rdata, s);        
+        strcpy(rdata, s);
         rdata += sl;
         dnsa->rdlength += htons(sl + 1);
     }
@@ -221,12 +221,12 @@ int dns_reply_ptr(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, char *
 /* ------------------------------------------------------------------------------------------------------------------ */
 int dns_reply_nfound(unsigned int id, unsigned int typ, unsigned char *dnsq_raw, int dnsq_siz, unsigned char *rbuf) {
     /* Reply the name is not found */
-    
+
     dns_header *dnsh;
 
 
     /* Fill in the header */
-    dnsh = (dns_header *)rbuf;   
+    dnsh = (dns_header *)rbuf;
     dnsh->id = id;
     dnsh->flags = 0x8085;                                           /* Standard query response, No error */
     dnsh->qdcount = 0x0100;
@@ -234,7 +234,7 @@ int dns_reply_nfound(unsigned int id, unsigned int typ, unsigned char *dnsq_raw,
     dnsh->nscount = 0x0000;
     dnsh->arcount = 0x0000;
 
-    /* Add the query part */    
+    /* Add the query part */
     memcpy(rbuf + sizeof(dns_header), dnsq_raw, dnsq_siz);
 
     return sizeof(dns_header) + dnsq_siz;

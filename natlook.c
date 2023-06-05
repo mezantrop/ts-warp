@@ -118,7 +118,7 @@ int nat_lookup(int pfd, struct sockaddr_storage *caddr, struct sockaddr_storage 
             SIN4_FAMILY(*daddr) = pfnl.af;
             SIN4_LENGTH(*daddr) = sizeof(struct sockaddr_in);
             break;
-        
+
         case AF_INET6:
             SIN6_ADDR(*daddr) = pfnl.rdaddr.v6;
             SIN6_PORT(*daddr) = pfnl.rdport;

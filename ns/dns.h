@@ -45,7 +45,7 @@
 
     QR: 1       Response: message is response/query
     Opcode: 4   Opcode: QUERY (standard query, 0), IQUERY (inverse query, 1), STATUS (server status request, 2)
-    AA: 1       Authoritative Answer, in a response 
+    AA: 1       Authoritative Answer, in a response
     TC: 1       TrunCation
     RD: 1       Recursion Desired, in a request
     RA: 1       Recursion Available, in a response
@@ -112,7 +112,7 @@ typedef struct dns_header {
 #define NS_FLAGS_OPCODE_IQUERY  0x800       /* Opcode: IQUERY (inverse): b0000 1000 0000 0000  (?) */
 
 typedef struct dns_question {
-    char *name;                     /* a sequence of labels. Each label consists of a length octet followed by that 
+    char *name;                     /* a sequence of labels. Each label consists of a length octet followed by that
                                         number of octets. Terminates with 0 */
     uint16_t type;                  /* Type of RR (A - 0x0001, AAAA - 0x001C, PTR - case 0x000C, MX, TXT, etc.) */
     uint16_t classc;                /* Class code */
@@ -127,12 +127,12 @@ typedef struct dns_question {
 typedef struct dns_answer {
     char *name;                     /* The domain name that was queried. The same format as the QNAME in the questions */
     uint16_t type;                  /* TYPE of RDATA, e.g.:
-                                        0x0001 (A record), 0x0005 (CNAME), 
+                                        0x0001 (A record), 0x0005 (CNAME),
                                         0x0002 (name servers) and 0x000f (mail servers) */
     uint16_t classr;                /* Class of RDATA, e.g.: 0x0001 (Internet Address) */
     uint32_t ttl;                   /* The number of seconds the results can be cached */
     uint16_t rdlength;              /* The length of the RDATA */
-    char *rdata;                    /* Response data. Format depends on TYPE above: 
+    char *rdata;                    /* Response data. Format depends on TYPE above:
                                         A == 0x0001 - IP 4 octets, CNAME == 0x0005 - the name of the alias etc. */
 } dns_answer;
 
@@ -140,12 +140,12 @@ typedef struct dns_answer {
 typedef struct dns_answer_ref {
     uint16_t name_ref;              /* A reference to the domain name that was queried */
     uint16_t type;                  /* TYPE of RDATA, e.g.:
-                                        0x0001 (A record), 0x0005 (CNAME), 
+                                        0x0001 (A record), 0x0005 (CNAME),
                                         0x0002 (name servers) and 0x000f (mail servers) */
     uint16_t classr;                /* Class of RDATA, e.g.: 0x0001 (Internet Address) */
     uint32_t ttl;                   /* The number of seconds the results can be cached */
     uint16_t rdlength;              /* The length of the RDATA */
-/*    char *rdata;                  Not including variable length response data: Format depends on TYPE above:  
+/*    char *rdata;                  Not including variable length response data: Format depends on TYPE above:
                                         A == 0x0001 - IP 4 octets, CNAME == 0x0005 - the name of the alias etc. */
 } dns_answer_ref;
 #pragma pack(pop)
