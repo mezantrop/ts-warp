@@ -4,7 +4,7 @@
   * `proxy_*` replaced `socks_*` in examples and scripts
   * Unifying proxy definitions and various routines for Socks and HTTP protocols
   * Fix direct TCP connections
-  * Internal HTTP the first try: no checks, no external proxy, no proxy-chain, no external proxy
+  * Internal HTTP the first try: no checks, no external proxy, no proxy-chains
   * Socks5 server related tweaks; `daddr` refactoring
   * `struct uvaddr` to combine `sockaddr_storage` and `char *` to replace `daddr` and `dname`
   * `http.c`, `http.h`: included; `http_server_request()` in progress
