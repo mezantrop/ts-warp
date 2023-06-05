@@ -75,7 +75,7 @@ _start() {
 
     case "$os" in
         linux)
-            [ "$linux_firewall" = "nftables" ] && {     # Use nft if defined or iptables 
+            [ "$linux_firewall" = "nftables" ] && {     # Use nft if defined or iptables
                 nft add chain ip nat NS-WARP
                 nft add rule ip nat NS-WARP ip protocol udp dport 53 counter redirect to :$nswarp_iport
                 nft add rule ip nat OUTPUT ip protocol udp skuid != $nswarp_user counter jump NS-WARP
@@ -129,7 +129,7 @@ _status() {
 # ------------------------------------------------------------------------------
 _stop() {
     _check_root
-    if [ $FORCE -eq 1 ]; then 
+    if [ $FORCE -eq 1 ]; then
         printf "Stopping ns-warp with force: "
         [ -f "$nswarp_pidfile" ] && rm "$nswarp_pidfile"
         pkill ns-warp
@@ -169,15 +169,15 @@ _restart() {
 
 # ------------------------------------------------------------------------------
 _check_root() {
-    [ `id -u` -ne 0 ] && { 
+    [ `id -u` -ne 0 ] && {
         printf "Fatal: You must be root to proceed\n"
-        exit 1 
+        exit 1
     }
 }
 
 # ------------------------------------------------------------------------------
 _usage() {
-    printf "Usage:\n\tns-warp.sh start|stop|restart [options]\n" 
+    printf "Usage:\n\tns-warp.sh start|stop|restart [options]\n"
     printf "\tns-warp.sh status\n"
     exit 1
 }

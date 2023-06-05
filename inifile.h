@@ -92,7 +92,7 @@ typedef struct chain_list {                                 /* Chains as they de
 
 #define INI_ENTRY_PROXY_SERVER      "proxy_server"
 #define INI_ENTRY_PROXY_CHAIN       "proxy_chain"
-#define INI_ENTRY_PROXY_TYPE        "proxy_type"                    /* HTTP, Socks4, Socks5 (default) */
+#define INI_ENTRY_PROXY_TYPE        "proxy_type"                    /* H: HTTP, 4: Socks4, 5: Socks5 (default) */
 #define INI_ENTRY_PROXY_USER        "proxy_user"
 #define INI_ENTRY_PROXY_PASSWORD    "proxy_password"
 

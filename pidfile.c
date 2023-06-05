@@ -55,7 +55,7 @@ char *rd_pidfile(char *file_name) {
 pid_t wr_pidfile(char *file_name, uid_t owner, uid_t group) {
     FILE *pfile;
     pid_t pid = 0;
-     
+
     if ((pfile = fopen(file_name, "w"))) {
         pid = getpid();
         printl(LOG_INFO, "PID file: [%s], PID: [%d]", file_name, pid);

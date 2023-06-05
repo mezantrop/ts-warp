@@ -35,7 +35,7 @@ typedef struct nit {
 } nit;
 
 typedef struct ns_ini_entry {               /* Parsed INI-entry: var=val1:val2/mod1 */
-    char *var; 
+    char *var;
     char *val;                              /* Raw value: whatever right from the '=' char */
     char *val1;
     char *val2;

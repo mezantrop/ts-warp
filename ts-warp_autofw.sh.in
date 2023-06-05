@@ -46,16 +46,16 @@ make_networks() {
         mask=`printf "%s" $net | cut -f 2 -d '/'`
 
         chk_ip "$netw" || return 1
-        
+
         if [ `echo $mask | wc -c` -lt 4 ]; then
             # Assuming a CIDR mask
             [ $mask -le 32 ] || return 1
-        
+
         elif [ `echo $mask | grep '\.'` ]; then
             # Supposing it's a four-octet mask
 
             chk_ip "$mask" || return 1
-    
+
             bits=''
             for oct in `echo $mask | sed 's/\./ /g'`; do
                 bits=$bits`echo "obase=2; ibase=10; ${oct}"|bc`
@@ -98,7 +98,7 @@ make_ranges() {
                 return 1
 
         lo=255
-        for o1 in `seq $s_o1 $e_o1`; do 
+        for o1 in `seq $s_o1 $e_o1`; do
             [ $s_o1 -le $o1 ] && te_o2=$lo || te_o2=$e_o2
             for o2 in `seq $s_o2 $te_o2`; do
                 [ $s_o2 -le $o2 ] && te_o3=$lo || te_o3=$e_o3
@@ -134,7 +134,7 @@ make_hosts() {
     for hst in $hosts_raw; do
         chk_ip $hst && hosts="$hosts""$hst""$nl" ||
             hosts="$hosts"`host "$hst" |
-                grep 'has address' | 
+                grep 'has address' |
                 cut -f 4 -d ' '`"$nl"
     done
 
@@ -143,18 +143,18 @@ make_hosts() {
 }
 
 # ---------------------------------------------------------------------------- #
-make_socks() {
+make_proxy() {
     # Collect Socks server information
 
     sservers_raw=`printf "%s\n" "$cfg" |
-        grep socks_server |
+        grep -E 'socks_server|proxy_server' |
         cut -f 2 -d '='`
 
     sservers=""
     for srv in $sservers_raw; do
         chk_ip $srv && sservers="$sservers""$srv""$nl" ||
             sservers="$sservers"`host "$srv" |
-                grep 'has address' | 
+                grep 'has address' |
                 cut -f 4 -d ' '`"$nl"
     done
 
@@ -171,14 +171,14 @@ chk_ip() {
 ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.\
 (25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.\
 (25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.\
-(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" && return 0 || return 1 
+(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" && return 0 || return 1
 }
 
 # ---------------------------------------------------------------------------- #
 ip2octets() {
     # Convert an IP-address ($1) into 4 octets and return them
     # as ($2, $3, $4, $5) variables
-    
+
     read o1 o2 o3 o4 << EOF
 `echo $1 | sed 's/\./ /g'`
 EOF
@@ -192,7 +192,7 @@ EOF
 # ---------------------------------------------------------------------------- #
 make_conf_pf() {
     # Make PF configuration
-    
+
     rslt=""
     for n in $networks; do
         _nets="$_nets""$n, "
@@ -283,7 +283,7 @@ TSW_TNAME='TSWARP'
 TSW_USER=`whoami`
 TSW_PORT=${1-10800}
 
-[ `id -u` -eq 0 ] && { 
+[ `id -u` -eq 0 ] && {
     printf "Fatal: You must not be root to proceed\n"
     exit 1
 }
@@ -297,7 +297,7 @@ cfg=`cat $tsw_ini |
 make_networks networks
 make_ranges ranges
 make_hosts hosts
-make_socks sservers
+make_proxy sservers
 
 case `uname -s` in
     Darwin|FreeBSD)
@@ -322,8 +322,8 @@ pass out on !lo0 inet proto tcp from any to { <$TSW_TNAME> } route-to lo0 keep s
             }
         ;;
 
-    *)    
-        printf "FATAL: Unsupported OS\n" 
+    *)
+        printf "FATAL: Unsupported OS\n"
         exit 1
         ;;
 esac

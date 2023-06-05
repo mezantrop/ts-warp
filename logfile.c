@@ -43,7 +43,7 @@ void printl(int level, char *fmt, ...) {
     struct tm *tstamp;
     va_list ap;
     char mesg[STR_SIZE];
-    
+
     if (level > loglevel || !fmt || !fmt[0]) return;
     if (!lfile) lfile = stderr;
     if (pid <= 0) pid = getpid();
