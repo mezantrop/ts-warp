@@ -750,7 +750,7 @@ All parameters are optional:
                     exit(2);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with the ptoxy server: [%s] type [%c]",
+                printl(LOG_INFO, "Succesfully connected with the proxy server: [%s] type [%c]",
                     inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
                 single_server:
@@ -823,11 +823,18 @@ All parameters are optional:
                     break;
 
                     case PROXY_PROTO_HTTP:
-                    /* TODO: Implement */
+                        printl(LOG_VERB, "Initiate HTTP protocol: request: [%s] -> [%s]",
+                            inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
+
+                        if (http_client_request(ssock, (struct sockaddr_storage *)&daddr.ip_addr)) {
+                            printl(LOG_WARN, "HTTP server returned an error");
+                            close(csock);
+                            exit(2);
+                        }
                     break;
 
                     default:
-                        /* Unreacheable. Must be cleared already by read_ini() */
+                        /* Unreacheable. Should be cleared already by read_ini() */
                         printl(LOG_WARN, "Detected unsupported proxy type: [%c]", s_ini->proxy_type);
                         close(csock);
                         exit(2);
@@ -868,7 +875,7 @@ All parameters are optional:
                             break;
                         }
                         if (snd == -1) {
-                            printl(LOG_CRIT, "Error sending data to Socks server");
+                            printl(LOG_CRIT, "Error sending data to proxy server");
                             break;
                         }
                         if (rec != snd)
@@ -879,11 +886,11 @@ All parameters are optional:
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
                         if (rec == 0) {
-                            printl(LOG_INFO, "Connection closed by Socks server");
+                            printl(LOG_INFO, "Connection closed by proxy server");
                             break;
                         }
                         if (rec == -1) {
-                            printl(LOG_CRIT, "Error receving data from Socks server");
+                            printl(LOG_CRIT, "Error receving data from proxy server");
                             break;
                         }
                         while ((snd = send(csock, buf, rec, 0)) == 0) {
@@ -891,7 +898,7 @@ All parameters are optional:
                             usleep(100);
                         }
                         if (snd == -1) {
-                            printl(LOG_CRIT, "Error sending data to Socks server");
+                            printl(LOG_CRIT, "Error sending data to proxy server");
                             break;
                         }
                         if (rec != snd)

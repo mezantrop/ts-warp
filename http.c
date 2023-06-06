@@ -29,10 +29,13 @@
 #include <string.h>
 #include <sys/socket.h>
 
+#include "utility.h"
 #include "network.h"
 #include "http.h"
 #include "logfile.h"
-#include "utility.h"
+
+
+extern char *pfile_name;
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -73,7 +76,7 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     if (SA_FAMILY(daddr->ip_addr) == AF_INET) SIN4_PORT(daddr->ip_addr) = htons(port);
     else SIN6_PORT(daddr->ip_addr) = port;
 
-    /* TODO: Check  connection; Reply real status */
+    /* TODO: Check connection; Reply real status */
     if (send(socket, HTTP_PROXY_REPLY_200, sizeof(HTTP_PROXY_REPLY_200), 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the HTTP client");
         return 1;
@@ -83,6 +86,47 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     printl(LOG_VERB, "HTTP REQUEST: URL: [%s] METHOD: [%s], HOST: [%s], PORT: [%hu], PROTO: [%s]",
         url, method, host, port, proto);
 
+
+    return 0;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+int http_client_request(int socket, struct sockaddr_storage *daddr) {
+    char r[BUF_SIZE_1KB] = {0};
+    char b[HOST_NAME_MAX] = {0};
+    char *proto = NULL, *status = NULL, *reason = NULL;
+    int rcount = 0;
+
+
+    /* Request startline: CONNECT address:port PROTOCOL */
+    sprintf(r, "%s %s %s\r\n\r\n", HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL);
+
+    printl(LOG_VERB, "Sending HTTP %s request", HTTP_REQUEST_METHOD_CONNECT);
+
+    if (send(socket, r, strlen(r), 0) == -1) {
+        printl(LOG_CRIT, "Unable to send a request to the HTTP server");
+        mexit(1, pfile_name);
+    }
+
+    printl(LOG_VERB, "Expecting HTTP reply");
+
+    if ((rcount = recv(socket, &r, sizeof(r), 0)) == -1) {
+        printl(LOG_CRIT, "Unable to receive a reply from the HTTP server");
+        mexit(1, pfile_name);
+    }
+
+    /* Parse HTTP reply */
+    r[rcount] = '\0';
+    proto = strtok(r,  " \t\r\n");
+    status = strtok(NULL, " \t\r\n");
+    reason = strtok(NULL, " \t\r\n");
+
+    printl(LOG_VERB, "HTTP RESPONSE: PROTO: [%s] STATUS: [%s], REASON: [%s]", proto, status, reason);
+
+    if (strcmp(status, HTTP_RESPONSE_200)) {
+        printl(LOG_INFO, "Non-succesful responce [%s] from the HTTP server", status);
+        return 1;
+    }
 
     return 0;
 }
