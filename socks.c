@@ -41,6 +41,7 @@
 #include "logfile.h"
 #include "version.h"
 
+
 extern char *pfile_name;
 
 const char *socks4_status[] = {

@@ -26,10 +26,17 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 #include "version.h"
 
-#define PROXY_PROTO_HTTP        'H'
+#define PROXY_PROTO_HTTP            'H'
 
+#define HTTP_PROXY_REPLY_200        "HTTP/1.1 200 OK\r\nProxy-agent: "PROG_NAME_FULL"\r\n\r\n"
 
-#define HTTP_PROXY_REPLY_200    "HTTP/1.1 200 OK\r\nProxy-agent: "PROG_NAME_FULL"\r\n\r\n"
+#define HTTP_REQUEST_METHOD_CONNECT "CONNECT"
+
+#define HTTP_REQEST_PROTOCOL        "HTTP/1.1"
+
+#define HTTP_RESPONSE_200           "200"
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int http_server_request(int socket, struct uvaddr *daddr);
+int http_client_request(int socket, struct sockaddr_storage *daddr);
