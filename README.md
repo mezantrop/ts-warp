@@ -29,7 +29,7 @@
 - [x] Installation script (via Makefile)
 - [ ] Documentation
 - [ ] UDP support
-- [ ] HTTP proxy
+- [ ] HTTP proxy server, TCP redirector (in progress)
 
 ### Changelog
 
