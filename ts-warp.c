@@ -681,7 +681,6 @@ All parameters are optional:
                                     inet2str(&s_ini->proxy_server, buf));
 
                                 if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &s_ini->proxy_server, NULL)) {
-                                    printl(LOG_WARN, "Socks5 server returned an error");
                                     printl(LOG_WARN, "CHAIN Socks5 server returned an error");
                                     close(csock);
                                     exit(2);
@@ -715,17 +714,41 @@ All parameters are optional:
                                 if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
                                         (struct sockaddr_in *)&s_ini->proxy_server, s_ini->proxy_user)) {
 
-                                            printl(LOG_WARN, "Socks4 server returned an error");
                                             printl(LOG_WARN, "CHAIN Socks4 server returned an error");
                                             close(csock);
                                             exit(2);
                                 }
+
                                 goto single_server;
                             }
                         break;
 
                         case PROXY_PROTO_HTTP:
-                            /* TODO: Implement it */
+                            if (sc->next) {
+                                /* We want to connect with the next chain member */
+                                printl(LOG_VERB, "Initiate CHAIN HTTP protocol: request [%s] -> [%s]",
+                                    inet2str(&sc->chain_member->proxy_server, suf),
+                                    inet2str(&sc->next->chain_member->proxy_server, buf));
+
+                                if (http_client_request(ssock, &sc->next->chain_member->proxy_server)) {
+                                    printl(LOG_WARN, "CHAIN HTTP server returned an error");
+                                    close(csock);
+                                    exit(2);
+                                }
+                            } else {
+                                /* We are at the end of the chain, so connect with the section server */
+                                printl(LOG_VERB, "Initiate CHAIN HTTP protocol: request [%s] -> [%s]",
+                                    inet2str(&sc->chain_member->proxy_server, buf),
+                                    inet2str(&s_ini->proxy_server, buf));
+
+                                if (http_client_request(ssock, &s_ini->proxy_server)) {
+                                    printl(LOG_WARN, "CHAIN HTTP server returned an error");
+                                    close(csock);
+                                    exit(2);
+                                }
+
+                                goto single_server;
+                            }
                         break;
 
                         default:
@@ -826,7 +849,7 @@ All parameters are optional:
                         printl(LOG_VERB, "Initiate HTTP protocol: request: [%s] -> [%s]",
                             inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                        if (http_client_request(ssock, (struct sockaddr_storage *)&daddr.ip_addr)) {
+                        if (http_client_request(ssock, &daddr.ip_addr)) {
                             printl(LOG_WARN, "HTTP server returned an error");
                             close(csock);
                             exit(2);
