@@ -33,7 +33,7 @@
 
 ### Changelog
 
-**Attention! To incorporate HTTP proxy service, deprecated `socks_\*` variables will be replaced by `proxy_\*` ones
+**Attention! To incorporate HTTP proxy service, deprecated `socks_*` variables will be replaced by `proxy_*` ones
 in the upcoming 1.3.0 release! Be ready to replace them in `ts-warp.ini` file!**
 
 See it [here](CHANGELOG.md)

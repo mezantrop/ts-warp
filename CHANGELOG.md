@@ -1,7 +1,8 @@
 # CHANGELOG
 
-* 2023.06.06    Current (HTTP proxy implementation in progress)
-  * `http.c`: `int http_client_request()` created, method `CONNECT`
+* 2023.06.09    Current (HTTP proxy implementation in progress)
+  * `ts-warp.c`: HTTP proxy chains
+  * `http.c`: `http_client_request()` created, method `CONNECT`
   * `proxy_*` replaced `socks_*` in examples and scripts
   * Unifying proxy definitions and various routines for Socks and HTTP protocols
   * Fix direct TCP connections
