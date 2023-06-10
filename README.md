@@ -10,7 +10,7 @@
 
 ### Features
 
-- Proxy services with TCP-traffic redirection to external Socks4/5 and HTTPS proxy servers:
+- Proxy services with TCP-traffic redirection to external Socks4/5 and HTTPS proxy servers
   - Transparent firewall-based traffic redirector
   - Internal Socks and HTTPS proxy server
 
@@ -26,7 +26,7 @@
   | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
   | Basic authentication (username/password) | :white_check_mark:             | :white_large_square: | :white_large_square:           |
   | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
-  | Remote names resolution                  | :white_check_mark: via NS-Warp | :white_large_square: | :white_check_mark: via NS-Warp |
+  | Remote names resolution                  | :white_check_mark: (NS-Warp) | :white_large_square: | :white_check_mark: (NS-Warp) |
 
   | Internal proxy                           | Socks5                         | Socks4              | HTTPS                           |
   | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
