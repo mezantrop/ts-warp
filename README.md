@@ -26,7 +26,7 @@
   | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
   | Basic authentication (username/password) | :white_check_mark:   | :white_large_square: | :white_large_square: |
   | IPv6 stack support                       | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
-  | Remote names resolution via NS-Warp      | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
 
   | Internal proxy                           | Socks5               | Socks4               | HTTPS                |
   | ---------------------------------------- | -------------------- | -------------------- | -------------------- |
@@ -40,7 +40,6 @@
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
   - [x] Password encoding (obfuscation) in configuration files
-  - [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
   - [x] Daemon mode
   - [x] Front-end UI
   - [x] Installation script (via Makefile)
