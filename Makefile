@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-#  TS-Warp - Transparent Socks proxy server and traffic Wrapper                                                        #
+# TS-Warp - Transparent proxy server and traffic wrapper                                                               #
 # -------------------------------------------------------------------------------------------------------------------- #
 
 # Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
