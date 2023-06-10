@@ -19,23 +19,23 @@
   - Linux with `nftables` or `iptables`
 
 - Main features
-  | Transparent proxy                        | Socks5                         | Socks4               | HTTPS                          |
-  | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
-  | Proxy protocol                           | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
-  | Proxy chains                             | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
-  | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
-  | Basic authentication (username/password) | :white_check_mark:             | :white_large_square: | :white_large_square:           |
-  | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
-  | Remote names resolution via NS-Warp      | :white_check_mark: | :white_large_square: | :white_check_mark: |
+  | Transparent proxy                        | Socks5               | Socks4               | HTTPS                |
+  | ---------------------------------------- | -------------------- | -------------------- | -------------------- |
+  | Proxy protocol                           | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
+  | Proxy chains                             | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
+  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
+  | Basic authentication (username/password) | :white_check_mark:   | :white_large_square: | :white_large_square: |
+  | IPv6 stack support                       | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Remote names resolution via NS-Warp      | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
 
-  | Internal proxy                           | Socks5                         | Socks4              | HTTPS                           |
-  | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
-  | Proxy protocol                           | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
-  | Proxy chains                             | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
-  | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
-  | Basic authentication (username/password) | :white_large_square:           | :white_large_square: | :white_large_square:           |
-  | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
-  | Remote names resolution                  | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
+  | Internal proxy                           | Socks5               | Socks4               | HTTPS                |
+  | ---------------------------------------- | -------------------- | -------------------- | -------------------- |
+  | Proxy protocol                           | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Proxy chains                             | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
+  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
+  | Basic authentication (username/password) | :white_large_square: | :white_large_square: | :white_large_square: |
+  | IPv6 stack support                       | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Remote names resolution                  | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
 
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
@@ -49,6 +49,8 @@
   - [ ] UDP support
   - [ ] Inernal Socks proxy status repesponse
   - [ ] Inernal HTTPS proxy status repesponse
+  - [ ] Inernal Socks4 proxy support
+  - [ ] Socks4a protocol support
   - [ ] Internal HTTP proxy `GET` request support
   - [ ] Inernal Socks proxy basic authentication
   - [ ] Inernal HTTPS proxy basic authentication
