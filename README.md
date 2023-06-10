@@ -26,7 +26,7 @@
   | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
   | Basic authentication (username/password) | :white_check_mark:             | :white_large_square: | :white_large_square:           |
   | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
-  | Remote names resolution                  | :white_check_mark: NS-Warp | :white_large_square: | :white_check_mark: NS-Warp |
+  | Remote names resolution via NS-Warp      | :white_check_mark: | :white_large_square: | :white_check_mark: |
 
   | Internal proxy                           | Socks5                         | Socks4              | HTTPS                           |
   | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
