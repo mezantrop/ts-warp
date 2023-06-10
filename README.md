@@ -46,13 +46,13 @@
 
 - TODO
   - [ ] UDP support
-  - [ ] Inernal Socks proxy status repesponse
-  - [ ] Inernal HTTPS proxy status repesponse
-  - [ ] Inernal Socks4 proxy support
+  - [ ] Internal Socks proxy status repesponse
+  - [ ] Internal HTTPS proxy status repesponse
+  - [ ] Internal Socks4 proxy support
   - [ ] Socks4a protocol support
   - [ ] Internal HTTP proxy `GET` request support
-  - [ ] Inernal Socks proxy basic authentication
-  - [ ] Inernal HTTPS proxy basic authentication
+  - [ ] Internal Socks proxy basic authentication
+  - [ ] Internal HTTPS proxy basic authentication
   - [ ] OS specific `select` alternatives: `epol` / `kqueue`
   - [ ] Faster NS-Warp
   - [ ] Documentation
