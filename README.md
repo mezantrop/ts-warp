@@ -4,32 +4,57 @@
 [![C/C++ CI - macOS](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml)
 [![C/C++ CI - Ubuntu](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml)
 
-## Transparent Socks proxy server and traffic Wrapper
+## Transparent proxy server and traffic wrapper
 
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-### Features, TODO list
+### Features
 
-- [x] Socksifier service - transparent firewall-based redirector of TCP/IP connections to Socks-proxy server(s)
-- [x] Internal Socks5-server with support for hostnames in requests
+- Proxy services with TCP-traffic redirection to external Socks4/5 and HTTPS proxy servers:
+  - Transparent firewall-based traffic redirector
+  - Internal Socks and HTTPS proxy server
 
 - Supported platforms:
-  - [x] macOS, FreeBSD and OpenBSD with PF
-  - [x] Linux with nftables or iptables
+  - macOS, FreeBSD and OpenBSD with `PF`
+  - Linux with `nftables` or `iptables`
 
-- [x] Socks proxy chains
-- [x] Socks workload balance modes: `Failover`/`Roundrobin`/`None`
-- [x] Basic Socks authentication (username/password)
-- [x] IPv6 stack support
-- [x] Simple configuration structure as INI-like file
-- [x] Password encoding (obfuscation) in configuration files
-- [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
-- [x] Daemon mode
-- [x] Front-end UI
-- [x] Installation script (via Makefile)
-- [ ] Documentation
-- [ ] UDP support
-- [ ] HTTP proxy server, TCP redirector (in progress)
+- Main features
+  | Transparent proxy                        | Socks5                         | Socks4               | HTTPS                          |
+  | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
+  | Proxy protocol                           | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
+  | Proxy chains                             | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
+  | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
+  | Basic authentication (username/password) | :white_check_mark:             | :white_large_square: | :white_large_square:           |
+  | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
+  | Remote names resolution                  | :white_check_mark: via NS-Warp | :white_large_square: | :white_check_mark: via NS-Warp |
+
+  | Internal proxy                           | Socks5                         | Socks4              | HTTPS                           |
+  | ---------------------------------------- | ------------------------------ | -------------------- | ------------------------------ |
+  | Proxy protocol                           | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
+  | Proxy chains                             | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
+  | Proxy workload balancer                  | :white_check_mark:             | :white_check_mark:   | :white_check_mark:             |
+  | Basic authentication (username/password) | :white_large_square:           | :white_large_square: | :white_large_square:           |
+  | IPv6 stack support                       | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
+  | Remote names resolution                  | :white_check_mark:             | :white_large_square: | :white_check_mark:             |
+
+- Miscellaneous features
+  - [x] Simple configuration structure as INI-like file
+  - [x] Password encoding (obfuscation) in configuration files
+  - [x] Remote names resolution using [NS-Warp](https://github.com/mezantrop/ts-warp/tree/master/ns)
+  - [x] Daemon mode
+  - [x] Front-end UI
+  - [x] Installation script (via Makefile)
+
+- TODO
+  - [ ] UDP support
+  - [ ] Inernal Socks proxy status repesponse
+  - [ ] Inernal HTTPS proxy status repesponse
+  - [ ] Internal HTTP proxy `GET` request support
+  - [ ] Inernal Socks proxy basic authentication
+  - [ ] Inernal HTTPS proxy basic authentication
+  - [ ] OS specific `select` alternatives: `epol` / `kqueue`
+  - [ ] Faster NS-Warp
+  - [ ] Documentation
 
 ### Changelog
 
