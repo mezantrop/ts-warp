@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.06.14    Current (HTTP proxy implementation in progress)
+* 2023.06.15
+  * HTTPS proxy authentication added
   * `Base64.c`: `base64_strenc()` created
   * `ts-warp.c`: HTTP proxy chains
   * `http.c`: `http_client_request()` created, method `CONNECT`

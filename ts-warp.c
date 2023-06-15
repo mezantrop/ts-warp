@@ -730,7 +730,9 @@ All parameters are optional:
                                     inet2str(&sc->chain_member->proxy_server, suf),
                                     inet2str(&sc->next->chain_member->proxy_server, buf));
 
-                                if (http_client_request(ssock, &sc->next->chain_member->proxy_server)) {
+                                if (http_client_request(ssock, &sc->next->chain_member->proxy_server,
+                                        sc->next->chain_member->proxy_user, sc->next->chain_member->proxy_password)) {
+
                                     printl(LOG_WARN, "CHAIN HTTP server returned an error");
                                     close(csock);
                                     exit(2);
@@ -741,7 +743,9 @@ All parameters are optional:
                                     inet2str(&sc->chain_member->proxy_server, buf),
                                     inet2str(&s_ini->proxy_server, buf));
 
-                                if (http_client_request(ssock, &s_ini->proxy_server)) {
+                                if (http_client_request(ssock,
+                                        &s_ini->proxy_server, s_ini->proxy_user, s_ini->proxy_password)) {
+
                                     printl(LOG_WARN, "CHAIN HTTP server returned an error");
                                     close(csock);
                                     exit(2);
@@ -794,7 +798,7 @@ All parameters are optional:
 
                             case AUTH_METHOD_UNAME:                     /* Perform user/password auth */
                                 if (socks5_client_auth(ssock, s_ini->proxy_user, s_ini->proxy_password)) {
-                                    printl(LOG_WARN, "Socks rejected user: [%s]", s_ini->proxy_user);
+                                    printl(LOG_WARN, "Socks5 rejected user: [%s]", s_ini->proxy_user);
                                     close(csock);
                                     exit(2);
                                 }
@@ -802,7 +806,7 @@ All parameters are optional:
 
                             case AUTH_METHOD_NOACCEPT:
                             default:
-                                printl(LOG_WARN, "No (supported) auth methods were accepted by Socks server");
+                                printl(LOG_WARN, "No (supported) auth methods were accepted by Socks5 server");
                                 close(csock);
                                 exit(2);
                         }
@@ -826,7 +830,7 @@ All parameters are optional:
                         }
 
                         if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr.ip_addr, daddr.name)) {
-                            printl(LOG_CRIT, "Socks server returned an error");
+                            printl(LOG_CRIT, "Socks5 proxy server returned an error");
                             close(csock);
                             exit(2);
                         }
@@ -839,7 +843,7 @@ All parameters are optional:
                         if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
                                 (struct sockaddr_in *)&daddr.ip_addr, s_ini->proxy_user) != SOCKS4_REPLY_OK) {
 
-                            printl(LOG_WARN, "Socks4 server returned an error");
+                            printl(LOG_WARN, "Socks4 proxy server returned an error");
                             close(csock);
                             exit(2);
                         }
@@ -849,8 +853,8 @@ All parameters are optional:
                         printl(LOG_VERB, "Initiate HTTP protocol: request: [%s] -> [%s]",
                             inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                        if (http_client_request(ssock, &daddr.ip_addr)) {
-                            printl(LOG_WARN, "HTTP server returned an error");
+                        if (http_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password)) {
+                            printl(LOG_WARN, "HTTP proxy server returned an error");
                             close(csock);
                             exit(2);
                         }

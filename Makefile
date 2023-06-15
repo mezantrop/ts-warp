@@ -27,7 +27,7 @@ PREFIX ?= /usr/local
 
 CC = cc -O3
 CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
-WARP_OBJS = inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o http.o ts-warp.o utility.o xedec.o
+WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o http.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 
 .PHONY:	all clean examples-general examples-special install install-configs install-examples release uninstall version
@@ -154,6 +154,7 @@ uninstall:
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured
 
+base64.o: base64.h
 inifile.o: inifile.h
 natlook.o: natlook.h
 network.o: network.h

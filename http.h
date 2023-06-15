@@ -36,7 +36,8 @@
 
 #define HTTP_RESPONSE_200           "200"
 
+#define HTTP_HEADER_PROXYAUTH_BASIC "Proxy-Authorization: Basic "
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int http_server_request(int socket, struct uvaddr *daddr);
-int http_client_request(int socket, struct sockaddr_storage *daddr);
+int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password);
