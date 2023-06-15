@@ -19,23 +19,23 @@
   - Linux with `nftables` or `iptables`
 
 - Main features
-  | Transparent proxy                        | Socks5               | Socks4               | HTTPS                |
-  | ---------------------------------------- | -------------------- | -------------------- | -------------------- |
-  | Proxy protocol                           | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
-  | Proxy chains                             | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
-  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
-  | Basic authentication (username/password) | :white_check_mark:   | :white_large_square: | :white_large_square: |
-  | IPv6 stack support                       | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
-  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Transparent proxy                        | Socks5                | Socks4               | HTTPS                 |
+  | ---------------------------------------- | --------------------- | -------------------- | --------------------- |
+  | Proxy protocol                           | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
+  | Proxy chains                             | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
+  | Proxy workload balancer                  | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
+  | Basic authentication (username/password) | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
+  | IPv6 stack support                       | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
+  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
 
-  | Internal proxy                           | Socks5               | Socks4               | HTTPS                |
-  | ---------------------------------------- | -------------------- | -------------------- | -------------------- |
-  | Proxy protocol                           | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
-  | Proxy chains                             | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
-  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:   | :white_check_mark:   |
-  | Basic authentication (username/password) | :white_large_square: | :white_large_square: | :white_large_square: |
-  | IPv6 stack support                       | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
-  | Remote names resolution                  | :white_check_mark:   | :white_large_square: | :white_check_mark:   |
+  | Internal proxy                           | Socks5                | Socks4               | HTTPS                 |
+  | ---------------------------------------- | --------------------- | -------------------- | --------------------- |
+  | Proxy protocol                           | :white_check_mark:    | :black_square_button:| :white_check_mark:    |
+  | Proxy chains                             | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
+  | Proxy workload balancer                  | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
+  | Basic authentication (username/password) | :black_square_button: | :white_large_square: | :black_square_button: |
+  | IPv6 stack support                       | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
+  | Remote names resolution                  | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
 
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
@@ -46,8 +46,8 @@
 
 - TODO
   - [ ] UDP support
-  - [ ] Internal Socks proxy status repesponse
-  - [ ] Internal HTTPS proxy status repesponse
+  - [ ] Internal Socks proxy status response
+  - [ ] Internal HTTPS proxy status response
   - [ ] Internal Socks4 proxy support
   - [ ] Socks4a protocol support
   - [ ] Internal HTTP proxy `GET` request support
@@ -187,6 +187,10 @@ For example:
 $ sudo /usr/local/etc/ts-warp.sh start
 $ sudo /usr/local/etc/ts-warp.sh stop
 ```
+
+After succesfull start, TS-Warp transparently redirects traffic according to the configuration specified in
+`ts-warp.ini` and firewall rules. Also, TS-Warp spawns Socks5 proxy server at `localhost:10800` and HTTPS proxy
+(CONNECT method) at `localhost:8080`.
 
 ### Low-level ts-warp daemon usage
 

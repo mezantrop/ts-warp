@@ -31,6 +31,7 @@
 
 #include "utility.h"
 #include "network.h"
+#include "base64.h"
 #include "http.h"
 #include "logfile.h"
 
@@ -91,15 +92,24 @@ int http_server_request(int socket, struct uvaddr *daddr) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int http_client_request(int socket, struct sockaddr_storage *daddr) {
+int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password) {
     char r[BUF_SIZE_1KB] = {0};
     char b[HOST_NAME_MAX] = {0};
+    char usr_pwd_plain[BUF_SIZE_1KB] = {0};
+    char *usr_pwd_base64;
     char *proto = NULL, *status = NULL, *reason = NULL;
     int rcount = 0;
 
 
     /* Request startline: CONNECT address:port PROTOCOL */
-    sprintf(r, "%s %s %s\r\n\r\n", HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL);
+    if (user && password) {
+        sprintf(usr_pwd_plain, "%s:%s", user, password);
+        base64_strenc(&usr_pwd_base64, usr_pwd_plain);
+        sprintf(r, "%s %s %s\r\n%s %s\r\n\r\n",
+            HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL,
+            HTTP_HEADER_PROXYAUTH_BASIC, usr_pwd_base64);
+    } else
+        sprintf(r, "%s %s %s\r\n\r\n", HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL);
 
     printl(LOG_VERB, "Sending HTTP %s request", HTTP_REQUEST_METHOD_CONNECT);
 
