@@ -62,3 +62,35 @@ int base64_strenc(char **enc, char *dec) {
     *e = 0;
     return strlen(*enc);
 }
+
+int base64_strdec(char **dec, char *enc) {
+	/* Source string in *enc, results in **dec  */
+	/* Works with null-terminated strings only! */
+	/* NB! free() **dec after use! */
+
+	int enc_len = 0;
+	int qttn = 0;
+	char *d = NULL;
+	unsigned char st0, st1, st2, st3;
+
+
+	enc_len = strlen(enc);
+	*dec = d = (char *)malloc(((enc_len + 3 - 1) / 3) * 4);
+	for (qttn = 0; qttn < enc_len; qttn += 4) {
+		/* Input sextets */
+		st0 = strchr(base64_alphabet, enc[qttn]) - base64_alphabet;
+		st1 = strchr(base64_alphabet, enc[qttn + 1]) - base64_alphabet;
+		st2 = strchr(base64_alphabet, enc[qttn + 2]) - base64_alphabet;
+		st3 = strchr(base64_alphabet, enc[qttn + 3]) - base64_alphabet;
+		/* Output octets */
+		*d++ = st0 << 2 | st1 >> 4;
+		if (enc[qttn + 2] != '=') {
+			*d++ = (st1 & 0xF) << 4 | st2 >> 2;
+			if (enc[qttn + 3] != '=')
+				*d++ = (st2 & 0x3) << 6 | st3 & 0x3F;
+		}
+	}
+	*d = 0;
+
+	return strlen(*dec);
+}

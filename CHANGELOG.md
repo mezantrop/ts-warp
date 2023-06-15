@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.06.15
+* 2023.06.15    Current
+  * `Base64.c`: `base64_strdec()` created
   * HTTPS proxy authentication added
   * `Base64.c`: `base64_strenc()` created
   * `ts-warp.c`: HTTP proxy chains
