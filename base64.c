@@ -87,7 +87,7 @@ int base64_strdec(char **dec, char *enc) {
 		if (enc[qttn + 2] != '=') {
 			*d++ = (st1 & 0xF) << 4 | st2 >> 2;
 			if (enc[qttn + 3] != '=')
-				*d++ = (st2 & 0x3) << 6 | st3 & 0x3F;
+				*d++ = (st2 & 0x3) << 6 | (st3 & 0x3F);
 		}
 	}
 	*d = 0;
