@@ -128,7 +128,7 @@ make_hosts() {
 
     hosts_raw=`printf "%s\n" "$cfg" |
         grep target_host |
-        cut -f 2 -d '='`
+        tr -d " \t" | awk -F '[=:]' '{print $2}'`
 
     hosts=""
     for hst in $hosts_raw; do
@@ -148,7 +148,7 @@ make_proxy() {
 
     sservers_raw=`printf "%s\n" "$cfg" |
         grep -E 'socks_server|proxy_server' |
-        cut -f 2 -d '='`
+        tr -d " \t" | awk -F '[=:]' '{print $2}'`
 
     sservers=""
     for srv in $sservers_raw; do

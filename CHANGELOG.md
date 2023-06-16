@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.06.15    Current
+* 2023.06.16    Current
+  * `ts-warp_autofw.sh`: Include `target_hosts` and `proxy_servers` with port-addresses,
+      thanks Gleb Reys <gleb@reys.net> for the bug-hunt
   * `Base64.c`: `base64_strdec()` created
   * HTTPS proxy authentication added
   * `Base64.c`: `base64_strenc()` created
