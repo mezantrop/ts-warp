@@ -482,19 +482,25 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
 
 
     if (addr_u.name[0]) strncpy(host, addr_u.name, sizeof(host));
-    if (!addr_u.name[0] &&
-        getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr), host, sizeof host, 0, 0, NI_NAMEREQD))
-            printl(LOG_VERB, "Unspecified / irresolvable hostname: [%s]", inet2str(&addr_u.ip_addr, buf1));
-    else
-        if ((domain = strchr(host, '.'))) { domain++; domainlen = strnlen(domain, HOST_NAME_MAX); }
-
-    printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]", inet2str(&addr_u.ip_addr, buf1), host, domain?:"");
-
     s = ini;
     while (s) {
         t = s->target_entry;
 
         while (t) {
+            if ((t->target_type == INI_TARGET_HOST || t->target_type == INI_TARGET_DOMAIN)) {
+                /* Perform namelookup only if section has target_host or target_domain */
+                if (!addr_u.name[0] && getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr), host,
+                        sizeof host, 0, 0, NI_NAMEREQD))
+                            printl(LOG_VERB, "Unspecified / irresolvable hostname: [%s]",
+                                inet2str(&addr_u.ip_addr, buf1));
+                else
+                    if (!domain && (domain = strchr(host, '.'))) {
+                        domainlen = strnlen(++domain, HOST_NAME_MAX);
+                        printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]",
+                            inet2str(&addr_u.ip_addr, buf1), host, domain?:"");
+                    }
+            }
+
             switch(t->target_type) {
                 case INI_TARGET_HOST:
                     if ((host[0] && t->name && strcasestr(t->name, host) &&

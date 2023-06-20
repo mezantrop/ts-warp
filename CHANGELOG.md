@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2023.06.16    Current
+  * `inifile.c`: `ini_look_server()` performs namelookup only if section has target_host or target_domain
   * `ts-warp_autofw.sh`: Include `target_hosts` and `proxy_servers` with port-addresses,
       thanks Gleb Reys <gleb@reys.net> for the bug-hunt
   * `Base64.c`: `base64_strdec()` created
