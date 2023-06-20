@@ -46,8 +46,6 @@
 
 - TODO
   - [ ] UDP support
-  - [ ] Internal Socks proxy status response
-  - [ ] Internal HTTPS proxy status response
   - [ ] Internal Socks4 proxy support
   - [ ] Socks4a protocol support
   - [ ] Internal HTTP proxy `GET` request support
