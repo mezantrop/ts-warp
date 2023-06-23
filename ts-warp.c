@@ -537,7 +537,7 @@ All parameters are optional:
                             exit(1);
                         }
 
-                        if (!socks5_server_request(csock, (struct sockaddr_storage *)(ires->ai_addr), &daddr)) {
+                        if (!socks5_server_request(csock, &daddr)) {
                             printl(LOG_WARN, "Embedded TS-Warp Socks server lost connection with the client");
                             close(csock);
                             exit(1);
@@ -554,16 +554,32 @@ All parameters are optional:
                             if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                                 printl(LOG_WARN, "Unable to connect with destination: [%s]",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+
+                                /* Replying Error to Socks5 client */
+                                printl(LOG_VERB, "Replying the client, Internal Socks5 can't reach desination: [%s]",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                                socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_KO);
                                 close(csock);
                                 exit(1);
+                            } else {
+                                /* Replying OK to Socks5 client */
+                                printl(LOG_VERB, "Replying the client, Internal Socks5 can reach desination: [%s]",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                                socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_OK);
                             }
 
                             goto cfloop;
 
-                        } else
+                        } else {
                             printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
                                 daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
 
+                            /* Replying OK to Socks5 client */
+                                printl(LOG_VERB,
+                                    "Replying Socks5 client [OK], the desination: [%s] is managed by external proxy",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                            socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_OK);
+                        }
                         /* Pass the client to external Socks-servers - proxy forwarding */
                     }
                 } else
