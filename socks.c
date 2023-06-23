@@ -349,16 +349,14 @@ int socks5_server_hello(int socket) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct uvaddr *daddr) {
+uint8_t socks5_server_request(int socket, struct uvaddr *daddr) {
     s5_request *req;
     s5_request_ipv4 *req4;
     s5_request_ipv6 *req6;
-    s5_reply_ipv4 *rep;
 
-    char buf[sizeof(s5_request)];                         /* Max Socks5 request/reply size */
+    char buf[sizeof(s5_request)];                         /* Max Socks5 request size */
     int rcount;
     uint8_t atype = SOCKS5_ATYPE_IPV4;
-    uint8_t rep_status = SOCKS5_REPLY_OK;
 
 
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1 || rcount < sizeof(s5_request_short)) {
@@ -371,7 +369,7 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
     req = (s5_request *)buf;
     if (req->ver != PROXY_PROTO_SOCKS_V5 - '0') {
         printl(LOG_WARN, "Client speaks unsupported protocol version: [%i]", req->ver);
-        rep_status = SOCKS5_REPLY_UNSUPPORTED;
+        return SOCKS5_ATYPE_NONE;
     }
 
     switch (req->atype) {
@@ -404,19 +402,45 @@ uint8_t socks5_server_request(int socket, struct sockaddr_storage *iaddr, struct
         break;
     }
 
-    /* Send reply back */
-    rep = (s5_reply_ipv4 *)buf;
-    rep->ver = PROXY_PROTO_SOCKS_V5 - '0';
-    rep->status = rep_status;
-    rep->rsv = 0;
-    rep->atype = SOCKS5_ATYPE_IPV4;
-    memcpy(rep->dstaddr, &SIN4_ADDR(*iaddr), sizeof(rep->dstaddr));
-    rep->dstport = SIN4_PORT(*iaddr);
-
-    if (send(socket, &buf, sizeof(rep)+2, 0) == -1) {
-        printl(LOG_CRIT, "Unable to send reply to the Socks5 client");
-        return SOCKS5_ATYPE_NONE;
-    }
-
     return atype;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+uint8_t socks5_server_reply(int socket, struct sockaddr_storage *iaddr, uint8_t status) {
+    /* Send Socks5 reply back to the client */
+    char buf[sizeof(s5_reply)] = {0};                         /* Max Socks5 reply size */
+
+    s5_reply_ipv4 *rep4;
+    s5_reply_ipv6 *rep6;
+
+    if  (SA_FAMILY(*iaddr) == AF_INET) {
+        rep4 = (s5_reply_ipv4 *)buf;
+        rep4->ver = PROXY_PROTO_SOCKS_V5 - '0';
+        rep4->status = status;
+        rep4->rsv = 0;
+        rep4->atype = SOCKS5_ATYPE_IPV4;
+        memcpy(rep4->dstaddr, &SIN4_ADDR(*iaddr), sizeof(rep4->dstaddr));
+        rep4->dstport = SIN4_PORT(*iaddr);
+
+        if (send(socket, &buf, sizeof(s5_reply_ipv4), 0) == -1) {
+            printl(LOG_CRIT, "Unable to send IPv4 reply to the Socks5 client");
+            return 1;
+        }
+
+    } else {
+        rep6 = (s5_reply_ipv6 *)buf;
+        rep6->ver = PROXY_PROTO_SOCKS_V5 - '0';
+        rep6->status = status;
+        rep6->rsv = 0;
+        rep6->atype = SOCKS5_ATYPE_IPV4;
+        memcpy(rep6->dstaddr, &SIN6_ADDR(*iaddr), sizeof(rep6->dstaddr));
+        rep6->dstport = SIN6_PORT(*iaddr);
+
+        if (send(socket, &buf, sizeof(rep6), 0) == -1) {
+            printl(LOG_CRIT, "Unable to send IPv6 reply to the Socks5 client");
+            return 1;
+        }
+   }
+
+    return 0;
 }

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.06.20    Current
+* 2023.06.23    Current
+  * `socks.c`, `ts-warp.c`:  `socks5_server_reply()` created for the innternal Socks5 server
   * `inifile.c`: `ini_look_server()` performs namelookup only if section has target_host or target_domain
   * `ts-warp_autofw.sh`: Include `target_hosts` and `proxy_servers` with port-addresses,
       thanks Gleb Reys <gleb@reys.net> for the bug-hunt
