@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.06.23    Current
+* 2023.06.29    ts-warp-1.3.0, gui-warp-1.0.3, ns-warp-1.0.4
+  * `http.c`: Correct HTTP proxy reply
   * `socks.c`, `ts-warp.c`:  `socks5_server_reply()` created for the innternal Socks5 server
   * `inifile.c`: `ini_look_server()` performs namelookup only if section has target_host or target_domain
   * `ts-warp_autofw.sh`: Include `target_hosts` and `proxy_servers` with port-addresses,
