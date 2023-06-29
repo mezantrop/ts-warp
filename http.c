@@ -78,7 +78,7 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     else SIN6_PORT(daddr->ip_addr) = port;
 
     /* TODO: Check connection; Reply real status */
-    if (send(socket, HTTP_PROXY_REPLY_200, sizeof(HTTP_PROXY_REPLY_200), 0) == -1) {
+    if (send(socket, HTTP_PROXY_REPLY_200, sizeof(HTTP_PROXY_REPLY_200) -1, 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the HTTP client");
         return 1;
     }
