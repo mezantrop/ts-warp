@@ -48,7 +48,6 @@
   - [ ] UDP support
   - [ ] Internal Socks4 proxy support
   - [ ] Socks4a protocol support
-  - [ ] Internal HTTP proxy `GET` request support
   - [ ] Internal Socks proxy basic authentication
   - [ ] Internal HTTPS proxy basic authentication
   - [ ] OS specific `select` alternatives: `epol` / `kqueue`
@@ -57,12 +56,31 @@
 
 ### Changelog
 
-**Attention! To incorporate HTTP proxy service, deprecated `socks_*` variables will be replaced by `proxy_*` ones
-in the upcoming 1.3.0 release! Be ready to replace them in `ts-warp.ini` file!**
+**Attention! To incorporate HTTP proxy service, `socks_*` variables in `ts-warp.ini` are replaced by `proxy_*` ones.
+The deprecated variables will be eventually removed in the further releases**
 
 See it [here](CHANGELOG.md)
 
-### Installation
+### Quick Installation
+
+```sh
+git clone https://github.com/mezantrop/ts-warp && cd ts-warp
+make && sudo make install clean
+
+# Copy and edit configuration files
+sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
+
+# on *BSD and macOS
+sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf && sudo vi /usr/local/etc/ts-warp_pf.conf
+
+# on Linux with nftables
+sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh && sudo vi /usr/local/etc/ts-warp_nftables.sh
+
+# on Linux with iptables
+sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh && sudo vi /usr/local/etc/ts-warp_iptables.sh
+```
+
+### Longer Installation
 
 #### Obtain source codes
 
@@ -70,7 +88,7 @@ See it [here](CHANGELOG.md)
 - Or clone the repository running `git` in a terminal:
 
   ```sh
-  $ git clone https://github.com/mezantrop/ts-warp
+  git clone https://github.com/mezantrop/ts-warp
   ```
 
 #### Build the appplication from sources
@@ -78,7 +96,7 @@ See it [here](CHANGELOG.md)
 Using terminal, in the directory with TS-Warp source code run as the normal user:
 
   ```sh
-  $ make
+  make
   ```
 
 #### Install the application
@@ -87,14 +105,14 @@ Typically, installation requires root privileges. Below we use `sudo` to achieve
 systems you may need to invoke `su` instead:
 
   ```sh
-  $ sudo make install clean
+  sudo make install clean
   ```
 
   This installs all the files under the `/usr/local` tree and after that cleans source codes from object and temporary
   created files. If a different installation path is required, set `PREFIX`:
 
   ```sh
-  $ sudo make install PREFIX=/path/to/install
+  sudo make install PREFIX=/path/to/install
   ```
 
 #### Configure TS-Warp
@@ -103,14 +121,16 @@ Based on `<PREFIX>/etc/ts-warp.ini.sample` file create `<PREFIX>/etc/ts-warp.ini
 For example:
 
   ```sh
-  $ sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
-  $ sudo nano /usr/local/etc/ts-warp.ini
+  sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
+  sudo nano /usr/local/etc/ts-warp.ini
   ```
+
+Note, besides `nano` there could be other editors installed e.g. `pico`, `ee`, `vi`, etc.
 
 *Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
 
 ```sh
-$ sudo nano /usr/local/etc/ts-warp.sh
+sudo nano /usr/local/etc/ts-warp.sh
 ```
 
 #### Setup firewall
@@ -119,8 +139,8 @@ $ sudo nano /usr/local/etc/ts-warp.sh
   `<PREFIX>/etc/ts-warp_pf.conf.sample`. For example:
 
   ```sh
-  $ sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
-  $ sudo nano /usr/local/etc/ts-warp_pf.conf
+  sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+  sudo nano /usr/local/etc/ts-warp_pf.conf
   ```
 
 - **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` using as templates
@@ -128,15 +148,15 @@ $ sudo nano /usr/local/etc/ts-warp.sh
   to configure firewall. For example:
 
   ```sh
-    $ sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
-    $ sudo nano /usr/local/etc/ts-warp_nftables.sh
+    sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
+    sudo nano /usr/local/etc/ts-warp_nftables.sh
     ```
 
   or
 
     ```sh
-    $ sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-    $ sudo nano /usr/local/etc/ts-warp_iptables.sh
+    sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+    sudo nano /usr/local/etc/ts-warp_iptables.sh
     ```
 
 - The helper script `<PREFIX>/bin/bin/ts-warp_autofw.sh` makes and prints out sample firewall configuration based on
@@ -153,19 +173,19 @@ TCP traffic to TS-Warp that requires to be soxified. By default, to minimize sys
 **special** firewall rulesets, but it is possible to switch between both options using:
 
 ```sh
-$ make examples-special
+make examples-special
 ```
 
 or
 
 ```sh
-$ make examples-general
+make examples-general
 ```
 
 Then install the selected configuration examples:
 
 ```sh
-$ sudo make install-examples
+sudo make install-examples
 ```
 
 Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
@@ -182,8 +202,8 @@ You can control, e.g. start, stop `ts-warp` daemon using `ts-warp.sh` script. Un
 For example:
 
 ```sh
-$ sudo /usr/local/etc/ts-warp.sh start
-$ sudo /usr/local/etc/ts-warp.sh stop
+sudo /usr/local/etc/ts-warp.sh start
+sudo /usr/local/etc/ts-warp.sh stop
 ```
 
 After succesfull start, TS-Warp transparently redirects traffic according to the configuration specified in
@@ -222,7 +242,7 @@ All parameters are optional:
  with `-v 4` option:
 
 ```sh
-$ sudo /usr/local/etc/ts-warp.sh restart -v 4
+sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
 `ts-warp` understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
@@ -237,20 +257,20 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 The GUI front-end application to control `ts-warp` daemon can be installed from the `gui` directory:
 
 ```sh
-$ cd gui
-$ sudo make install
+cd gui
+sudo make install
 ```
 
 *Optionally*. Set `PREFIX`, to use a different installation target in the `make` command above:
 
 ``` sh
-$ sudo make install PREFIX=/path/to/install
+sudo make install PREFIX=/path/to/install
 ```
 
 To start the GUI run:
 
 ``` sh
-$ sudo -b <PREFIX>/bin/gui-warp.py
+sudo -b <PREFIX>/bin/gui-warp.py
 ```
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
