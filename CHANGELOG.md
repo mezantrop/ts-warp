@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2023.06.30    Current
+  * `README.md`: `Quick installation` section added
+
 * 2023.06.29    ts-warp-1.3.0, gui-warp-1.0.3, ns-warp-1.0.4
   * `http.c`: Correct HTTP proxy reply
   * `socks.c`, `ts-warp.c`:  `socks5_server_reply()` created for the innternal Socks5 server
