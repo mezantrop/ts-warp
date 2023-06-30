@@ -71,13 +71,16 @@ make && sudo make install clean
 sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
 
 # on *BSD and macOS
-sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf && sudo vi /usr/local/etc/ts-warp_pf.conf
+sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
+sudo vi /usr/local/etc/ts-warp_pf.conf
 
 # on Linux with nftables
-sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh && sudo vi /usr/local/etc/ts-warp_nftables.sh
+sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
+sudo vi /usr/local/etc/ts-warp_nftables.sh
 
 # on Linux with iptables
-sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh && sudo vi /usr/local/etc/ts-warp_iptables.sh
+sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+sudo vi /usr/local/etc/ts-warp_iptables.sh
 ```
 
 ### Longer Installation
