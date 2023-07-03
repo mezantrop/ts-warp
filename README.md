@@ -19,23 +19,23 @@
   - Linux with `nftables` or `iptables`
 
 - Main features
-  | Transparent proxy                        | Socks5                | Socks4               | HTTPS                 |
-  | ---------------------------------------- | --------------------- | -------------------- | --------------------- |
-  | Proxy protocol                           | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
-  | Proxy chains                             | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
-  | Proxy workload balancer                  | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
-  | Basic authentication (username/password) | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
-  | IPv6 stack support                       | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
-  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
+  | Transparent proxy                        | Socks5               | Socks4                | HTTPS                |
+  | ---------------------------------------- | -------------------- | --------------------- | -------------------- |
+  | Proxy protocol                           | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
+  | Proxy chains                             | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
+  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
+  | Basic authentication (username/password) | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
+  | IPv6 stack support                       | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
+  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
 
-  | Internal proxy                           | Socks5                | Socks4               | HTTPS                 |
-  | ---------------------------------------- | --------------------- | -------------------- | --------------------- |
-  | Proxy protocol                           | :white_check_mark:    | :black_square_button:| :white_check_mark:    |
-  | Proxy chains                             | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
-  | Proxy workload balancer                  | :white_check_mark:    | :white_check_mark:   | :white_check_mark:    |
-  | Basic authentication (username/password) | :black_square_button: | :white_large_square: | :black_square_button: |
-  | IPv6 stack support                       | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
-  | Remote names resolution                  | :white_check_mark:    | :white_large_square: | :white_check_mark:    |
+  | Internal proxy                           | Socks5               | Socks4                | HTTPS                |
+  | ---------------------------------------- | -------------------- | --------------------- | -------------------- |
+  | Proxy protocol                           | :white_check_mark:   | :black_square_button: | :white_check_mark:   |
+  | Proxy chains                             | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
+  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
+  | Basic authentication (username/password) | :white_large_square: | :white_large_square:  | :white_large_square: |
+  | IPv6 stack support                       | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
+  | Remote names resolution                  | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
 
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
@@ -48,8 +48,6 @@
   - [ ] UDP support
   - [ ] Internal Socks4 proxy support
   - [ ] Socks4a protocol support
-  - [ ] Internal Socks proxy basic authentication
-  - [ ] Internal HTTPS proxy basic authentication
   - [ ] OS specific `select` alternatives: `epol` / `kqueue`
   - [ ] Faster NS-Warp
   - [ ] Documentation
