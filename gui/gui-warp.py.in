@@ -31,13 +31,77 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #   3. Implement "tail" for the LOG-file
 #   4. Does the full featured configuration editor with input fields and etc is required?
 
+# -------------------------------------------------------------------------------------------------------------------- #
+import os
+import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
 import configparser
 import platform
+import shutil
 
 
+password = ''
+
+# -------------------------------------------------------------------------------------------------------------------- #
+class LaunchApp:
+
+    def __init__(self):
+        self._padx = 10
+        self._pady = 10
+
+        self.root = tk.Tk()
+
+        self.root.title('Starting TS-Warp GUI-frontend...')
+        self.root.resizable(width=False, height=False)
+
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=0)
+
+        if not shutil.which('sudo'):
+            # If sudo is not installed, show error label and exit
+            self.lbl_error = ttk.Label(self.root, text='FATAL: "Sudo" command is not found')
+            self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+
+            self.btn_ok = ttk.Button(self.root, text="OK")
+            self.btn_ok['command'] = lambda: sys.exit(1)
+            self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+        else:
+            # Ask for password and launch gui-warp.py
+            self.lbl_pwd = ttk.Label(self.root, text='Your password:')
+            self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+
+            self.pwd = tk.StringVar()
+            self.ent_pwd = ttk.Entry(self.root, textvariable=self.pwd, show='*')
+            self.ent_pwd.bind('<Return>', lambda x: self.get_password())
+            self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+
+            self.btn_enter = ttk.Button(self.root, text="Enter")
+            self.btn_enter['command'] = lambda: self.get_password()
+            self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+
+        self.root.mainloop()
+
+    def get_password(self):
+        global password
+
+        if os.geteuid() != 0:
+            gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
+            sout, serr = gwp.communicate(self.pwd.get().encode())
+
+        if gwp.returncode == 1:
+            password = ''
+            self.ent_pwd.config(show='')
+            self.pwd.set('Wrong password')
+            self.root.after(1000, lambda: self.pwd.set(''))
+            self.root.after(1000, lambda: self.ent_pwd.config(show='*'))
+        else:
+            password = self.pwd.get().encode()
+            self.root.destroy()
+
+
+# -------------------------------------------------------------------------------------------------------------------- #
 class App:
     def __init__(self, width=800, height=560,
                  runcmd='/usr/local/etc/ts-warp.sh',
@@ -46,7 +110,7 @@ class App:
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        self.version = 'v1.0.3'
+        self.version = 'v1.0.4'
         self.width = width
         self.height = height
 
@@ -55,7 +119,7 @@ class App:
         self._pady = 4
         self._btnw = 2                                                  # Button width
 
-        # -- GUI -------------------------------------------------------------------------------------------------------
+        # -- GUI ----------------------------------------------------------------------------------------------------- #
         self.root = tk.Tk()
 
         self.root.title(f'GUI-warp {self.version}')
@@ -66,20 +130,20 @@ class App:
         self.root.rowconfigure(0, weight=0)
         self.root.rowconfigure(1, weight=1)
 
-        # -- Top button frame ------------------------------------------------------------------------------------------
+        # -- Top button frame ---------------------------------------------------------------------------------------- #
         lfrm_top = tk.LabelFrame(self.root, height=40, relief=tk.FLAT, padx=self._padx, pady=self._pady)
         lfrm_top.grid(column=0, row=0, sticky=tk.EW)
 
         btn_run = ttk.Button(lfrm_top, width=self._btnw, text='▶')
         btn_run.grid(column=0, row=0, sticky=tk.W, padx=self._padx)
-        btn_run['command'] = lambda: subprocess.run([runcmd, 'stop']) \
-            if btn_run['text'] == '■' else subprocess.run([runcmd, 'start'])
+        btn_run['command'] = lambda: self.run_script('stop') if btn_run['text'] == '■' else self.run_script('start')
 
         btn_rld = ttk.Button(lfrm_top, width=self._btnw, text='⟳')
         btn_rld.grid(column=1, row=0, sticky=tk.W, padx=self._padx)
-        btn_rld['command'] = lambda: subprocess.run([runcmd, 'reload'])
+        btn_rld['command'] = lambda: self.run_script('reload')
 
-        # -- Display ini/fw/log pane -----------------------------------------------------------------------------------
+
+        # -- Display ini/fw/log pane --------------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
         tab_ini = ttk.Frame(tabControl)
         tab_fw = ttk.Frame(tabControl)
@@ -90,7 +154,7 @@ class App:
         tabControl.add(tab_log, text='Log')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
-        # -- Tab INI ---------------------------------------------------------------------------------------------------
+        # -- Tab INI ------------------------------------------------------------------------------------------------- #
         tab_ini.columnconfigure(0, weight=1)
         tab_ini.rowconfigure(1, weight=1)
 
@@ -109,7 +173,7 @@ class App:
         scroll_ini.config(command=ini_txt.yview)
         ini_txt.config(yscrollcommand=scroll_ini.set)
 
-        # -- Tab FW ----------------------------------------------------------------------------------------------------
+        # -- Tab FW -------------------------------------------------------------------------------------------------- #
         tab_fw.columnconfigure(0, weight=1)
         tab_fw.rowconfigure(1, weight=1)
 
@@ -128,7 +192,7 @@ class App:
         scroll_fw.config(command=fw_txt.yview)
         fw_txt.config(yscrollcommand=scroll_fw.set)
 
-        # -- Tab Log ---------------------------------------------------------------------------------------------------
+        # -- Tab Log ------------------------------------------------------------------------------------------------- #
         tab_log.columnconfigure(0, weight=1)
         tab_log.rowconfigure(1, weight=1)
 
@@ -148,7 +212,7 @@ class App:
         scroll_log.config(command=log_txt.yview)
         log_txt.config(yscrollcommand=scroll_log.set)
 
-        # -- Status bar ------------------------------------------------------------------------------------------------
+        # -- Status bar ---------------------------------------------------------------------------------------------- #
         lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
         lfrm_bottom.grid(column=0, row=2, sticky=tk.EW)
         lfrm_bottom.columnconfigure(0, weight=1)
@@ -202,7 +266,15 @@ class App:
 
         self.root.after(10000, self.status, lbl, btn, pidfile)
 
+    def run_script(self, command):
+        if os.geteuid() != 0:
+            gwp = subprocess.Popen(['sudo', '-S', '-b', runcmd, command], stdin=subprocess.PIPE)
+            sout, serr = gwp.communicate(password)
+        else:
+            gwp = subprocess.Popen([runcmd, command])
 
+
+# -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
     ini = configparser.ConfigParser()
     prefix = '/usr/local'
@@ -221,4 +293,6 @@ if __name__ == "__main__":
         logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
 
-    app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
+    launch = LaunchApp()
+    if os.geteuid() == 0 or password:
+        app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
