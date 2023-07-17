@@ -47,5 +47,7 @@ uninstall:
 
 clean:
 	rm -rf __pycache__
+	rm -rf build
+	rm -rf dist
 	rm -f gui-warp.py
 	rm -f gui-warp.ini
