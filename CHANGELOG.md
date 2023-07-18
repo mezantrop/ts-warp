@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.07.17    Current
+* 2023.07.18    Current
+  * `Makefile`: Set permissions on config files
   * `gui-warp.py`: Password authentication dialog for `sudo`
   * `gui-warp.py`: macOS Application with `py2app`. See build instuctions in [setup.py](gui\setup.py)
   * `README.md`: `Quick installation` section added
