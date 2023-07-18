@@ -25,6 +25,7 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+# -------------------------------------------------------------------------------------------------------------------- #
 # TODO:
 #   1. Rewrite ugly code
 #   2. Redo "refresh" timers
@@ -48,47 +49,47 @@ password = ''
 class LaunchApp:
 
     def __init__(self):
-        self._padx = 10
-        self._pady = 10
+        if os.geteuid() != 0:
+            self._padx = 10
+            self._pady = 10
 
-        self.root = tk.Tk()
+            self.root = tk.Tk()
 
-        self.root.title('Starting TS-Warp GUI-frontend...')
-        self.root.resizable(width=False, height=False)
+            self.root.title('Starting TS-Warp GUI-frontend...')
+            self.root.resizable(width=False, height=False)
 
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=0)
+            self.root.columnconfigure(0, weight=1)
+            self.root.rowconfigure(0, weight=0)
 
-        if not shutil.which('sudo'):
-            # If sudo is not installed, show error label and exit
-            self.lbl_error = ttk.Label(self.root, text='FATAL: "Sudo" command is not found')
-            self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+            if not shutil.which('sudo'):
+                # If sudo is not installed, show error label and exit
+                self.lbl_error = ttk.Label(self.root, text='FATAL: "Sudo" command is not found')
+                self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-            self.btn_ok = ttk.Button(self.root, text="OK")
-            self.btn_ok['command'] = lambda: sys.exit(1)
-            self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-        else:
-            # Ask for password and launch gui-warp.py
-            self.lbl_pwd = ttk.Label(self.root, text='Your password:')
-            self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+                self.btn_ok = ttk.Button(self.root, text="OK")
+                self.btn_ok['command'] = lambda: sys.exit(1)
+                self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+            else:
+                # Ask for password and launch gui-warp.py
+                self.lbl_pwd = ttk.Label(self.root, text='Your password:')
+                self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-            self.pwd = tk.StringVar()
-            self.ent_pwd = ttk.Entry(self.root, textvariable=self.pwd, show='*')
-            self.ent_pwd.bind('<Return>', lambda x: self.get_password())
-            self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+                self.pwd = tk.StringVar()
+                self.ent_pwd = ttk.Entry(self.root, textvariable=self.pwd, show='*')
+                self.ent_pwd.bind('<Return>', lambda x: self.get_password())
+                self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-            self.btn_enter = ttk.Button(self.root, text="Enter")
-            self.btn_enter['command'] = lambda: self.get_password()
-            self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+                self.btn_enter = ttk.Button(self.root, text="Enter")
+                self.btn_enter['command'] = lambda: self.get_password()
+                self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-        self.root.mainloop()
+            self.root.mainloop()
 
     def get_password(self):
         global password
 
-        if os.geteuid() != 0:
-            gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
-            sout, serr = gwp.communicate(self.pwd.get().encode())
+        gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
+        sout, serr = gwp.communicate(self.pwd.get().encode())
 
         if gwp.returncode == 1:
             password = ''
@@ -110,7 +111,7 @@ class App:
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        self.version = 'v1.0.4'
+        self.version = 'v1.0.5'
         self.width = width
         self.height = height
 
@@ -179,7 +180,7 @@ class App:
 
         ttk.Label(tab_fw, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
 
-        btn_save_fw = ttk.Button(tab_fw, width=2, text='▲')
+        btn_save_fw = ttk.Button(tab_fw, width=self._btnw, text='▲')
         btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_fw['command'] = lambda: self.savefile(fw_txt, fwfile)
 
@@ -243,7 +244,7 @@ class App:
     def pauselog(self, btn, txt, filename):
         if self.pause:
             self.pause = False
-            btn['text'] = '■'                                           # Pause log auto-refresh
+            btn['text'] = '■'                                            # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
         else:
             self.pause = True
