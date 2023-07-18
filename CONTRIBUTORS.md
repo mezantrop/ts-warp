@@ -7,6 +7,7 @@
 * Gema Robles <gema.robles.rodriguez@kyndryl.com>
 * Gleb Reys <gleb@reys.net>
 * Juha Nurmela
+* Luis Pontes <luis.pontes@kyndryl.com>
 * Matt Reba
 * Mohammad Ali Talaghat <ali@talaghat.ir>, [@alitalaghat](https://github.com/alitalaghat)
 * Philip Smith @ Kyndryl
