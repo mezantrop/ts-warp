@@ -56,7 +56,7 @@ examples-general:
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
-	touch .configured
+	whoami > .configured
 
 examples-special:
 	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal (non-root) user!"; exit 1; }
@@ -66,7 +66,7 @@ examples-special:
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
 	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
-	touch .configured
+	whoami > .configured
 
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
@@ -79,19 +79,25 @@ install-examples:
 
 	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
+	touch $(PREFIX)/etc/ts-warp.ini
+	chmod 640 $(PREFIX)/etc/ts-warp.ini
 	@case `uname -s` in \
 		Darwin) \
-			install -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			install -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf.conf.sample; \
+			touch $(PREFIX)/etc/ts-warp_pf.conf \
 			;; \
 		FreeBSD) \
-			install -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			install -m 644 ./examples/ts-warp_pf_freebsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample; \
+			touch $(PREFIX)/etc/ts-warp_pf.conf \
 			;; \
 		OpenBSD) \
-			install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample \
+			install -m 644 ./examples/ts-warp_pf_openbsd.conf $(PREFIX)/etc/ts-warp_pf.conf.sample; \
+			touch $(PREFIX)/etc/ts-warp_pf.conf \
 			;; \
 		Linux) \
 			install -m 755 ./examples/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_iptables.sh.sample; \
-			install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample \
+			install -m 755 ./examples/ts-warp_nftables.sh $(PREFIX)/etc/ts-warp_nftables.sh.sample; \
+			touch $(PREFIX)/etc/ts-warp_iptables.sh $(PREFIX)/etc/ts-warp_nftables.sh \
 			;; \
 		*) \
 			echo "Unsupported OS" \
@@ -105,7 +111,7 @@ install-configs:
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
 	install -d $(PREFIX)/etc/
-	install -b -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini
+	install -b -m 640 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini
 	@case `uname -s` in \
 		Darwin) \
 			install -b -m 644 ./examples/ts-warp_pf_macos.conf $(PREFIX)/etc/ts-warp_pf.conf \
@@ -128,6 +134,8 @@ install-configs:
 install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
+	chown "`cat .configured`" $(PREFIX)/etc/ts-warp*
+	
 	install -d $(PREFIX)/bin/
 	install -m 755 -s ts-warp $(PREFIX)/bin/
 	install -m 755 -s ts-pass $(PREFIX)/bin/
