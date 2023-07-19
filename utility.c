@@ -73,7 +73,8 @@ void mexit(int status, char *pid_file) {
     while (wait3(&status, WNOHANG, 0) > 0) ;
     printl(LOG_CRIT, "Program finished");
     if (pid_file) {
-        if (unlink(pid_file)) truncate(pid_file, 0);
+        if (unlink(pid_file))
+            if (truncate(pid_file, 0) == -1) {}         /* Make GCC on Ubuntu happy: silence unused-result */
         printl(LOG_WARN, "PID file removed/PID erased");
     }
     exit(status);
