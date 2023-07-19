@@ -495,7 +495,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                                 inet2str(&addr_u.ip_addr, buf1));
                 else
                     if (!domain && (domain = strchr(host, '.'))) {
-                        domainlen = strnlen(++domain, HOST_NAME_MAX);
+                        domainlen = strnlen(++domain, HOST_NAME_MAX - 1);
                         printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]",
                             inet2str(&addr_u.ip_addr, buf1), host, domain?:"");
                     }

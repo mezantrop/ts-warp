@@ -48,7 +48,7 @@ char *init_xcrypt(int xkey_len) {
     xkey = (char *)malloc(xkey_len + 1);
 
     urnd_fd = open(urnd_name, O_RDONLY);
-    read(urnd_fd, xkey, xkey_len);
+    if (read(urnd_fd, xkey, xkey_len) == -1) {}             /* Wrong encryption hash version! */
     xkey[xkey_len] = '\0';
     for (i = 0; i < xkey_len; i++) {
         xkey[i] &= ~(1 << 7);
