@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.07.18    Current
+* 2023.07.19    Current
+  * `gui\gui-warp.py`: Password dialog as modal window. Thanks Sławomir Koper for discovering the menu click issue
   * `gui\gui-warp.py`: Don't ask password under root
   * `Makefile`: Set permissions on config files
   * `gui\gui-warp.py`: Password authentication dialog for `sudo`

@@ -43,65 +43,6 @@ import platform
 import shutil
 
 
-password = ''
-
-# -------------------------------------------------------------------------------------------------------------------- #
-class LaunchApp:
-
-    def __init__(self):
-        if os.geteuid() != 0:
-            self._padx = 10
-            self._pady = 10
-
-            self.root = tk.Tk()
-
-            self.root.title('Starting TS-Warp GUI-frontend...')
-            self.root.resizable(width=False, height=False)
-
-            self.root.columnconfigure(0, weight=1)
-            self.root.rowconfigure(0, weight=0)
-
-            if not shutil.which('sudo'):
-                # If sudo is not installed, show error label and exit
-                self.lbl_error = ttk.Label(self.root, text='FATAL: "Sudo" command is not found')
-                self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-
-                self.btn_ok = ttk.Button(self.root, text="OK")
-                self.btn_ok['command'] = lambda: sys.exit(1)
-                self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-            else:
-                # Ask for password and launch gui-warp.py
-                self.lbl_pwd = ttk.Label(self.root, text='Your password:')
-                self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-
-                self.pwd = tk.StringVar()
-                self.ent_pwd = ttk.Entry(self.root, textvariable=self.pwd, show='*')
-                self.ent_pwd.bind('<Return>', lambda x: self.get_password())
-                self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-
-                self.btn_enter = ttk.Button(self.root, text="Enter")
-                self.btn_enter['command'] = lambda: self.get_password()
-                self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
-
-            self.root.mainloop()
-
-    def get_password(self):
-        global password
-
-        gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
-        sout, serr = gwp.communicate(self.pwd.get().encode())
-
-        if gwp.returncode == 1:
-            password = ''
-            self.ent_pwd.config(show='')
-            self.pwd.set('Wrong password')
-            self.root.after(1000, lambda: self.pwd.set(''))
-            self.root.after(1000, lambda: self.ent_pwd.config(show='*'))
-        else:
-            password = self.pwd.get().encode()
-            self.root.destroy()
-
-
 # -------------------------------------------------------------------------------------------------------------------- #
 class App:
     def __init__(self, width=800, height=560,
@@ -111,7 +52,9 @@ class App:
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid'):
 
-        self.version = 'v1.0.5'
+        self.password = ''
+
+        self.version = 'v1.0.6'
         self.width = width
         self.height = height
 
@@ -122,6 +65,10 @@ class App:
 
         # -- GUI ----------------------------------------------------------------------------------------------------- #
         self.root = tk.Tk()
+
+        # Password dialog as modal window
+        if os.geteuid() != 0:
+            self.ask_password()
 
         self.root.title(f'GUI-warp {self.version}')
         self.root.geometry(f'{self.width}x{self.height}')
@@ -142,7 +89,6 @@ class App:
         btn_rld = ttk.Button(lfrm_top, width=self._btnw, text='⟳')
         btn_rld.grid(column=1, row=0, sticky=tk.W, padx=self._padx)
         btn_rld['command'] = lambda: self.run_script('reload')
-
 
         # -- Display ini/fw/log pane --------------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
@@ -244,7 +190,7 @@ class App:
     def pauselog(self, btn, txt, filename):
         if self.pause:
             self.pause = False
-            btn['text'] = '■'                                            # Pause log auto-refresh
+            btn['text'] = '■'                                           # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
         else:
             self.pause = True
@@ -270,15 +216,67 @@ class App:
     def run_script(self, command):
         if os.geteuid() != 0:
             gwp = subprocess.Popen(['sudo', '-S', '-b', runcmd, command], stdin=subprocess.PIPE)
-            sout, serr = gwp.communicate(password)
+            sout, serr = gwp.communicate(self.password)
         else:
             gwp = subprocess.Popen([runcmd, command])
+
+    def ask_password(self):
+        padx = 10
+        pady = 10
+
+        self.win_pwd = tk.Toplevel(self.root)
+        self.win_pwd.title('Starting TS-Warp GUI-frontend...')
+        self.win_pwd.resizable(width=False, height=False)
+
+        self.win_pwd.columnconfigure(0, weight=1)
+        self.win_pwd.rowconfigure(0, weight=0)
+
+        # Window modal settings (macOS specific ?)
+        self.win_pwd.wait_visibility()
+        self.win_pwd.grab_set()
+        self.win_pwd.transient(self.root)
+
+        if not shutil.which('sudo'):
+            # If sudo is not installed, show error label and exit
+            self.lbl_error = ttk.Label(self.win_pwd, text='FATAL: "Sudo" command is not found')
+            self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=padx, pady=pady)
+
+            self.btn_ok = ttk.Button(self.win_pwd, text="OK")
+            self.btn_ok['command'] = lambda: sys.exit(1)
+            self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
+        else:
+            # Ask for password and launch gui-warp.py
+            self.lbl_pwd = ttk.Label(self.win_pwd, text='Your password:')
+            self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=padx, pady=pady)
+
+            self.pwd = tk.StringVar()
+            self.ent_pwd = ttk.Entry(self.win_pwd, textvariable=self.pwd, show='*')
+            self.ent_pwd.bind('<Return>', lambda x: self.get_password())
+            self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
+
+            self.btn_enter = ttk.Button(self.win_pwd, text="Enter")
+            self.btn_enter['command'] = lambda: self.get_password()
+            self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=padx, pady=pady)
+
+    def get_password(self):
+        gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
+        sout, serr = gwp.communicate(self.pwd.get().encode())
+
+        if gwp.returncode == 1:
+            self.password = ''
+            self.ent_pwd.config(show='')
+            self.pwd.set('Wrong password')
+            self.root.after(1000, lambda: self.pwd.set(''))
+            self.root.after(1000, lambda: self.ent_pwd.config(show='*'))
+        else:
+            self.password = self.pwd.get().encode()
+            self.win_pwd.destroy()
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
     ini = configparser.ConfigParser()
-    prefix = '/usr/local'
+    prefix = "/usr/local"
     ini.read(prefix + '/etc/gui-warp.ini')
 
     runcmd = prefix + '/etc/ts-warp.sh'
@@ -294,6 +292,4 @@ if __name__ == "__main__":
         logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
 
-    launch = LaunchApp()
-    if os.geteuid() == 0 or password:
-        app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
+    app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
