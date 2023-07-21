@@ -276,6 +276,8 @@ sudo -b <PREFIX>/bin/gui-warp.py
 
 Note, Python 3 interpreter with `tkinter` support is required to run the GUI frontend.
 
+For the instuctions to build macOS app, read comments in [setup.py](gui/setup.py).
+
 ### Contacts
 
 Not so early stage of development, yet don't expect everything to work properly. If you have an idea, a question,
