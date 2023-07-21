@@ -1,7 +1,11 @@
 """
 Py2app setup file for TS-Warp GUI-Frontend macOS Application
 
+------------------------------------------------------------------------------------------------------------------------
 Building instructions
+------------------------------------------------------------------------------------------------------------------------
+Python3 with "universal" architecture is required
+
 1. Create virtual environment:
     python3 -m venv venv
 2. Switch into venv
@@ -11,7 +15,7 @@ Building instructions
     pip3 install tk
     pip3 install py2app
     cd ../..
-4. Copy TCL/Tk libraris into venv/lib (see the bug discussion and workaround: https://stackoverflow.com/a/62430022/9127614):
+4. Copy TCL/Tk libraris into venv/lib (see the bug discussion/workaround https://stackoverflow.com/a/62430022/9127614):
     cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tcl8 venv/lib
     cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tcl8.6 venv/lib
     cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tk8.6 venv/lib
