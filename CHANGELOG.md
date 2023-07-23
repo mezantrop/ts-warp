@@ -1,7 +1,8 @@
 # CHANGELOG
 
-* 2023.07.19    Current
-  * Minor changes
+* 2023.07.23    Current
+  * `gui-warp.app`: macOS standalone all-in-one application: GUI-Warp + TS-Warp introduced
+  * Various minor changes
   * `gui\gui-warp.py`: Password dialog as modal window. Thanks Sławomir Koper for discovering the menu click issue
   * `gui\gui-warp.py`: Don't ask password under root
   * `Makefile`: Set permissions on config files
