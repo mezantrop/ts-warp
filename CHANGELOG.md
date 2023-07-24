@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.07.23    Current
+* 2023.07.24    Current
+  * `gui-warp.app`: Repack, build.sh script, better layout
   * `gui-warp.app`: macOS standalone all-in-one application: GUI-Warp + TS-Warp introduced
   * Various minor changes
   * `gui\gui-warp.py`: Password dialog as modal window. Thanks Sławomir Koper for discovering the menu click issue
