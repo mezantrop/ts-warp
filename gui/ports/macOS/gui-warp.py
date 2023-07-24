@@ -2,7 +2,7 @@
 
 """
 ------------------------------------------------------------------------------------------------------------------------
-GUI frontend for TS-Warp - Transparent proxy server and traffic wrapper
+GUI frontend for TS-Warp - Transparent proxy server and traffic wrapper (macOS app)
 ------------------------------------------------------------------------------------------------------------------------
 
 Copyright (c) 2022-2023 Mikhail Zakharov <zmey20000@yahoo.com>
@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.6'
+        self.version = 'v1.0.6-mac'
         self.width = width
         self.height = height
 
@@ -276,19 +276,18 @@ class App:
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
     ini = configparser.ConfigParser()
-    prefix = os.path.expanduser("~/ts-warp/")
-    if not os.path.exists(prefix):
-        os.mkdir(prefix)
-    if not os.path.isdir(prefix):
-        print(f'FATAL: {prefix} is not a directory!')
-        sys.exit(1)
 
-    runcmd = './ts-warp.sh'				# Included with the app
-    ini.read(prefix + 'gui-warp.ini')
-    inifile = prefix + 'ts-warp.ini'
-    fwfile = prefix + 'ts-warp_pf.conf'
-    logfile = prefix + 'ts-warp.log'
-    pidfile = prefix + 'ts-warp.pid'
+    ulocal_prefix = '/usr/local/'
+    home_prefix = os.path.expanduser("~/ts-warp/")
+
+    prefix = home_prefix if os.path.exists(home_prefix) and os.path.isdir(home_prefix) else ulocal_prefix
+
+    runcmd = './ts-warp.sh'				                # Included with the app
+    ini.read(prefix + 'etc/gui-warp.ini')
+    inifile = prefix + 'etc/ts-warp.ini'
+    fwfile = prefix + 'etc/ts-warp_pf.conf'
+    logfile = prefix + 'var/log/ts-warp.log'
+    pidfile = prefix + 'var/run/ts-warp.pid'
 
     if 'GUI-WARP' in ini.sections():
         runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
@@ -297,7 +296,12 @@ if __name__ == "__main__":
         logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
 
-    if not os.path.exists(inifile):
+    if not os.path.exists(inifile):                     # Failback to the home directory
+        prefix = home_prefix
+        if not os.path.exists(prefix):                  # Create ts-warp dir + subdirs in home
+            os.makedirs(prefix + 'etc/')
+            os.makedirs(prefix + 'var/log/')
+            os.makedirs(prefix + 'var/run/')
         open(inifile, 'a').close()
     if not os.path.exists(fwfile):
         open(fwfile, 'a').close()
