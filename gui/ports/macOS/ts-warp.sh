@@ -79,7 +79,6 @@ _start() {
             printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
         }
     ' /etc/pf.conf | /sbin/pfctl -f -
-    ;;
 
     echo $tswarp_options $* | xargs ./ts-warp > /dev/null
 }
