@@ -19,6 +19,7 @@ cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tk8.6 venv/lib &
 chmod 755 ts-warp &&
 chmod 755 ts-pass &&
 chmod 755 ts-warp.sh &&
+chmod 755 ts-warp_autofw.sh &&
 
 python3 setup.py py2app &&
 
