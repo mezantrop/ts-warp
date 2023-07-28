@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.07.27    Current
+* 2023.07.28    Current
+  * `gui-warp.app`: `ts-warp_pf.conf` auto-generation, minor tweaks
   * `gui-warp.app`: `ts-warp.sh` script permissions and typo
   * `gui-warp.app`: Repack, build.sh script, better layout
   * `gui-warp.app`: macOS standalone all-in-one application: GUI-Warp + TS-Warp introduced

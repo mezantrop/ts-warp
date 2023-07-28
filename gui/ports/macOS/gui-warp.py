@@ -39,7 +39,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import subprocess
 import configparser
-import platform
 import shutil
 
 
@@ -54,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.7-mac'
+        self.version = 'v1.0.8-mac'
         self.width = width
         self.height = height
 
@@ -96,48 +95,9 @@ class App:
         tab_fw = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
-        tabControl.add(tab_ini, text='INI')
-        tabControl.add(tab_fw, text='FW')
         tabControl.add(tab_log, text='Log')
+        tabControl.add(tab_ini, text='INI')
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
-
-        # -- Tab INI ------------------------------------------------------------------------------------------------- #
-        tab_ini.columnconfigure(0, weight=1)
-        tab_ini.rowconfigure(1, weight=1)
-
-        ttk.Label(tab_ini, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
-
-        btn_save_ini = ttk.Button(tab_ini, width=self._btnw, text='▲')
-        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
-        btn_save_ini['command'] = lambda: self.savefile(ini_txt, inifile)
-
-        ini_txt = tk.Text(tab_ini, highlightthickness=0)
-        ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
-
-        scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
-        scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
-        scroll_ini.config(command=ini_txt.yview)
-        ini_txt.config(yscrollcommand=scroll_ini.set)
-
-        # -- Tab FW -------------------------------------------------------------------------------------------------- #
-        tab_fw.columnconfigure(0, weight=1)
-        tab_fw.rowconfigure(1, weight=1)
-
-        ttk.Label(tab_fw, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
-
-        btn_save_fw = ttk.Button(tab_fw, width=self._btnw, text='▲')
-        btn_save_fw.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
-        btn_save_fw['command'] = lambda: self.savefile(fw_txt, fwfile)
-
-        fw_txt = tk.Text(tab_fw, highlightthickness=0)
-        fw_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_fw.bind("<Visibility>", self.readfile(fw_txt, fwfile, refresh=False))
-
-        scroll_fw = ttk.Scrollbar(tab_fw, orient=tk.VERTICAL)
-        scroll_fw.grid(column=2, row=1, sticky=tk.NSEW)
-        scroll_fw.config(command=fw_txt.yview)
-        fw_txt.config(yscrollcommand=scroll_fw.set)
 
         # -- Tab Log ------------------------------------------------------------------------------------------------- #
         tab_log.columnconfigure(0, weight=1)
@@ -150,7 +110,7 @@ class App:
         self.pause = False
         btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
 
-        log_txt = tk.Text(tab_log, highlightthickness=0)
+        log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_log.bind("<Visibility>", self.readfile(log_txt, logfile, refresh=True))
 
@@ -158,6 +118,25 @@ class App:
         scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
         scroll_log.config(command=log_txt.yview)
         log_txt.config(yscrollcommand=scroll_log.set)
+
+        # -- Tab INI ------------------------------------------------------------------------------------------------- #
+        tab_ini.columnconfigure(0, weight=1)
+        tab_ini.rowconfigure(1, weight=1)
+
+        ttk.Label(tab_ini, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
+
+        btn_save_ini = ttk.Button(tab_ini, width=self._btnw, text='▲')
+        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
+
+        ini_txt = tk.Text(tab_ini, highlightthickness=0)
+        ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
+        tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
+
+        scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
+        scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
+        scroll_ini.config(command=ini_txt.yview)
+        ini_txt.config(yscrollcommand=scroll_ini.set)
 
         # -- Status bar ---------------------------------------------------------------------------------------------- #
         lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
@@ -182,10 +161,13 @@ class App:
             if not self.pause:
                 self.root.after(3000, self.readfile, t_widget, filename, refresh)
 
-    def savefile(self, t_widget, filename):
+    def saveini(self, t_widget, filename):
         f = open(filename, 'w')
         f.write(t_widget.get('1.0', tk.END))
         f.close()
+        # Rebuild ts-warp_pf.conf when saving the INI-file
+        with open(fwfile, "w") as outfw:
+            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
 
     def pauselog(self, btn, txt, filename):
         if self.pause:
@@ -225,6 +207,7 @@ class App:
         pady = 10
 
         self.win_pwd = tk.Toplevel(self.root)
+        self.win_pwd.protocol("WM_DELETE_WINDOW", lambda: True)
         self.win_pwd.title('Starting TS-Warp GUI-frontend...')
         self.win_pwd.resizable(width=False, height=False)
 
@@ -302,11 +285,11 @@ if __name__ == "__main__":
             os.makedirs(prefix + 'etc/')
             os.makedirs(prefix + 'var/log/')
             os.makedirs(prefix + 'var/run/')
-        open(inifile, 'a').close()
+        shutil.copyfile('./ts-warp.ini', inifile)
     if not os.path.exists(fwfile):
-        open(fwfile, 'a').close()
+        with open(fwfile, "w") as outfw:
+            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
     if not os.path.exists(logfile):
         open(logfile, 'a').close()
 
     app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
-

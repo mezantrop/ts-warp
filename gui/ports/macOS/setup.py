@@ -35,7 +35,7 @@ Python3 with "universal" architecture is required
 from setuptools import setup
 
 APP = ['gui-warp.py']
-DATA_FILES = ['ts-warp', 'ts-pass', 'ts-warp.sh']
+DATA_FILES = ['ts-warp', 'ts-warp.ini', 'ts-pass', 'ts-warp.sh', 'ts-warp_autofw.sh']
 OPTIONS = {
     'iconfile': 'media/gui-warp.icns',
     'arch': 'universal2',
