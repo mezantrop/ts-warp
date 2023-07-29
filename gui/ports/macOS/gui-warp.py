@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.8-mac'
+        self.version = 'v1.0.9-mac'
         self.width = width
         self.height = height
 
@@ -286,6 +286,7 @@ if __name__ == "__main__":
             os.makedirs(prefix + 'var/log/')
             os.makedirs(prefix + 'var/run/')
         shutil.copyfile('./ts-warp.ini', inifile)
+        os.chmod(inifile, 0o600)
     if not os.path.exists(fwfile):
         with open(fwfile, "w") as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
