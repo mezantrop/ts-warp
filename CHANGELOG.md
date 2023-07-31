@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.07.29    Current
+* 2023.07.31    Current
+  * `ts-warp_autofw.sh`: ranges creation fix
   * `gui-warp.app`: `~/ts-warp.ini` restrict file permissions
   * `gui-warp.app`: `~/ts-warp_pf.conf` auto-generation, minor tweaks
   * `gui-warp.app`: `ts-warp.sh` script permissions and typo

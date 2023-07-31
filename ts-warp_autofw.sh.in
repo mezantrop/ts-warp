@@ -98,20 +98,26 @@ make_ranges() {
                 return 1
 
         lo=255
+        fin=0
         for o1 in `seq $s_o1 $e_o1`; do
+            [ $fin -eq 1 ] && break
             [ $s_o1 -le $o1 ] && te_o2=$lo || te_o2=$e_o2
             for o2 in `seq $s_o2 $te_o2`; do
+                [ $fin -eq 1 ] && break
                 [ $s_o2 -le $o2 ] && te_o3=$lo || te_o3=$e_o3
                 for o3 in `seq $s_o3 $te_o3`; do
+                    [ $fin -eq 1 ] && break
                     [ $s_o3 -le $o3 ] &&
                         te_o4=$lo ||
                         te_o4=$e_o4
                     for o4 in `seq $s_o4 $te_o4`; do
+                        [ $fin -eq 1 ] && break
                         c_ip="$o1.$o2.$o3.$o4"
                         rngs="$rngs""$c_ip""$nl"
                         [ "$c_ip" == "$e_ip" ] && {
                             eval $1='$rngs'
-                            return 0
+                            fin=1
+                            break
                         }
                     done
                 done
