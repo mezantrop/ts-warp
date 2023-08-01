@@ -9,6 +9,7 @@ make &&
 python3 -m venv venv &&
 cd venv/bin &&
 source activate &&
+pip3 install --upgrade pip &&
 pip3 install tk &&
 pip3 install py2app &&
 cd ../.. &&
