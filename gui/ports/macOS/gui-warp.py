@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.10-mac'
+        self.version = 'v1.0.11-mac'
         self.width = width
         self.height = height
 
@@ -81,18 +81,27 @@ class App:
         lfrm_top = tk.LabelFrame(self.root, height=40, relief=tk.FLAT, padx=self._padx, pady=self._pady)
         lfrm_top.grid(column=0, row=0, sticky=tk.EW)
 
+        btn_rld1 = ttk.Button(lfrm_top, width=self._btnw, text='⟳')
+        btn_rld1.grid(column=0, row=0, sticky=tk.W, padx=self._padx)
+        btn_rld1['command'] = lambda: self.run_script('reload')
+
         btn_run = ttk.Button(lfrm_top, width=self._btnw, text='▶')
-        btn_run.grid(column=0, row=0, sticky=tk.W, padx=self._padx)
+        btn_run.grid(column=1, row=0, sticky=tk.W, padx=self._padx)
         btn_run['command'] = lambda: self.run_script('stop') if btn_run['text'] == '■' else self.run_script('start')
 
-        btn_rld = ttk.Button(lfrm_top, width=self._btnw, text='⟳')
-        btn_rld.grid(column=1, row=0, sticky=tk.W, padx=self._padx)
-        btn_rld['command'] = lambda: self.run_script('reload')
+        ttk.Label(lfrm_top, text='Log-level:').grid(column=2, row=0, sticky=tk.W)
+        self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=1)
+        self.cmb_lvl.current(1)
+        self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
+        
+        ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
+        lfrm_top.columnconfigure(5, weight=1)
+        self.tsw_opts = tk.StringVar()
+        self.ent_opt = ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
         # -- Display ini/fw/log pane --------------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
         tab_ini = ttk.Frame(tabControl)
-        tab_fw = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
 
         tabControl.add(tab_log, text='Log')
@@ -197,7 +206,9 @@ class App:
 
     def run_script(self, command):
         if os.geteuid() != 0:
-            gwp = subprocess.Popen(['sudo', '-S', '-b', runcmd, command, prefix], stdin=subprocess.PIPE)
+            gwp = subprocess.Popen(
+                ['sudo', '-S', '-b', runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()], 
+                stdin=subprocess.PIPE)
             sout, serr = gwp.communicate(self.password)
         else:
             gwp = subprocess.Popen([runcmd, command, '/usr/local/etc'])
@@ -207,7 +218,7 @@ class App:
         pady = 10
 
         self.win_pwd = tk.Toplevel(self.root)
-        self.win_pwd.protocol("WM_DELETE_WINDOW", lambda: True)
+        self.win_pwd.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))
         self.win_pwd.title('Starting TS-Warp GUI-frontend...')
         self.win_pwd.resizable(width=False, height=False)
 
