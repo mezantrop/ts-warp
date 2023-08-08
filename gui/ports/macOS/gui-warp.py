@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.11-mac'
+        self.version = 'v1.0.12-mac'
         self.width = width
         self.height = height
 
@@ -93,7 +93,7 @@ class App:
         self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=1)
         self.cmb_lvl.current(1)
         self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
-        
+
         ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
         lfrm_top.columnconfigure(5, weight=1)
         self.tsw_opts = tk.StringVar()
@@ -207,7 +207,7 @@ class App:
     def run_script(self, command):
         if os.geteuid() != 0:
             gwp = subprocess.Popen(
-                ['sudo', '-S', '-b', runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()], 
+                ['sudo', '-S', '-b', runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
                 stdin=subprocess.PIPE)
             sout, serr = gwp.communicate(self.password)
         else:
@@ -276,8 +276,9 @@ if __name__ == "__main__":
 
     prefix = home_prefix if os.path.exists(home_prefix) and os.path.isdir(home_prefix) else ulocal_prefix
 
-    runcmd = './ts-warp.sh'				                # Included with the app
+    runcmd = './ts-warp.sh'				                # Use the one included with the app
     ini.read(prefix + 'etc/gui-warp.ini')
+    # NB! Prefix could == ulocal_prefix
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
@@ -290,8 +291,13 @@ if __name__ == "__main__":
         logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
 
-    if not os.path.exists(inifile):                     # Failback to the home directory
+    if not os.path.exists(inifile):                     # Failback to the home directory and reset paths
         prefix = home_prefix
+        inifile = prefix + 'etc/ts-warp.ini'
+        fwfile = prefix + 'etc/ts-warp_pf.conf'
+        logfile = prefix + 'var/log/ts-warp.log'
+        pidfile = prefix + 'var/run/ts-warp.pid'
+
         if not os.path.exists(prefix):                  # Create ts-warp dir + subdirs in home
             os.makedirs(prefix + 'etc/')
             os.makedirs(prefix + 'var/log/')
