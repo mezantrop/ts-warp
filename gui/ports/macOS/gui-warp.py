@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.12-mac'
+        self.version = 'v1.0.14-mac'
         self.width = width
         self.height = height
 
@@ -132,10 +132,25 @@ class App:
         tab_ini.columnconfigure(0, weight=1)
         tab_ini.rowconfigure(1, weight=1)
 
-        ttk.Label(tab_ini, text='Save changes:').grid(column=0, row=0, sticky=tk.E)
+        frm_tab_ini_top = ttk.Frame(tab_ini)
+        frm_tab_ini_top.grid(column=0, row=0, sticky=tk.EW)
+        frm_tab_ini_top.columnconfigure(0, weight=0)
+        frm_tab_ini_top.columnconfigure(1, weight=1)
+        frm_tab_ini_top.columnconfigure(2, weight=0)
+        frm_tab_ini_top.columnconfigure(3, weight=0)
+        frm_tab_ini_top.rowconfigure(1, weight=1)
 
-        btn_save_ini = ttk.Button(tab_ini, width=self._btnw, text='▲')
-        btn_save_ini.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        btn_tswhash = ttk.Button(frm_tab_ini_top, text='Password hash')
+        btn_tswhash.grid(column=0, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        self.tswhash = tk.StringVar()
+        self.ent_tswhash = ttk.Entry(frm_tab_ini_top, textvariable=self.tswhash).grid(column=1, row=0, padx=3, sticky=tk.EW)
+        btn_tswhash['command'] = lambda: self.tswhash.set(
+            'tsw01:' + subprocess.Popen(['./ts-pass', self.tswhash.get().encode()],
+                                        stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
+
+        ttk.Label(frm_tab_ini_top, text='Save changes:').grid(column=2, row=0, sticky=tk.E)
+        btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
+        btn_save_ini.grid(column=3, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
 
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
@@ -211,7 +226,7 @@ class App:
                 stdin=subprocess.PIPE)
             sout, serr = gwp.communicate(self.password)
         else:
-            gwp = subprocess.Popen([runcmd, command, '/usr/local/etc'])
+            gwp = subprocess.Popen([runcmd, command, prefix + '/etc', '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
 
     def ask_password(self):
         padx = 10

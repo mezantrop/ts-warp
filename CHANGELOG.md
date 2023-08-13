@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.08.08    Current
+* 2023.08.13    Current
+  * `gui\gui-warp.py`: Encode password dialog
   * `gui-warp.app`: Better configuration paths
   * `gui-warp.app`: Options input box
   * `ts-warp_autofw.sh`: ranges creation fix
