@@ -1,6 +1,6 @@
 # GUI-WARP macOS all-in-one: TS-Warp + GUI-Warp application
 
-This directory contains source code of the project modified to be built as macOS standalone all-in-one application
+This directory contains source code of TS-Warp project modified to be built as macOS standalone all-in-one application
 
 Download and unarchive the prebuilt [gui-warp.app](gui-warp.app.tgz) or run [build.sh](build.sh) script to build your own copy.
 

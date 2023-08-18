@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.08.13    Current
+* 2023.08.18    Current
+  * `Makefile`: Text formatting; `README.md` update
   * `gui\gui-warp.py`: Encode password dialog
   * `gui-warp.app`: Better configuration paths
   * `gui-warp.app`: Options input box

@@ -72,9 +72,9 @@ ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
 install-examples:
-    # ---------------------------------------------------------------------------------------------------------------- #
-    # Examples (special version) are installed by default                                                              #
-    # ---------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
+# Examples (special version) are installed by default                                                                  #
+# -------------------------------------------------------------------------------------------------------------------- #
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
 	install -d $(PREFIX)/etc/
@@ -105,9 +105,9 @@ install-examples:
 	esac
 
 install-configs:
-    # ---------------------------------------------------------------------------------------------------------------- #
-    # Danger zone! The targer is not run by default, it overwrites INSTALLED configuration files                       #
-    # ---------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
+# Danger zone! The targer is not run by default, it overwrites INSTALLED configuration files                           #
+# -------------------------------------------------------------------------------------------------------------------- #
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
 	install -d $(PREFIX)/etc/
@@ -135,7 +135,7 @@ install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
 	chown "`cat .configured`" $(PREFIX)/etc/ts-warp*
-	
+
 	install -d $(PREFIX)/bin/
 	install -m 755 -s ts-warp $(PREFIX)/bin/
 	install -m 755 -s ts-pass $(PREFIX)/bin/
