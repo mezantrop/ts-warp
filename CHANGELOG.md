@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2023.08.18    Current
+* 2023.08.18    ts-warp-1.3.2, gui-warp-1.0.8 (gui-warp-1.0.14-mac), ns-warp-1.0.4
   * `Makefile`: Text formatting; `README.md` update
   * `gui\gui-warp.py`: Encode password dialog
   * `gui-warp.app`: Better configuration paths
