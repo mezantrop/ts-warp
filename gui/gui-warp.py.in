@@ -94,7 +94,7 @@ class App:
         self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=1)
         self.cmb_lvl.current(1)
         self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
-        
+
         ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
         lfrm_top.columnconfigure(5, weight=1)
         self.tsw_opts = tk.StringVar()
@@ -128,7 +128,7 @@ class App:
         self.tswhash = tk.StringVar()
         self.ent_tswhash = ttk.Entry(frm_tab_ini_top, textvariable=self.tswhash).grid(column=1, row=0, padx=3, sticky=tk.EW)
         btn_tswhash['command'] = lambda: self.tswhash.set(
-            'tsw01:' + subprocess.Popen([prefix + '/bin/ts-pass', self.tswhash.get().encode()], 
+            'tsw01:' + subprocess.Popen([prefix + '/bin/ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
         ttk.Label(frm_tab_ini_top, text='Save changes:').grid(column=2, row=0, sticky=tk.E)
@@ -209,7 +209,7 @@ class App:
 
     def savefile(self, t_widget, filename):
         f = open(filename, 'w')
-        f.write(t_widget.get('1.0', tk.END))
+        f.write(t_widget.get('1.0', tk.END)[:-1])                       # Strip extra newline
         f.close()
 
     def pauselog(self, btn, txt, filename):
@@ -241,7 +241,7 @@ class App:
     def run_script(self, command):
         if os.geteuid() != 0:
             gwp = subprocess.Popen(
-                ['sudo', '-S', '-b', runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()], 
+                ['sudo', '-S', '-b', runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
                 stdin=subprocess.PIPE)
             sout, serr = gwp.communicate(self.password)
         else:

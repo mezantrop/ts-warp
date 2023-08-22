@@ -187,7 +187,7 @@ class App:
 
     def saveini(self, t_widget, filename):
         f = open(filename, 'w')
-        f.write(t_widget.get('1.0', tk.END))
+        f.write(t_widget.get('1.0', tk.END)[:-1])                       # Strip extra newline
         f.close()
         # Rebuild ts-warp_pf.conf when saving the INI-file
         with open(fwfile, "w") as outfw:

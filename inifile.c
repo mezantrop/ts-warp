@@ -179,7 +179,7 @@ ini_section *read_ini(char *ifile_name) {
                             c_sect->proxy_password = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
-                                printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash version!", ln);
+                                printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash!", ln);
                                 mexit(1, pfile_name);
                             }
 
