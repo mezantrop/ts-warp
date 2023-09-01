@@ -1,6 +1,10 @@
 # CHANGELOG
 
-* 2023.08.22    Current
+* 2023.09.01    Current
+  * `inifile.c`: `chk_inivar()` less verbosity level
+  * `gui-warp`: UI minor tweaks
+  * `Makefile`: compiler -O3 optimization
+  * `xedec.c`: `xdecrypt()` fix memory issue - NULL-terminated string
   * `gui-warp.py`: Strip extra newline char when saving INI-file
 
 * 2023.08.18    ts-warp-1.3.2, gui-warp-1.0.8 (gui-warp-1.0.14-mac), ns-warp-1.0.4

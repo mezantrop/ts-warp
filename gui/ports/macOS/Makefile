@@ -26,8 +26,8 @@
 PREFIX ?= .
 SRCPATH = ../../../
 
-CC = cc -O3
-CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
+CC = cc
+CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_FILES = $(SRCPATH)base64.c $(SRCPATH)inifile.c $(SRCPATH)logfile.c $(SRCPATH)natlook.c $(SRCPATH)network.c \
 $(SRCPATH)pidfile.c $(SRCPATH)pidlist.c $(SRCPATH)socks.c $(SRCPATH)http.c $(SRCPATH)ts-warp.c $(SRCPATH)utility.c \
 $(SRCPATH)xedec.c

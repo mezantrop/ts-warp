@@ -25,8 +25,8 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 PREFIX ?= /usr/local
 
-CC = cc -O3
-CFLAGS += -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
+CC = cc
+CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o http.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 

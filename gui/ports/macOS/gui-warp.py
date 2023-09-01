@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.14-mac'
+        self.version = 'v1.0.15-mac'
         self.width = width
         self.height = height
 
@@ -90,7 +90,7 @@ class App:
         btn_run['command'] = lambda: self.run_script('stop') if btn_run['text'] == '■' else self.run_script('start')
 
         ttk.Label(lfrm_top, text='Log-level:').grid(column=2, row=0, sticky=tk.W)
-        self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=1)
+        self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=2)
         self.cmb_lvl.current(1)
         self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
 

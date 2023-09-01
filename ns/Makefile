@@ -25,8 +25,8 @@
 # ----------------------------------------------------------------------------------------------------------------------
 PREFIX ?= /usr/local
 
-CC = cc -O3
-CFLAGS = -Wall -I ../
+CC = cc
+CFLAGS = -O3 -Wall -I ../
 OBJECTS = ns-warp.o ns-inifile.o dns.o ../network.o ../utility.o ../logfile.o ../pidfile.o
 
 .PHONY:	all clean install

@@ -611,7 +611,7 @@ int chk_inivar(void *v, char *vi, int ln) {
         ln      a line number in the ini-file (for logging only) */
 
     if (*(int *)v) {
-        printl(LOG_WARN, "LN: [%d] Updating default or already defined [%s] variable", ln, vi);
+        printl(LOG_VERB, "LN: [%d] Updating default or already defined [%s] variable", ln, vi);
         return 1;
     }
 
