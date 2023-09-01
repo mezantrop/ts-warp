@@ -106,6 +106,7 @@ char *xdecrypt(char *hex_hash, char *prefix) {
     pref_len = strlen(prefix);
 
     for (s = pref, b = 0; s < int_hash + (hash_len / 2); *s++ ^= xkey[b++ % xkey_len]) ;
+    *s ='\0';
 
     if (strncmp(prefix, pref, pref_len)) return NULL;                   /* Wrong encryption hash version! */
 

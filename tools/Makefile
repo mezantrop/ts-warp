@@ -25,8 +25,8 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 PREFIX ?= /usr/local
 
-CC = cc -O3
-CFLAGS = -Wall -I ../
+CC = cc
+CFLAGS = -O3 -Wall -I ../
 OBJECTS = ts-xedec.o
 
 .PHONY:	all clean install
