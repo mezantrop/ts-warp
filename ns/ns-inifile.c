@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include "utility.h"
 #include "ns-warp.h"
 #include "network.h"
 #include "logfile.h"

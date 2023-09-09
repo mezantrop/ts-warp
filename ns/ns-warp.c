@@ -40,11 +40,11 @@
 #include <pwd.h>
 
 #include "dns.h"
-#include "ns-warp.h"
 #include "logfile.h"
 #include "pidfile.h"
 #include "utility.h"
 #include "network.h"
+#include "ns-warp.h"
 #include "ns-inifile.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -191,9 +191,10 @@ int main (int argc, char* argv[]) {
         printl(LOG_CRIT, "Error resolving ns-warp address [%s]: %s", iaddr, gai_strerror(ret));
         exit(1);
     }
-    printl(LOG_INFO, "ns-warp address [%s] succesfully resolved to [%s]", iaddr, inet2str((struct sockaddr_storage *)ires->ai_addr, str_buf));
+    printl(LOG_INFO, "ns-warp address [%s] succesfully resolved to [%s]",
+        iaddr, inet2str((struct sockaddr_storage *)ires->ai_addr, str_buf));
 
-    /* -- Create socket for the incoming requests ------------------------------------------------------------------- */
+    /* -- Create a socket for incoming requests --------------------------------------------------------------------- */
     if ((isock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
         printl(LOG_CRIT, "Error creating a socket for incoming requests");
         exit(1);
@@ -207,7 +208,7 @@ int main (int argc, char* argv[]) {
     }
     printl(LOG_VERB, "The socket for incoming requests succesfully bound");
 
-    /* -- Create socket for outgoing requests ----------------------------------------------------------------------- */
+    /* -- Create a socket for outgoing requests --------------------------------------------------------------------- */
     if ((ssock = socket(ires->ai_family, SOCK_DGRAM, 0)) == -1) {
 		printl(LOG_CRIT, "Error creating a socket for outgoing DNS-requests: [%s]", strerror(errno));
         exit(1);
@@ -297,7 +298,7 @@ int main (int argc, char* argv[]) {
                     memcpy(dnsq_raw, dns_buf + sizeof(dns_header), dnsq_siz);
 
                     printl(LOG_VERB,
-                        "DNS Query ID: [%04X] HEADER Flags: [%04X] Qdcount: [%04X] QUESTION Name: [%s] Type: [%04X] Class [%04X]",
+                        "DNS Query ID: [%04X] HEADER Flags: [%04X] Qdcount: [%04X] QName: [%s] Type: [%04X] Class [%04X]",
                         ntohs(dnsh->id), ntohs(dnsh->flags), ntohs(dnsh->qdcount), dnsq.name, dnsq.type, dnsq.classc);
 
                     if (dnsq.classc == 0x0001) {                        /* != IN */
@@ -307,23 +308,34 @@ int main (int argc, char* argv[]) {
                                     case 0:
                                         printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             dnsq.name, inet2str(&q_ip, str_buf));
-                                        if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
-                                            continue;
+                                        rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 2:
                                         printl(LOG_VERB, "[%s] is found in NIT but not in IPv4 range", dnsq.name);
                                         rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 1:
                                     default:
                                         printl(LOG_VERB, "[%s] is not found in NIT", dnsq.name);
-                                        break;
+                                    break;
                                 }
                                 break;
 
@@ -333,23 +345,34 @@ int main (int argc, char* argv[]) {
                                         printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             dnsq.name, inet2str(&q_ip, str_buf));
 
-                                        if (!(rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf)))
-                                            continue;
+                                        rec = dns_reply_a(dnsh->id, dnsq_raw, dnsq_siz, &q_ip, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 2:
                                         printl(LOG_VERB, "[%s] is found in NIT but not in IPv6 range", dnsq.name);
                                         rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 1:
                                     default:
                                         printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
-                                        break;
+                                    break;
                                 }
                                 break;
 
@@ -360,21 +383,33 @@ int main (int argc, char* argv[]) {
                                         printl(LOG_VERB, "Found the Name: [%s] in NIT has the IP: [%s]",
                                             q_name, inet2str(&q_ip, str_buf));
                                         rec = dns_reply_ptr(dnsh->id, dnsq_raw, dnsq_siz, q_name, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 2:
                                         printl(LOG_VERB, "The name: [%s] is not (yet) registered with NIT", dnsq.name);
                                         rec = dns_reply_nfound(dnsh->id, htons(dnsq.type), dnsq_raw, dnsq_siz, dns_buf);
+
+                                        /* Forward the message to the client */
+                                        snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
+                                        if (snd == -1) printl(LOG_CRIT, "Error forwarding data to the client");
+                                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                                         free(dnsq.name);
                                         free(dnsq_raw);
-                                        goto snd_client;
-                                        break;
+                                        return 0;
+                                    break;
+
                                     case 1:
                                     default:
                                         printl(LOG_VERB, "The name: [%s] is not found in NIT", dnsq.name);
-                                        break;
+                                    break;
                                 }
                                 break;
 
@@ -397,11 +432,7 @@ int main (int argc, char* argv[]) {
                     printl(LOG_CRIT, "Error forwarding data to DNS-server: [%s]", strerror(errno));
                     continue;
                 }
-
-                if (rec != snd)
-                    printl(LOG_CRIT, "C:[%d] -> S:[%d] bytes", rec, snd);
-                else
-                    printl(LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+                printl(rec != snd ? LOG_CRIT: LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
             } else {
                 /* -- DNS server writes ----------------------------------------------------------------------------- */
                 printl(LOG_VERB, "DNS server sends a message");
@@ -420,18 +451,14 @@ int main (int argc, char* argv[]) {
                         inet2str((struct sockaddr_storage *)sres->ai_addr, str_buf));
                     continue;
                 }
-snd_client:
+
                 /* Everything is OK, just forward the message to the client */
                 snd = sendto(isock, dns_buf, rec, 0, (struct sockaddr *)&caddr, sizeof(struct sockaddr));
                 if (snd == -1) {
                     printl(LOG_CRIT, "Error forwarding data to the client");
                     break;
                 }
-
-                if (rec != snd)
-                    printl(LOG_CRIT, "S:[%d] -> C:[%d] bytes", rec, snd);
-                else
-                    printl(LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+                printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
             }
         }
     }
@@ -456,11 +483,11 @@ void trap_signal(int sig) {
                 printl(LOG_WARN, "PID file removed/PID erased");
             }
             exit(0);
-            break;
+        break;
 
         default:
             printl(LOG_INFO, "Got unhandled signal: %d", sig);
-            break;
+        break;
     }
 }
 

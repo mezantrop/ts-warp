@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.09.01    Current
+* 2023.09.09    Current
+  * `ts-warp.c`: Minor optimization
+  * `ns-warp`: Build fix, `goto` removed
   * `inifile.c`: `chk_inivar()` less verbosity level
   * `gui-warp`: UI minor tweaks
   * `Makefile`: compiler -O3 optimization
