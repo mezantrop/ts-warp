@@ -40,7 +40,7 @@
 #define NS_LISTEN_PORT  "5353"                                          /* This is our UDP port */
 #define DNS_PORT        "53"                                            /* That is remote DNS server port */
 
-#define BUF_SIZE        1024 * 1024
+/* #define BUF_SIZE        1024 * 1024 */
 #define STR_SIZE        255
 
 #define RUNAS_USER      "nobody"
@@ -48,7 +48,7 @@
 /* Program name and version */
 #define NS_PROG_NAME          "NS-Warp"
 #define NS_PROG_NAME_SHORT    "NSW"
-#define NS_PROG_VERSION       "1.0.4"
+#define NS_PROG_VERSION       "1.0.5"
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void trap_signal(int sig);

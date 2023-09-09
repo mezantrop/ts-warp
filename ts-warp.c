@@ -921,10 +921,8 @@ All parameters are optional:
                             printl(LOG_CRIT, "Error sending data to proxy server");
                             break;
                         }
-                        if (rec != snd)
-                            printl(LOG_CRIT, "C:[%d] -> S:[%d] bytes", rec, snd);
-                        else
-                            printl(LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+
+                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
                     } else {
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
@@ -944,10 +942,8 @@ All parameters are optional:
                             printl(LOG_CRIT, "Error sending data to proxy server");
                             break;
                         }
-                        if (rec != snd)
-                            printl(LOG_CRIT, "S:[%d] -> C:[%d] bytes", rec, snd);
-                        else
-                            printl(LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+
+                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                     }
                 }
             }
