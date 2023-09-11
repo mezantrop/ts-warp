@@ -40,7 +40,6 @@
 #define NS_LISTEN_PORT  "5353"                                          /* This is our UDP port */
 #define DNS_PORT        "53"                                            /* That is remote DNS server port */
 
-/* #define BUF_SIZE        1024 * 1024 */
 #define STR_SIZE        255
 
 #define RUNAS_USER      "nobody"

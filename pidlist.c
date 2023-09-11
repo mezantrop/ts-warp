@@ -76,14 +76,14 @@ int pidlist_update(struct pid_list *root, pid_t pid, int status) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-void pidlist_show(struct pid_list *root) {
+void pidlist_show(struct pid_list *root, int loglvl) {
 
     struct pid_list *c = NULL;
 
-    printl(LOG_CRIT, "Show clients table");
+    printl(loglvl, "Show clients table");
     c = root;
     while (c) {
-        printl(LOG_CRIT, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
+        printl(loglvl, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
         c = c->next;
     }
 }
