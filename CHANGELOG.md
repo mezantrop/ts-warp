@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.09.11    Current
-  * Minor decoration changes
+  * Traffic counters, minor decorative changes
   * `ts-warp.c`: Minor optimization
   * `ns-warp`: Build fix, `goto` removed
   * `inifile.c`: `chk_inivar()` less verbosity level
