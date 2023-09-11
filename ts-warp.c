@@ -212,7 +212,7 @@ All parameters are optional:
     if (!Haddr[0]) Haddr = LISTEN_DEFAULT;
     if (!Hport[0]) Hport = LISTEN_HTTP_PORT;
 
-    /* Open log-file */
+    /* -- Open log-file --------------------------------------------------------------------------------------------- */
     if (!d_flg && !l_flg) {
         lfile = stdout;
         printl(LOG_INFO, "Log file: [STDOUT], verbosity level: [%d]", loglevel);
@@ -972,7 +972,7 @@ void trap_signal(int sig) {
             ini_root = delete_ini(ini_root);
             ini_root = read_ini(ifile_name);
             show_ini(ini_root, LOG_CRIT);
-            break;
+        break;
 
         case SIGINT:                                                /* Exit processes */
         case SIGQUIT:
@@ -999,16 +999,16 @@ void trap_signal(int sig) {
                 pidlist_update(pids, cpid, status);
                 cn--;
             }
-            break;
+        break;
 
         case SIGUSR1:                                               /* Display: */
             show_ini(ini_root, LOG_CRIT);                           /* current configuration */
-            pidlist_show(pids);                                     /* Client's PIDs list */
-            break;
+            pidlist_show(pids, LOG_CRIT);                           /* Client's PIDs list */
+        break;
 
         default:
             printl(LOG_INFO, "Got an unhandled signal: %d", sig);
-            break;
+        break;
     }
 }
 
