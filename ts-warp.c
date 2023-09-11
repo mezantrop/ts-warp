@@ -145,6 +145,8 @@ All parameters are optional:
     int rec, snd;                                                       /* received/sent bytes */
     pid_t cpid;                                                         /* Child PID */
 
+    unsigned long cc = 0, dc = 0;                                       /* Traffic counters for client/destination */
+
     struct pid_list *d = NULL, *c = NULL;                               /* PID list related ... */
     struct ini_section *push_ini = NULL;                                /* variables */
 
@@ -923,6 +925,7 @@ All parameters are optional:
                         }
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+                        cc += rec;
                     } else {
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
@@ -944,9 +947,13 @@ All parameters are optional:
                         }
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+                        dc += rec;
                     }
                 }
             }
+            printl(LOG_INFO, "TRAFFIC SUMMARY: C: [%s]:[%lu], D: [%s]:[%lu]",
+                inet2str(&caddr, suf), cc, inet2str(&daddr.ip_addr, buf), dc);
+
             shutdown(csock, SHUT_RDWR);
             shutdown(ssock, SHUT_RDWR);
             printl(LOG_INFO, "Client finished operations");
