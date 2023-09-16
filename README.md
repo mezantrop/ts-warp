@@ -246,8 +246,12 @@ All parameters are optional:
 sudo /usr/local/etc/ts-warp.sh restart -v 4
 ```
 
-`ts-warp` understands `SIGHUP` signal as the command to reload configuration, `SIGUSR1` to display working configuration
-and clients connection status and `SIGINT` to stop the daemon.
+`ts-warp` understands several signals:
+
+- `SIGHUP` signal as the command to reload configuration
+- `SIGUSR1` to display current configuration state. Note, load balancer can dynamically reorder configuration sections
+- `SIGUSR2` to show active clients connection status and traffic stats
+- `SIGINT` to stop the daemon.
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 

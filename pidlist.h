@@ -23,18 +23,34 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <netinet/in.h>
 #include "utility.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+typedef struct traffic_data {
+    pid_t pid;                                              /* TS-Warp child PID serving the client */
+    struct sockaddr_storage caddr;                          /* Client data address - usually the TS-Warp host */
+    unsigned long long cbytes;                              /* Client data volume */
+    struct sockaddr_storage daddr;                          /* Destination address */
+    unsigned long long dbytes;                              /* Destination data volume */
+} traffic_data;
+
 typedef struct pid_list {
     pid_t pid;                                              /* Client PID */
     int status;                                             /* Status code: -1 running, Exit: 0 - OK, >=1 - KO */
     char *section_name;                                     /* Section used by the client's process */
+    struct traffic_data traffic;                            /* Traffic counters */
     struct pid_list *next;                                  /* Link to the next p_list */
 } pid_list;
 
+typedef struct traffic_message {                            /* IPC message to pass info about traffic */
+    long mtype;
+    struct traffic_data mtext;
+} traffic_message;
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid);
-int pidlist_update(struct pid_list *root, pid_t pid, int status);
+struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid,
+    struct sockaddr_storage caddr, struct sockaddr_storage daddr);
+int pidlist_update_status(struct pid_list *root, pid_t pid, int status);
+int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic);
 void pidlist_show(struct pid_list *root, int loglvl);
