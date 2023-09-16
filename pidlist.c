@@ -30,11 +30,13 @@
 #include <string.h>
 
 #include "logfile.h"
+#include "network.h"
 #include "pidlist.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid) {
+struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pid,
+    struct sockaddr_storage caddr, struct sockaddr_storage daddr) {
 
     struct pid_list *n = NULL, *c = NULL;
 
@@ -44,6 +46,11 @@ struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pi
     n->pid = pid;
     n->status = -1;
     n->section_name = strdup(section_name);
+    n->traffic.pid = pid;
+    n->traffic.caddr = caddr;
+    n->traffic.cbytes = 0;
+    n->traffic.daddr = daddr;
+    n->traffic.dbytes = 0;
     n->next = NULL;
 
     c = root;
@@ -59,7 +66,7 @@ struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pi
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int pidlist_update(struct pid_list *root, pid_t pid, int status) {
+int pidlist_update_status(struct pid_list *root, pid_t pid, int status) {
 
     struct pid_list *c = NULL;
 
@@ -76,14 +83,34 @@ int pidlist_update(struct pid_list *root, pid_t pid, int status) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-void pidlist_show(struct pid_list *root, int loglvl) {
+int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic) {
 
+    struct pid_list *c = NULL;
+
+    c = root;
+    while (c) {
+        if (c && c->pid == traffic.pid) {
+            c->traffic.cbytes = traffic.cbytes;
+            c->traffic.dbytes = traffic.dbytes;
+            return 0;
+        }
+        c = c->next;
+    }
+
+    return 1;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+void pidlist_show(struct pid_list *root, int loglvl) {
+    char buf1[STR_SIZE], buf2[STR_SIZE];
     struct pid_list *c = NULL;
 
     printl(loglvl, "Show clients table");
     c = root;
     while (c) {
-        printl(loglvl, "PID: [%d], Status: [%d], Section: [%s]", c->pid, c->status, c->section_name);
+        printl(loglvl, "PID: [%d], Status: [%d], Section: [%s], TRAFFIC: C:[%s]:[%llu], D:[%s]:[%llu]",
+            c->pid, c->status, c->section_name,
+            inet2str(&c->traffic.caddr, buf1), c->traffic.cbytes, inet2str(&c->traffic.daddr, buf2), c->traffic.dbytes);
         c = c->next;
     }
 }

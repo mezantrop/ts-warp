@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.09.11    Current
+* 2023.09.16    Current
+  * `USR2` signal to report active connections and traffic
   * Traffic counters, minor decorative changes
   * `ts-warp.c`: Minor optimization
   * `ns-warp`: Build fix, `goto` removed

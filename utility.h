@@ -28,7 +28,7 @@
 #define BUF_SIZE_1KB        1024
 #define BUF_SIZE_1MB        1024 * 1024
 #define BUF_SIZE            BUF_SIZE_1MB
-#define STR_SIZE            255
+#define STR_SIZE            256
 
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */

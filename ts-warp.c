@@ -54,6 +54,10 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
 #include "network.h"
 #include "utility.h"
 #include "socks.h"
@@ -81,6 +85,8 @@ ini_section *ini_root;                                              /* Root sect
 #if !defined(linux)
     int pfd;                                                        /* PF device-file on *BSD */
 #endif
+
+int msgid;                                                          /* Message Queue ID */
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -145,7 +151,8 @@ All parameters are optional:
     int rec, snd;                                                       /* received/sent bytes */
     pid_t cpid;                                                         /* Child PID */
 
-    unsigned long cc = 0, dc = 0;                                       /* Traffic counters for client/destination */
+    key_t mskey;                                                        /* IPC ID */
+    struct traffic_message tmessage;                                    /* IPC message to pass info about traffic */
 
     struct pid_list *d = NULL, *c = NULL;                               /* PID list related ... */
     struct ini_section *push_ini = NULL;                                /* variables */
@@ -245,6 +252,7 @@ All parameters are optional:
         signal(SIGTERM, trap_signal);
         signal(SIGCHLD, trap_signal);
         signal(SIGUSR1, trap_signal);
+        signal(SIGUSR2, trap_signal);
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
@@ -391,14 +399,28 @@ All parameters are optional:
     }
     printl(LOG_INFO, "Listening for HTTP incoming connections");
 
+    mskey = ftok("TS-WARP", 10800);
+    if ((msgid = msgget(mskey, 0600 | IPC_CREAT)) == -1)
+        printl(LOG_WARN, "Unable to acquire IPC mesage queue ID. No traffic stats will be collected");
+
     /* -- Process clients ------------------------------------------------------------------------------------------- */
     while (1) {
         FD_ZERO(&sfd);
         FD_SET(Ssock, &sfd);
         FD_SET(Hsock, &sfd);
 
-        /* select() blocks forever until socket is ready */
-        if (select(Hsock > Ssock ? Hsock + 1 : Ssock + 1, &sfd, NULL, NULL, NULL) < 0) continue;
+        tv.tv_sec = 0;
+        tv.tv_usec = 10000;
+        ret = select(Hsock > Ssock ? Hsock + 1 : Ssock + 1, &sfd, NULL, NULL, &tv);
+        if (ret < 0) continue;                                          /* On an error skip to the next iteration */
+        if (ret == 0) {                                                 /* Timeout - no new connections */
+            if (msgid != -1 && msgrcv(msgid, &tmessage, sizeof(tmessage), 1, IPC_NOWAIT) != -1)
+                pidlist_update_traffic(pids, tmessage.mtext);
+            continue;
+        }
+
+        if (msgid != -1 && msgrcv(msgid, &tmessage, sizeof(tmessage), 1, IPC_NOWAIT) != -1)
+            pidlist_update_traffic(pids, tmessage.mtext);
 
         /* Check which of the internal servers has a pending connection */
         isock = FD_ISSET(Ssock, &sfd) ? Ssock : Hsock;
@@ -476,7 +498,7 @@ All parameters are optional:
             close(csock);
 
             /* Save the client into the list */
-            pids = pidlist_add(pids, s_ini ? s_ini->section_name : "", cpid);
+            pids = pidlist_add(pids, s_ini ? s_ini->section_name : "", cpid, caddr, daddr.ip_addr);
         }
 
         if (cpid == 0) {
@@ -589,43 +611,42 @@ All parameters are optional:
                         /* -- Internal HTTP server  ----------------------------------------------------------------- */
                         close(Ssock);
                         close(Hsock);
-                        /* TODO: Implement HTTP proxy */
+                        if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                            (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
+                                S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
-                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                        (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr),
-                            sizeof(S6_ADDR(daddr.ip_addr))))) {
+                            /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
+                            ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
+                            printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
 
-                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
-                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
-                        printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
-
-                        if (http_server_request(csock, &daddr)) {
-                            printl(LOG_WARN, "Embedded TS-Warp HTTP server lost connection with the client");
-                            close(csock);
-                            exit(1);
-                        }
-
-                        s_ini = ini_look_server(ini_root, daddr);
-                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
-                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
-                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
-
-                            printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
-                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-
-                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
-                                printl(LOG_WARN, "Unable to connect with destination: [%s]",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                            if (http_server_request(csock, &daddr)) {
+                                printl(LOG_WARN, "Embedded TS-Warp HTTP server lost connection with the client");
                                 close(csock);
                                 exit(1);
                             }
 
-                            goto cfloop;
+                            s_ini = ini_look_server(ini_root, daddr);
+                            if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
+                                S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
+                                S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
 
-                        } else
-                            printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
-                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
-                    }
+                                printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+
+                                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                                    printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                        daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                                    close(csock);
+                                    exit(1);
+                                }
+
+                                goto cfloop;
+
+                            } else
+                                printl(LOG_INFO,
+                                    "Serving request to [%s : %s] with external proxy server, section: [%s]",
+                                    daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
+                        }
 
                 } else
                     break;
@@ -890,6 +911,15 @@ All parameters are optional:
             cfloop:
             printl(LOG_VERB, "Starting connection-forward loop");
 
+            /* Prepare IPC messages */
+            tmessage.mtype = 1;
+            memset(&tmessage.mtext, 0, sizeof(struct traffic_data));
+            tmessage.mtext.pid = pid;
+            tmessage.mtext.caddr = caddr;
+            tmessage.mtext.cbytes = 0;
+            tmessage.mtext.daddr = daddr.ip_addr;
+            tmessage.mtext.dbytes = 0;
+
             while (1) {
                 FD_ZERO(&rfd);
                 FD_SET(csock, &rfd);
@@ -925,7 +955,8 @@ All parameters are optional:
                         }
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
-                        cc += rec;
+                        tmessage.mtext.cbytes += rec;
+                        if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                     } else {
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
@@ -947,16 +978,18 @@ All parameters are optional:
                         }
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
-                        dc += rec;
+                        tmessage.mtext.dbytes += rec;
+                        if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                     }
                 }
             }
-            printl(LOG_INFO, "TRAFFIC SUMMARY: C: [%s]:[%lu], D: [%s]:[%lu]",
-                inet2str(&caddr, suf), cc, inet2str(&daddr.ip_addr, buf), dc);
 
             shutdown(csock, SHUT_RDWR);
             shutdown(ssock, SHUT_RDWR);
-            printl(LOG_INFO, "Client finished operations");
+            printl(LOG_INFO, "The client finished operations");
+            printl(LOG_INFO, "The client traffic summary: C: [%s]:[%llu], D: [%s]:[%llu]",
+                inet2str(&caddr, suf), tmessage.mtext.cbytes, inet2str(&daddr.ip_addr, buf), tmessage.mtext.dbytes);
+
             close(csock);
             close(ssock);
             exit(0);
@@ -990,6 +1023,7 @@ void trap_signal(int sig) {
                 #if !defined(linux)
                     pf_close(pfd);
                 #endif
+                msgctl(msgid, IPC_RMID, NULL);
                 mexit(0, pfile_name);
             } else {                                                /* A client process */
                 shutdown(csock, SHUT_RDWR);
@@ -1003,14 +1037,17 @@ void trap_signal(int sig) {
         case SIGCHLD:
             /* Never use printf() in SIGCHLD processor, it causes SIGILL */
             while ((cpid = wait3(&status, WNOHANG, 0)) > 0) {
-                pidlist_update(pids, cpid, status);
+                pidlist_update_status(pids, cpid, status);
                 cn--;
             }
         break;
 
-        case SIGUSR1:                                               /* Display: */
-            show_ini(ini_root, LOG_CRIT);                           /* current configuration */
-            pidlist_show(pids, LOG_CRIT);                           /* Client's PIDs list */
+        case SIGUSR1:
+            show_ini(ini_root, LOG_CRIT);                           /* Display current configuration */
+        break;
+
+        case SIGUSR2:
+            pidlist_show(pids, LOG_CRIT);                           /* Display client's PIDs list: status and traffic */
         break;
 
         default:
