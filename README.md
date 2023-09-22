@@ -217,26 +217,27 @@ All the ts-warp command-line options can be listed using `$ ts-warp -h`:
 
 ```sh
 Usage:
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -u user -h
+  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
 
 Version:
-  TS-Warp-1.X.Y
+  TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -i IP:Port        Incoming local IP address and port
-  -c file.ini       Configuration file, default: /usr/local/etc/ts-warp.ini
+  -S IP:Port      Local IP address and port for incoming Socks requests
+  -H IP:Port      Local IP address and port for incoming HTTP requests
+  -c file.ini     Configuration file
 
-  -l file.log       Log filename, default: /usr/local/var/log/ts-warp.log
-  -v 0..4           Log verbosity level: 0 - off, default 3
+  -l file.log     Main log filename
+  -v 0..4         Log verbosity level: 0 - off, default: 3
+  -t file.act     Active connections and traffic log
 
-  -d                Daemon mode
-  -p file.pid       PID filename, default: /usr/local/var/run/ts-warp.pid
-  -f                Force start
+  -d              Daemon mode
+  -p file.pid     PID filename
+  -f              Force start
 
-  -u user           User to run ts-warp from, default: nobody
+  -u user         A user to run ts-warp, default: nobody
 
-  -h                This message
-
+  -h              This message
 ```
 
  `ts-warp.sh` respects `ts-warp` daemon options. For example, to temporary enable more verbose logs, restart `ts-warp`

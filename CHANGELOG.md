@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.09.16    Current
+* 2023.09.22    Current
+  * Active connections and traffic data requested via `SIGUSR2` available in `<PREFIX>/var/spool/ts-warp.act`
+  * Deprecated CLI options removed: `-i`, `-P`
   * `USR2` signal to report active connections and traffic
   * Traffic counters, minor decorative changes
   * `ts-warp.c`: Minor optimization

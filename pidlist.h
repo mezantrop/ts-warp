@@ -53,4 +53,4 @@ struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pi
     struct sockaddr_storage caddr, struct sockaddr_storage daddr);
 int pidlist_update_status(struct pid_list *root, pid_t pid, int status);
 int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic);
-void pidlist_show(struct pid_list *root, int loglvl);
+void pidlist_show(struct pid_list *root, int tfd);

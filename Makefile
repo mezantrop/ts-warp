@@ -144,6 +144,7 @@ install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -m 755 ts-warp.sh $(PREFIX)/etc/
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
+	install -d $(PREFIX)/var/spool/ts-warp/
 
 uninstall:
 	rm -f $(PREFIX)/bin/ts-warp

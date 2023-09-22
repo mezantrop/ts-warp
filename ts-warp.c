@@ -36,6 +36,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -55,6 +56,7 @@
 #include <pwd.h>
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
@@ -74,6 +76,7 @@ int loglevel = LOG_LEVEL_DEFAULT;
 FILE *lfile = NULL;
 char *ifile_name = INI_FILE_NAME;
 char *lfile_name = LOG_FILE_NAME;
+char *tfile_name = ACT_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
 int cn = 1;                                                         /* Active clients number */
@@ -87,29 +90,30 @@ ini_section *ini_root;                                              /* Root sect
 #endif
 
 int msgid;                                                          /* Message Queue ID */
+int tfd = -1;                                                       /* Traffic log file descriptor */
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int main(int argc, char* argv[]) {
 /* Usage:
-  ts-warp -S IP:Port -i IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h
+Usage:
+  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
 
 Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
   -S IP:Port      Local IP address and port for incoming Socks requests
-  -i IP:Port      Local IP address and port for incoming Socks requests (to be deprecated in future releases)
   -H IP:Port      Local IP address and port for incoming HTTP requests
   -c file.ini     Configuration file
 
-  -l file.log     Log filename
+  -l file.log     Main log filename
   -v 0..4         Log verbosity level: 0 - off, default: 3
+  -t file.act     Active connections and traffic log
 
   -d              Daemon mode
   -p file.pid     PID filename
   -f              Force start
-  -P              Disable internal Socks5 server
 
   -u user         A user to run ts-warp, default: nobody
 
@@ -124,7 +128,6 @@ All parameters are optional:
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
-    int P_flg = 0;                                                      /* Internal Socks5 server (1 - disable) */
 
     #if !defined(__APPLE__)
         /* This doesn't work in MacOS, it won't allow reading /dev/pf under non-root */
@@ -158,10 +161,9 @@ All parameters are optional:
     struct ini_section *push_ini = NULL;                                /* variables */
 
 
-    while ((flg = getopt(argc, argv, "i:S:H:c:l:v:dp:fPu:h")) != -1)
+    while ((flg = getopt(argc, argv, "S:H:c:l:v:t:dp:fu:h")) != -1)
         switch(flg) {
             case 'S':                                                   /* Internal Socks server IP/name */
-            case 'i':                                                   /* Will be deprecated in release */
                 iaddr = strsep(&optarg, ":");                           /* IP:PORT */
                 if (optarg) iport = optarg;
             break;
@@ -175,8 +177,8 @@ All parameters are optional:
                 ifile_name = optarg;
             break;
 
-            case 'l':
-                l_flg = 1; lfile_name = optarg;                         /* Logfile */
+            case 'l':                                                   /* Logfile */
+                l_flg = 1; lfile_name = optarg;
             break;
 
             case 'v':                                                   /* Log verbosity */
@@ -185,6 +187,10 @@ All parameters are optional:
                     fprintf(stderr, "Wrong -v verbosity level value: [%s]\n", optarg);
                     usage(1);
                 }
+            break;
+
+            case 't':                                                   /* Active connections and traffic log */
+                tfile_name = optarg;
             break;
 
             case 'd':                                                   /* Daemon mode */
@@ -197,10 +203,6 @@ All parameters are optional:
 
             case 'f':                                                   /* Force start */
                 f_flg = 1;
-            break;
-
-            case 'P':
-                P_flg = 1;                                              /* Disable internal Socks5 server  */
             break;
 
             case 'u':
@@ -221,7 +223,7 @@ All parameters are optional:
     if (!Haddr[0]) Haddr = LISTEN_DEFAULT;
     if (!Hport[0]) Hport = LISTEN_HTTP_PORT;
 
-    /* -- Open log-file --------------------------------------------------------------------------------------------- */
+    /* -- Open log-files -------------------------------------------------------------------------------------------- */
     if (!d_flg && !l_flg) {
         lfile = stdout;
         printl(LOG_INFO, "Log file: [STDOUT], verbosity level: [%d]", loglevel);
@@ -235,6 +237,14 @@ All parameters are optional:
         printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
     }
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
+
+    if (mkfifo(tfile_name, S_IFIFO|S_IRWXU) == -1 && errno != EEXIST)
+        printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
+    else
+        if ((tfd = open(tfile_name, O_RDWR) ) == -1)
+            printl(LOG_WARN, "Unable to open active connections and traffic log pipe: [%s]", tfile_name);
+        else
+            printl(LOG_INFO, "Active connections and traffic log pipe available: [%s]", tfile_name);
 
     #if !defined(linux)
         pfd = pf_open();                                                /* Open PF device-file on *BSD */
@@ -253,6 +263,9 @@ All parameters are optional:
         signal(SIGCHLD, trap_signal);
         signal(SIGUSR1, trap_signal);
         signal(SIGUSR2, trap_signal);
+
+        signal(SIGPIPE, SIG_IGN);                       /* Ignore the signal if nobody reads the traffig log pipe! */
+
 
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
@@ -555,7 +568,7 @@ All parameters are optional:
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
                         printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
 
-                        if (P_flg || socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
+                        if (socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
                             printl(LOG_WARN, "Embedded TS-Warp Socks server does not accept connections");
                             close(csock);
                             exit(1);
@@ -1047,7 +1060,7 @@ void trap_signal(int sig) {
         break;
 
         case SIGUSR2:
-            pidlist_show(pids, LOG_CRIT);                           /* Display client's PIDs list: status and traffic */
+            pidlist_show(pids, tfd);                                /* Display client's PIDs list: status and traffic */
         break;
 
         default:
@@ -1060,22 +1073,21 @@ void trap_signal(int sig) {
 void usage(int ecode) {
 #if !defined(__APPLE__)
     printf("Usage:\n\
-  ts-warp -S IP:Port -i IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -u user -h\n\n\
+  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
   -S IP:Port\t    Local IP address and port for incoming Socks requests\n\
-  -i IP:Port\t    Local IP address and port for incoming Socks requests (to be deprecated in future releases)\n\
   -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
-  -l file.log\t    Log filename, default: %s\n\
+  -l file.log\t    Main log filename, default: %s\n\
   -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
+  -t file.act\t    Active connections and traffic log\n\
   \n\
   -d\t\t    Daemon mode\n\
   -p file.pid\t    PID filename, default: %s\n\
   -f\t\t    Force start\n\
-  -P\t\t    Disable internal Socks5 server\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s\n\
   \n\
@@ -1083,20 +1095,21 @@ All parameters are optional:\n\
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
 #else
     printf("Usage:\n\
-  ts-warp -i IP:Port -c file.ini -l file.log -v 0-4 -d -p file.pid -f -P -h\n\n\
+  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -i IP:Port\t    Incoming local IP address and port\n\
+  -S IP:Port\t    Local IP address and port for incoming Socks requests\n\
+  -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
-  -l file.log\t    Log filename, default: %s\n\
+  -l file.log\t    Main log filename, default: %s\n\
   -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
+  -t file.act\t    Active connections and traffic log\n\
   \n\
   -d\t\t    Daemon mode\n\
   -p file.pid\t    PID filename, default: %s\n\
   -f\t\t    Force start\n\
-  -P\t\t    Disable internal Socks5 server\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);

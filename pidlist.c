@@ -101,16 +101,16 @@ int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-void pidlist_show(struct pid_list *root, int loglvl) {
+void pidlist_show(struct pid_list *root, int tfd) {
     char buf1[STR_SIZE], buf2[STR_SIZE];
     struct pid_list *c = NULL;
 
-    printl(loglvl, "Show clients table");
     c = root;
+    dprintf(tfd, "PID,Status,Section,Client,Client bytes,Target,Target bytes\n");
     while (c) {
-        printl(loglvl, "PID: [%d], Status: [%d], Section: [%s], TRAFFIC: C:[%s]:[%llu], D:[%s]:[%llu]",
-            c->pid, c->status, c->section_name,
-            inet2str(&c->traffic.caddr, buf1), c->traffic.cbytes, inet2str(&c->traffic.daddr, buf2), c->traffic.dbytes);
+        dprintf(tfd, "%d,%d,%s,%s,%llu,%s,%llu\n", c->pid, c->status, c->section_name,
+            inet2str(&c->traffic.caddr, buf1), c->traffic.cbytes,
+            inet2str(&c->traffic.daddr, buf2), c->traffic.dbytes);
         c = c->next;
     }
 }
