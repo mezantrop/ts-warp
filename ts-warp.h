@@ -34,6 +34,7 @@
 
 #define INI_FILE_NAME   PREFIX"/etc/ts-warp.ini"
 #define LOG_FILE_NAME   PREFIX"/var/log/ts-warp.log"
+#define ACT_FILE_NAME   PREFIX"/var/spool/ts-warp/ts-warp.act"
 #define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
 
 #if !defined(__APPLE__)
