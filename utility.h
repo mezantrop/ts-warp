@@ -30,8 +30,9 @@
 #define BUF_SIZE            BUF_SIZE_1MB
 #define STR_SIZE            256
 
+extern char *tfile_name;
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 long toint(char *str);
 char *init_xcrypt(int xkey_len);
-void mexit(int status, char *pid_file);
+void mexit(int status, char *pid_file, char *act_file);

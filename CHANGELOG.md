@@ -1,9 +1,10 @@
 # CHANGELOG
 
-* 2023.09.22    Current
-  * Active connections and traffic data requested via `SIGUSR2` available in `<PREFIX>/var/spool/ts-warp.act`
+* 2023.09.23    Current
+  * Timestamps added to ACT; option to unlink ACT pipe
+  * ACT data requested via `SIGUSR2` available in `<PREFIX>/var/spool/ts-warp.act`
   * Deprecated CLI options removed: `-i`, `-P`
-  * `USR2` signal to report active connections and traffic
+  * `USR2` signal to report active connections and traffic (ACT)
   * Traffic counters, minor decorative changes
   * `ts-warp.c`: Minor optimization
   * `ns-warp`: Build fix, `goto` removed

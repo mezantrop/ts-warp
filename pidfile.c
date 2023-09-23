@@ -61,11 +61,11 @@ pid_t wr_pidfile(char *file_name, uid_t owner, uid_t group) {
         printl(LOG_INFO, "PID file: [%s], PID: [%d]", file_name, pid);
         if (fprintf(pfile, "%d\n", pid) == -1) {
             printl(LOG_CRIT, "Unable to write the PID file: [%s]", file_name);
-            mexit(1, pfile_name);
+            mexit(1, pfile_name, NULL);
         }
     } else {
         printl(LOG_CRIT, "Unable to open the PID file: [%s]", file_name);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, NULL);
     }
 
     if (chown(file_name, owner, group)) {
@@ -85,7 +85,7 @@ pid_t mk_pidfile(char *file_name, int f_flg, uid_t owner, uid_t group) {
     else
         if (rd_pidfile(file_name)) {
             printl(LOG_CRIT, "Unable to start. Daemon is already running!");
-            mexit(1, pfile_name);
+            mexit(1, pfile_name, NULL);
         }
 
     return wr_pidfile(file_name, owner, group);
