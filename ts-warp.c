@@ -37,6 +37,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -305,14 +306,14 @@ All parameters are optional:
     ihints.ai_flags = AI_PASSIVE;
     if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
         printl(LOG_CRIT, "Error resolving ts-warp Socks address [%s]: %s", iaddr, gai_strerror(ret));
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "ts-warp Socks address [%s] succesfully resolved to [%s]",
         iaddr, inet2str((struct sockaddr_storage *)(ires->ai_addr), buf));
 
     if ((ret = getaddrinfo(Haddr, Hport, &ihints, &hres)) > 0) {
         printl(LOG_CRIT, "Error resolving ts-warp HTTP address [%s]: %s", Haddr, gai_strerror(ret));
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "ts-warp HTTP address [%s] succesfully resolved to [%s]",
         Haddr, inet2str((struct sockaddr_storage *)(hres->ai_addr), buf));
@@ -324,12 +325,12 @@ All parameters are optional:
     /* -- Create sockets for incoming connections ------------------------------------------------------------------- */
     if ((Ssock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
         printl(LOG_CRIT, "Error creating a socket for Socks incoming connections");
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
 
     if ((Hsock = socket(hres->ai_family, hres->ai_socktype, hres->ai_protocol)) == -1) {
         printl(LOG_CRIT, "Error creating a socket for HTTP incoming connections");
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
 
     /* Internal servers to be non-blocking, so we can check which one acceps connection */
@@ -386,14 +387,14 @@ All parameters are optional:
     if (bind(Ssock, ires->ai_addr, ires->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding socket for Socks incoming connections");
         close(Ssock);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_VERB, "The socket for Socks incoming connections succesfully bound");
 
     if (bind(Hsock, hres->ai_addr, hres->ai_addrlen) < 0) {
         printl(LOG_CRIT, "Error binding socket for HTTP incoming connections");
         close(Hsock);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
 
@@ -401,14 +402,14 @@ All parameters are optional:
     if (listen(Ssock, SOMAXCONN) == -1) {
         printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
         close(Ssock);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "Listening for Socks incoming connections");
 
     if (listen(Hsock, SOMAXCONN) == -1) {
         printl(LOG_CRIT, "Error listening the socket for HTTP incoming connections");
         close(Hsock);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "Listening for HTTP incoming connections");
 
@@ -502,7 +503,7 @@ All parameters are optional:
 
         if ((cpid = fork()) == -1) {
             printl(LOG_CRIT, "Failed fork() to serve a client request");
-            mexit(1, pfile_name);
+            mexit(1, pfile_name, tfile_name);
         }
 
         if (cpid > 0) {
@@ -928,6 +929,7 @@ All parameters are optional:
             tmessage.mtype = 1;
             memset(&tmessage.mtext, 0, sizeof(struct traffic_data));
             tmessage.mtext.pid = pid;
+            tmessage.mtext.timestamp = 0;
             tmessage.mtext.caddr = caddr;
             tmessage.mtext.cbytes = 0;
             tmessage.mtext.daddr = daddr.ip_addr;
@@ -946,6 +948,7 @@ All parameters are optional:
                 if (ret == 0) continue;
                 if (ret > 0) {
                     memset(buf, 0, BUF_SIZE);
+                    tmessage.mtext.timestamp = time(NULL);                          /* Fill in traffic timestamp */
                     if (FD_ISSET(csock, &rfd)) {
                         /* Client writes */
                         rec = recv(csock, buf, BUF_SIZE, 0);
@@ -969,7 +972,6 @@ All parameters are optional:
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
                         tmessage.mtext.cbytes += rec;
-                        if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                     } else {
                         /* Server writes */
                         rec = recv(ssock, buf, BUF_SIZE, 0);
@@ -992,8 +994,8 @@ All parameters are optional:
 
                         printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
                         tmessage.mtext.dbytes += rec;
-                        if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                     }
+                    if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                 }
             }
 
@@ -1037,7 +1039,7 @@ void trap_signal(int sig) {
                     pf_close(pfd);
                 #endif
                 msgctl(msgid, IPC_RMID, NULL);
-                mexit(0, pfile_name);
+                mexit(0, pfile_name, tfile_name);
             } else {                                                /* A client process */
                 shutdown(csock, SHUT_RDWR);
                 shutdown(ssock, SHUT_RDWR);

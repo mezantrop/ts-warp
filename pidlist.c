@@ -90,6 +90,7 @@ int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic) {
     c = root;
     while (c) {
         if (c && c->pid == traffic.pid) {
+            c->traffic.timestamp = traffic.timestamp;
             c->traffic.cbytes = traffic.cbytes;
             c->traffic.dbytes = traffic.dbytes;
             return 0;
@@ -102,13 +103,18 @@ int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 void pidlist_show(struct pid_list *root, int tfd) {
-    char buf1[STR_SIZE], buf2[STR_SIZE];
+    char tbuf[24], buf1[STR_SIZE], buf2[STR_SIZE];
     struct pid_list *c = NULL;
+    struct tm ts;
 
     c = root;
-    dprintf(tfd, "PID,Status,Section,Client,Client bytes,Target,Target bytes\n");
+    dprintf(tfd, "Time,PID,Status,Section,Client,Client bytes,Target,Target bytes\n");
     while (c) {
-        dprintf(tfd, "%d,%d,%s,%s,%llu,%s,%llu\n", c->pid, c->status, c->section_name,
+        ts = *localtime(&c->traffic.timestamp);
+        strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", &ts);
+
+        dprintf(tfd, "%s,%d,%s,%s,%s,%llu,%s,%llu\n",
+            tbuf, c->pid, c->status == -1 ? "Active" : "Finished", c->section_name,
             inet2str(&c->traffic.caddr, buf1), c->traffic.cbytes,
             inet2str(&c->traffic.daddr, buf2), c->traffic.dbytes);
         c = c->next;

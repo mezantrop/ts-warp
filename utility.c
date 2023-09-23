@@ -65,7 +65,7 @@ long toint(char *str) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-void mexit(int status, char *pid_file) {
+void mexit(int status, char *pid_file, char *act_file) {
     /* Exit program */
 
     kill(0, SIGTERM);
@@ -73,9 +73,16 @@ void mexit(int status, char *pid_file) {
     while (wait3(&status, WNOHANG, 0) > 0) ;
     printl(LOG_CRIT, "Program finished");
     if (pid_file) {
-        if (unlink(pid_file))
-            if (truncate(pid_file, 0) == -1) {}         /* Make GCC on Ubuntu happy: silence unused-result */
-        printl(LOG_WARN, "PID file removed/PID erased");
+        if (unlink(pid_file)) {
+            if (!truncate(pid_file, 0))
+                printl(LOG_WARN, "PID file truncated");
+        } else
+            printl(LOG_WARN, "PID file removed");
+
     }
+
+    if (act_file)
+        if (!unlink(act_file))
+            printl(LOG_WARN, "ACT file removed");
     exit(status);
 }

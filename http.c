@@ -115,14 +115,14 @@ int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
 
     if (send(socket, r, strlen(r), 0) == -1) {
         printl(LOG_CRIT, "Unable to send a request to the HTTP server");
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
 
     printl(LOG_VERB, "Expecting HTTP reply");
 
     if ((rcount = recv(socket, &r, sizeof(r), 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the HTTP server");
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
 
     /* Parse HTTP reply */

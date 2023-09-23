@@ -61,7 +61,7 @@ ini_section *read_ini(char *ifile_name) {
 
     if (!(fini = fopen(ifile_name, "r"))) {
         printl(LOG_CRIT, "Error opening INI-file: %s", ifile_name);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
 
     while (fgets(buffer, sizeof buffer, fini) != NULL) {
@@ -180,14 +180,14 @@ ini_section *read_ini(char *ifile_name) {
                         else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
                             if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
                                 printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash!", ln);
-                                mexit(1, pfile_name);
+                                mexit(1, pfile_name, tfile_name);
                             }
 
                             c_sect->proxy_password = strdup(x);
                             free(x);
                         } else {
                             printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_PROXY_PASSWORD);
-                            mexit(1, pfile_name);
+                            mexit(1, pfile_name, tfile_name);
                         }
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {

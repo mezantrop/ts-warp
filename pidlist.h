@@ -23,12 +23,14 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <time.h>
 #include <netinet/in.h>
 #include "utility.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 typedef struct traffic_data {
     pid_t pid;                                              /* TS-Warp child PID serving the client */
+    time_t timestamp;
     struct sockaddr_storage caddr;                          /* Client data address - usually the TS-Warp host */
     unsigned long long cbytes;                              /* Client data volume */
     struct sockaddr_storage daddr;                          /* Destination address */

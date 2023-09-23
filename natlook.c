@@ -56,7 +56,7 @@ int pf_open() {
 
     if ((pfd = open(PF_DEV, O_RDWR)) == -1) {
         printl(LOG_CRIT, "Error openin PF device: [%s]", PF_DEV);
-        mexit(1, pfile_name);
+        mexit(1, pfile_name, tfile_name);
     }
     return pfd;
 }
