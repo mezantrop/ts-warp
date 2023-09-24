@@ -239,7 +239,7 @@ All parameters are optional:
     }
     printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
 
-    if (mkfifo(tfile_name, S_IFIFO|S_IRWXU) == -1 && errno != EEXIST)
+    if (mkfifo(tfile_name, S_IFIFO|S_IRWXU|S_IRGRP|S_IROTH) == -1 && errno != EEXIST)
         printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
     else
         if ((tfd = open(tfile_name, O_RDWR) ) == -1)
