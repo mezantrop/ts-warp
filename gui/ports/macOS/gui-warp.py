@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.15-mac'
+        self.version = 'v1.0.16-mac'
         self.width = width
         self.height = height
 
@@ -99,16 +99,19 @@ class App:
         self.tsw_opts = tk.StringVar()
         self.ent_opt = ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
-        # -- Display ini/fw/log pane --------------------------------------------------------------------------------- #
+        # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
         tab_ini = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
+        tab_act = ttk.Frame(tabControl)
 
         tabControl.add(tab_log, text='Log')
         tabControl.add(tab_ini, text='INI')
+        tabControl.add(tab_act, text='ACT')
+
         tabControl.grid(column=0, row=1, sticky=tk.NSEW)
 
-        # -- Tab Log ------------------------------------------------------------------------------------------------- #
+        # -- Tab LOG ------------------------------------------------------------------------------------------------- #
         tab_log.columnconfigure(0, weight=1)
         tab_log.rowconfigure(1, weight=1)
 
@@ -116,7 +119,7 @@ class App:
 
         btn_pause = ttk.Button(tab_log, width=self._btnw, text='■')
         btn_pause.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
-        self.pause = False
+        self.pause_log = False
         btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
 
         log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
@@ -162,6 +165,26 @@ class App:
         scroll_ini.config(command=ini_txt.yview)
         ini_txt.config(yscrollcommand=scroll_ini.set)
 
+        # -- Tab ACT ------------------------------------------------------------------------------------------------- #
+        tab_act.columnconfigure(0, weight=1)
+        tab_act.rowconfigure(1, weight=1)
+
+        ttk.Label(tab_act, text='ACT auto-refresh:').grid(column=0, row=0, sticky=tk.E)
+
+        btn_act = ttk.Button(tab_act, width=self._btnw, text='▶')
+        btn_act.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        self.pause_act = True
+        btn_act['command'] = lambda: self.pauseact(btn_act, tree_act, actfile)
+
+        cols_act = ('Time', 'PID', 'Status', 'Section', 'Client', 'Client bytes', 'Target', 'Target bytes')
+        tree_act = ttk.Treeview(tab_act, columns=cols_act, show='headings')
+
+        for col in cols_act:
+            tree_act.heading(col, text=col)
+            tree_act.column(col, width=100)
+
+        tree_act.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
+
         # -- Status bar ---------------------------------------------------------------------------------------------- #
         lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
         lfrm_bottom.grid(column=0, row=2, sticky=tk.EW)
@@ -173,34 +196,63 @@ class App:
 
         self.root.mainloop()
 
+    def read_file_tree(self, t_widget, filename, refresh=False):
+        if not self.pause_act:
+            with open(pidfile, 'r') as pf:
+                subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
+
+            for item in t_widget.get_children():
+                t_widget.delete(item)
+
+            with open(filename, 'r') as f:
+                f.readline()
+                while True:
+                    l = f.readline()
+                    if l == '\n':
+                        break
+                    t_widget.insert('', tk.END, values=l.split(','))
+
+        if refresh:
+            self.root.after(5000, self.read_file_tree, t_widget, filename, refresh)
+
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
-        f = open(filename, 'r')
-        t_widget.delete(1.0, tk.END)
-        t_widget.insert(tk.END, ''.join(f.readlines()))
-        t_widget.see(tk.END)
-        f.close()
+        with open(filename, 'r') as f:
+            t_widget.delete(1.0, tk.END)
+            t_widget.insert(tk.END, ''.join(f.readlines()))
+            t_widget.see(tk.END)
+
         if refresh:
             t_widget.config(state='disabled')
-            if not self.pause:
+            if not self.pause_log:
                 self.root.after(3000, self.readfile, t_widget, filename, refresh)
 
     def saveini(self, t_widget, filename):
-        f = open(filename, 'w')
-        f.write(t_widget.get('1.0', tk.END)[:-1])                       # Strip extra newline
-        f.close()
+        with open(filename, 'w') as f:
+            f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
+
         # Rebuild ts-warp_pf.conf when saving the INI-file
         with open(fwfile, "w") as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
 
     def pauselog(self, btn, txt, filename):
-        if self.pause:
-            self.pause = False
+        if self.pause_log:
+            self.pause_log = False
             btn['text'] = '■'                                           # Pause log auto-refresh
             self.readfile(txt, filename, refresh=True)
         else:
-            self.pause = True
+            self.pause_log = True
             btn['text'] = '↭'                                           # Enable auto-refresh
+
+    def pauseact(self, btn, tree, filename):
+        if self.pause_act:
+            self.pause_act = False
+            btn['text'] = '■'                                           # Pause act auto-refresh
+            self.read_file_tree(tree, filename, refresh=True)
+        else:
+            self.pause_act = True
+            btn['text'] = '▶'                                           # Enable auto-refresh
+            self.read_file_tree(tree, filename, refresh=False)
 
     def status(self, lbl, btn, pidfile):
         pf = None
@@ -298,6 +350,7 @@ if __name__ == "__main__":
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
     pidfile = prefix + 'var/run/ts-warp.pid'
+    actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
 
     if 'GUI-WARP' in ini.sections():
         runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
@@ -305,6 +358,7 @@ if __name__ == "__main__":
         fwfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['fwfile']
         logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
+        actfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['actfile']
 
     if not os.path.exists(inifile):                     # Failback to the home directory and reset paths
         prefix = home_prefix
@@ -312,17 +366,27 @@ if __name__ == "__main__":
         fwfile = prefix + 'etc/ts-warp_pf.conf'
         logfile = prefix + 'var/log/ts-warp.log'
         pidfile = prefix + 'var/run/ts-warp.pid'
+        actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
 
         if not os.path.exists(prefix):                  # Create ts-warp dir + subdirs in home
             os.makedirs(prefix + 'etc/')
             os.makedirs(prefix + 'var/log/')
             os.makedirs(prefix + 'var/run/')
+            os.makedirs(prefix + 'var/spool/ts-warp/')
         shutil.copyfile('./ts-warp.ini', inifile)
         os.chmod(inifile, 0o600)
+
+    if not os.path.exists(prefix + 'etc/'):
+        os.makedirs(prefix + 'etc/')
     if not os.path.exists(fwfile):
         with open(fwfile, "w") as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
     if not os.path.exists(logfile):
+        os.makedirs(prefix + 'var/log/')
         open(logfile, 'a').close()
+    if not os.path.exists(prefix + 'var/run/'):
+        os.makedirs(prefix + 'var/run/')
+    if not os.path.exists(prefix + 'var/spool/ts-warp/'):
+        os.makedirs(prefix + 'var/spool/ts-warp/')
 
     app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
