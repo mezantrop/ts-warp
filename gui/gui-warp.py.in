@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.10'
+        self.version = 'v1.0.11'
         self.width = width
         self.height = height
 
@@ -100,7 +100,7 @@ class App:
         self.tsw_opts = tk.StringVar()
         self.ent_opt = ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
-        # -- Display ini/fw/log pane --------------------------------------------------------------------------------- #
+        # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
         tab_ini = ttk.Frame(tabControl)
         tab_fw = ttk.Frame(tabControl)
@@ -166,7 +166,7 @@ class App:
         scroll_fw.config(command=fw_txt.yview)
         fw_txt.config(yscrollcommand=scroll_fw.set)
 
-        # -- Tab Log ------------------------------------------------------------------------------------------------- #
+        # -- Tab LOG ------------------------------------------------------------------------------------------------- #
         tab_log.columnconfigure(0, weight=1)
         tab_log.rowconfigure(1, weight=1)
 
@@ -234,7 +234,7 @@ class App:
                     t_widget.insert('', tk.END, values=l.split(','))
 
         if refresh:
-            self.root.after(3000, self.read_file_tree, t_widget, filename, refresh)
+            self.root.after(5000, self.read_file_tree, t_widget, filename, refresh)
 
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
@@ -249,9 +249,8 @@ class App:
                 self.root.after(3000, self.readfile, t_widget, filename, refresh)
 
     def savefile(self, t_widget, filename):
-        f = open(filename, 'w')
-        f.write(t_widget.get('1.0', tk.END)[:-1])                       # Strip extra newline
-        f.close()
+        with open(filename, 'w') as f:
+            f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
 
     def pauselog(self, btn, txt, filename):
         if self.pause_log:

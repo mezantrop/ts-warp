@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.09.24    Current
+* 2023.09.25    Current
+  * ACT in `GUI-Warp` macOS port
   * `gui-warp.py`: ACT tab introduced; minor ACT pipe fixes
   * Timestamps added to ACT; option to unlink ACT pipe
   * ACT data requested via `SIGUSR2` available in `<PREFIX>/var/spool/ts-warp.act`
