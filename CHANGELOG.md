@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.09.25    Current
+* 2023.09.26    Current
+  * MacOS GUI-WARP app: remove references to CLI configuration
   * ACT in `GUI-Warp` macOS port
   * `gui-warp.py`: ACT tab introduced; minor ACT pipe fixes
   * Timestamps added to ACT; option to unlink ACT pipe

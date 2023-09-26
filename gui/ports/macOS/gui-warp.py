@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.16-mac'
+        self.version = 'v1.0.17-mac'
         self.width = width
         self.height = height
 
@@ -338,55 +338,27 @@ class App:
 if __name__ == "__main__":
     ini = configparser.ConfigParser()
 
-    ulocal_prefix = '/usr/local/'
-    home_prefix = os.path.expanduser("~/ts-warp/")
-
-    prefix = home_prefix if os.path.exists(home_prefix) and os.path.isdir(home_prefix) else ulocal_prefix
-
-    runcmd = './ts-warp.sh'				                # Use the one included with the app
-    ini.read(prefix + 'etc/gui-warp.ini')
-    # NB! Prefix could == ulocal_prefix
+    runcmd = './ts-warp.sh'
+    prefix = os.path.expanduser("~/ts-warp/")
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
     pidfile = prefix + 'var/run/ts-warp.pid'
     actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
 
-    if 'GUI-WARP' in ini.sections():
-        runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
-        inifile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['inifile']
-        fwfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['fwfile']
-        logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
-        pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
-        actfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['actfile']
-
-    if not os.path.exists(inifile):                     # Failback to the home directory and reset paths
-        prefix = home_prefix
-        inifile = prefix + 'etc/ts-warp.ini'
-        fwfile = prefix + 'etc/ts-warp_pf.conf'
-        logfile = prefix + 'var/log/ts-warp.log'
-        pidfile = prefix + 'var/run/ts-warp.pid'
-        actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
-
-        if not os.path.exists(prefix):                  # Create ts-warp dir + subdirs in home
-            os.makedirs(prefix + 'etc/')
-            os.makedirs(prefix + 'var/log/')
-            os.makedirs(prefix + 'var/run/')
-            os.makedirs(prefix + 'var/spool/ts-warp/')
-        shutil.copyfile('./ts-warp.ini', inifile)
+    if not os.path.exists(prefix):                      # Create ts-warp dir + subdirs in home
+        os.makedirs(prefix + 'etc/')
+        os.makedirs(prefix + 'var/log/')
+        os.makedirs(prefix + 'var/run/')
+        os.makedirs(prefix + 'var/spool/ts-warp/')
+        
+        shutil.copyfile('./ts-warp.ini', inifile)       # Install sam ple INI
         os.chmod(inifile, 0o600)
 
-    if not os.path.exists(prefix + 'etc/'):
-        os.makedirs(prefix + 'etc/')
     if not os.path.exists(fwfile):
         with open(fwfile, "w") as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
     if not os.path.exists(logfile):
-        os.makedirs(prefix + 'var/log/')
         open(logfile, 'a').close()
-    if not os.path.exists(prefix + 'var/run/'):
-        os.makedirs(prefix + 'var/run/')
-    if not os.path.exists(prefix + 'var/spool/ts-warp/'):
-        os.makedirs(prefix + 'var/spool/ts-warp/')
 
     app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)

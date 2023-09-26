@@ -39,8 +39,9 @@ tswarp_prefix=$2				# Crack for gui-warp.app
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
+tswarp_actfile="$tswarp_prefix/var/spool/ts-warp/ts-warp.act"
 tswarp_loglevel="2"
-tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -d -v $tswarp_loglevel"
+tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
 
 # ---------------------------------------------------------------------------- #
 _start() {
