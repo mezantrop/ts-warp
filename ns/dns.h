@@ -155,7 +155,7 @@ typedef struct dns_answer_ref {
 #define DNS_REV_LOOKUP_SUFFIX_IPV6  ".ip6.arpa"
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-struct sockaddr_storage rev_addr(struct sockaddr_storage *sa);
+struct sockaddr_storage rev_addr(struct sockaddr_storage sa);
 char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip);
 struct sockaddr_storage forward_ip(char *rev_ip);
 int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct sockaddr_storage *ip, unsigned char *rbuf);

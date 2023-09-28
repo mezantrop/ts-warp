@@ -52,7 +52,4 @@ nit *read_ini(char *ifile_name);
 void show_ini(struct nit *ini);
 int nit_lookup_name(struct nit *nit_root, char *name, int af, struct sockaddr_storage *ip);
 int nit_lookup_ip(struct nit *nit_root, struct sockaddr_storage *ip, char *name);
-struct sockaddr_storage rev_addr(struct sockaddr_storage *sa);
-char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip);
-struct sockaddr_storage forward_ip(char *rev_ip);
 void strlow(char *s);
