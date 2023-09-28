@@ -164,16 +164,17 @@ int dns_reply_a(unsigned int id, unsigned char *dnsq_raw, int dnsq_siz, struct s
     dnsa->ttl = 0x00000000;
     dnsa->rdlength = 0x0400;
 
-    void *rdata;
     if (SA_FAMILY(*ip) == AF_INET) {
         in_addr_t *rdata = (in_addr_t *)(rbuf + sizeof(dns_header) + dnsq_siz + sizeof(dns_answer_ref));
         *rdata = S4_ADDR(*ip);
+        return sizeof(dns_header) + dnsq_siz + sizeof(dns_answer_ref) + sizeof(*rdata);
     } else {
         char *rdata = (char *)(rbuf + sizeof(dns_header) + dnsq_siz + sizeof(dns_answer_ref));
         memcpy(rdata, S6_ADDR(*ip), 16);
+        return sizeof(dns_header) + dnsq_siz + sizeof(dns_answer_ref) + sizeof(*rdata);
     }
 
-    return sizeof(dns_header) + dnsq_siz + sizeof(dns_answer_ref) + sizeof(*rdata);
+    return 0;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

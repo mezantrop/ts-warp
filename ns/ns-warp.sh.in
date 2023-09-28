@@ -34,7 +34,7 @@
 # ---------------------------------------------------------------------------- #
 
 
-# ---------------------------------------------------------------------------- #
+# -- CONFIGURATION VARIABLES ------------------------------------------------- #
 nswarp_prefix="/usr/local"
 nswarp_inifile="$nswarp_prefix/etc/ts-warp.ini"
 nswarp_logfile="$nswarp_prefix/var/log/ns-warp.log"
