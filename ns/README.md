@@ -36,6 +36,7 @@ Install NS-Warp under the default `PREFIX=/usr/local`
 ### Usage
 
 For macOS: Start `TS-Warp` using `ts-warp.sh` to load required PF-anchors.
+
 Start/stop/restart NS-Warp respectively:
 
 ```sh

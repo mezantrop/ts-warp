@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.09.28    Current
-  * `NS-Warp` rolled-back to stable; fixed many errors
+  * `NS-Warp`: rolled-back to stable; fixed many errors; version bump; `README.md` update
   * MacOS GUI-WARP app: remove references to CLI configuration
   * ACT in `GUI-Warp` macOS port
   * `gui-warp.py`: ACT tab introduced; minor ACT pipe fixes
