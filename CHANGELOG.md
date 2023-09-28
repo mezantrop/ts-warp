@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.09.26    Current
+* 2023.09.28    Current
+  * `NS-Warp` roll-back to stable
   * MacOS GUI-WARP app: remove references to CLI configuration
   * ACT in `GUI-Warp` macOS port
   * `gui-warp.py`: ACT tab introduced; minor ACT pipe fixes
