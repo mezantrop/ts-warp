@@ -35,6 +35,7 @@ Install NS-Warp under the default `PREFIX=/usr/local`
 
 ### Usage
 
+For macOS: Start `TS-Warp` using `ts-warp.sh` to load required PF-anchors.
 Start/stop/restart NS-Warp respectively:
 
 ```sh
@@ -53,6 +54,7 @@ Notes:
 ### TO-DO
 
 * [ ] Cache DNS records
+* [ ] Multi- threading/processing and IPC to share NIT records from clients
 * [ ] Documentation
 
 ### Contacts

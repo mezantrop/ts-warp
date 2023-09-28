@@ -39,35 +39,34 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-struct sockaddr_storage rev_addr(struct sockaddr_storage *ip) {
+struct sockaddr_storage rev_addr(struct sockaddr_storage ip) {
     /* Reverse sinX_addr to be used in PTR DNS lookups, e.g. 127.0.0.1 -> 1.0.0.127 */
 
     struct sockaddr_storage sa;
     uint32_t ipv6_quad;
 
-    sa = *ip;
     if (SA_FAMILY(sa) == AF_INET)
-        ((struct sockaddr_in *)&sa)->sin_addr.s_addr = htonl(((struct sockaddr_in *)&sa)->sin_addr.s_addr);
+        ((struct sockaddr_in *)&sa)->sin_addr.s_addr = htonl(((struct sockaddr_in *)&ip)->sin_addr.s_addr);
     else {
         #if defined(linux)
-            ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[3]);
+            ipv6_quad = htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__in6_u.__u6_addr32[3]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[3] =
-                htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[0]);
+                htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__in6_u.__u6_addr32[0]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[0] = ipv6_quad;
 
-            ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[2]);
+            ipv6_quad = htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__in6_u.__u6_addr32[2]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[2] =
-                htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[1]);
+                htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__in6_u.__u6_addr32[1]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__in6_u.__u6_addr32[1] = ipv6_quad;
         #else
-            ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[3]);
+            ipv6_quad = htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__u6_addr.__u6_addr32[3]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[3] =
-                htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[0]);
+                htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__u6_addr.__u6_addr32[0]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[0] = ipv6_quad;
 
-            ipv6_quad = htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[2]);
+            ipv6_quad = htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__u6_addr.__u6_addr32[2]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[2] =
-                htonl(((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[1]);
+                htonl(((struct sockaddr_in6 *)&ip)->sin6_addr.__u6_addr.__u6_addr32[1]);
             ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr32[1] = ipv6_quad;
         #endif
     }
@@ -83,8 +82,8 @@ char *reverse_ip(struct sockaddr_storage *ip, char *rev_ip) {
 
     if (!rev_ip) return NULL;
 
-    sa = *ip;
-    sa = rev_addr(&sa);
+
+    sa = rev_addr(*ip);
     if (SA_FAMILY(sa) == AF_INET6) rev_d = DNS_REV_LOOKUP_SUFFIX_IPV6;
 
     inet2str(&sa, rev_ip);
@@ -101,12 +100,13 @@ struct sockaddr_storage forward_ip(char *rev_ip) {
 
     char *suff = NULL;
     struct sockaddr_storage sa;
-    char buf[HOST_NAME_MAX];
+    char buf[HOST_NAME_MAX] = {0};
 
+
+    memset(&sa, 0, sizeof(sa));
     SA_FAMILY(sa) = AF_INET;
     ((struct sockaddr_in *)&sa)->sin_addr.s_addr = INADDR_BROADCAST;
 
-    memset(buf, 0, sizeof(buf));
     if (rev_ip) {
         if ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV4))) {
             strncpy(buf, rev_ip, suff - rev_ip);
@@ -124,10 +124,8 @@ struct sockaddr_storage forward_ip(char *rev_ip) {
         }
     }
 
-    sa = rev_addr(&sa);
-
+    sa = rev_addr(sa);
     printl(LOG_VERB, "Forward IP: [%s]", inet2str(&sa, buf));
-
     return sa;
 }
 
@@ -228,7 +226,7 @@ int dns_reply_nfound(unsigned int id, unsigned int typ, unsigned char *dnsq_raw,
     /* Fill in the header */
     dnsh = (dns_header *)rbuf;
     dnsh->id = id;
-    dnsh->flags = 0x8085;                                           /* Standard query response, No error */
+    dnsh->flags = 0x8385;                                           /* Standard query response, No such name */
     dnsh->qdcount = 0x0100;
     dnsh->ancount = 0x0000;
     dnsh->nscount = 0x0000;
