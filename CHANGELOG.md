@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2023.09.28    Current
+* 2023.09.28    ts-warp-1.3.9, gui-warp-1.0.11 (gui-warp-1.0.17-mac), ns-warp-1.0.7
   * `NS-Warp`: rolled-back to stable; fixed many errors; version bump; `README.md` update
   * MacOS GUI-WARP app: remove references to CLI configuration
   * ACT in `GUI-Warp` macOS port
