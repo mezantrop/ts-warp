@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2023.10.04    Current
+  * `socks.c`: Finish only client processes on Socks errors
   * `http.c`: `http_server_request()` reply the same protocol as in the request
 
 * 2023.09.28    ts-warp-1.3.9, gui-warp-1.0.11 (gui-warp-1.0.17-mac), ns-warp-1.0.7
