@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2023.10.04    Current
+  * `http.c`: `http_server_request()` reply the same protocol as in the request
+
 * 2023.09.28    ts-warp-1.3.9, gui-warp-1.0.11 (gui-warp-1.0.17-mac), ns-warp-1.0.7
   * `NS-Warp`: rolled-back to stable; fixed many errors; version bump; `README.md` update
   * MacOS GUI-WARP app: remove references to CLI configuration
