@@ -90,14 +90,14 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
 
     if (send(socket, &req, 8 + idlen + 1, 0) == -1) {
         printl(LOG_CRIT, "Unable to send a request to the Socks4 server");
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS4_REPLY_KO;
     }
 
     printl(LOG_VERB, "IPv4 Socks4 request sent");
 
     if ((rcount = recv(socket, &rep, sizeof(s4_reply), 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the Socks4 server");
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS4_REPLY_KO;
     }
 
     printl(LOG_VERB, "Socks4 reply: [%d][%d]:[%s], Bytes [%d]",
@@ -183,13 +183,13 @@ int socks5_client_auth(int socket, char *user, char *password) {
 
     if (send(socket, buf, 2 + idlen + 1 + pwlen, 0) == -1) {
         printl(LOG_CRIT, "Unable to send an auth request to the Socks5 server");
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS5_REPLY_KO;
     }
 
     memset(buf, 0, sizeof buf);
     if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server");
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS5_REPLY_KO;
     }
 
     rep = (s5_reply_auth *)buf;
@@ -238,7 +238,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         if (send(socket, req, sizeof(s5_request_ipv4), 0) == -1) {
             printl(LOG_CRIT, "Unable to send a request to the Socks5 server");
-            mexit(1, pfile_name, tfile_name);
+            return SOCKS5_REPLY_KO;
         }
 
         printl(LOG_VERB, "IPv4 Socks5 request sent");
@@ -255,7 +255,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         if (send(socket, req, 4 + sizeof(s5_request_ipv6), 0) == -1) {
             printl(LOG_CRIT, "Unable to send a request to the Socks server");
-            mexit(1, pfile_name, tfile_name);
+            return SOCKS5_REPLY_KO;
         }
 
         printl(LOG_VERB, "IPv6 Socks5 request sent");
@@ -277,14 +277,14 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         if (send(socket, req,  sizeof(s5_request_short) + 1 + atype_len + 2,  0) == -1) {
             printl(LOG_CRIT, "Unable to send a request to the Socks server");
-            mexit(1, pfile_name, tfile_name);
+            return SOCKS5_REPLY_KO;
         }
 
         printl(LOG_VERB, "NAME Socks5 request sent");
 
     } else {
         printl(LOG_CRIT, "Unsupported address types: [%d] is in the request", daddr->ss_family);
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS5_REPLY_KO;
     }
 
     printl(LOG_VERB, "Expecting Socks5 server reply");
@@ -295,7 +295,7 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
     /* 6 + atype_len: 6 is a SOCK5 header length - variable address field */
     if ((rcount = recv(socket, &buf, 6 + atype_len, 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server");
-        mexit(1, pfile_name, tfile_name);
+        return SOCKS5_REPLY_KO;
     }
 
     rep = (s5_reply_short *)buf;
