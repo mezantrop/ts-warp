@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.10.04    Current
+* 2023.10.05    Current
+  * `http.c`: `http_server_request()` special buffer for replies
+  * `gui-warp.app`: Create missed leafs of configuration directory tree if they are not exist
   * `socks.c`: Finish only client processes on Socks errors
   * `http.c`: `http_server_request()` reply the same protocol as in the request
 
