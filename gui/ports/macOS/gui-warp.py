@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.17-mac'
+        self.version = 'v1.0.18-mac'
         self.width = width
         self.height = height
 
@@ -348,12 +348,16 @@ if __name__ == "__main__":
 
     if not os.path.exists(prefix):                      # Create ts-warp dir + subdirs in home
         os.makedirs(prefix + 'etc/')
-        os.makedirs(prefix + 'var/log/')
-        os.makedirs(prefix + 'var/run/')
-        os.makedirs(prefix + 'var/spool/ts-warp/')
-        
-        shutil.copyfile('./ts-warp.ini', inifile)       # Install sam ple INI
+        shutil.copyfile('./ts-warp.ini', inifile)       # Install sample  INI
         os.chmod(inifile, 0o600)
+    if not os.path.exists(prefix + 'etc/'):
+        os.makedirs(prefix + 'etc/')
+    if not os.path.exists(prefix + 'var/log/'):
+        os.makedirs(prefix + 'var/log/')
+    if not os.path.exists(prefix + 'var/run/'):
+        os.makedirs(prefix + 'var/run/')
+    if not os.path.exists(prefix + 'var/spool/ts-warp/'):
+        os.makedirs(prefix + 'var/spool/ts-warp/')
 
     if not os.path.exists(fwfile):
         with open(fwfile, "w") as outfw:

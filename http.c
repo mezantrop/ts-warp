@@ -42,6 +42,7 @@ extern char *pfile_name;
 /* ------------------------------------------------------------------------------------------------------------------ */
 int http_server_request(int socket, struct uvaddr *daddr) {
     char buf[64 * BUF_SIZE_1KB] = {0};
+    char rbuf[STR_SIZE] = {0};
 
     int rcount;
     char *method = NULL, *url = NULL, *proto = NULL;
@@ -79,8 +80,8 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     else SIN6_PORT(daddr->ip_addr) = port;
 
     /* TODO: Check connection; Reply real status */
-    snprintf(buf, sizeof(buf), "%s %s OK\r\nProxy-agent: %s\r\n\r\n", proto, HTTP_RESPONSE_200, PROG_NAME_FULL);
-    if (send(socket, buf, strlen(buf), 0) == -1) {
+    snprintf(rbuf, sizeof(rbuf), "%s %s OK\r\nProxy-agent: %s\r\n\r\n", proto, HTTP_RESPONSE_200, PROG_NAME_FULL);
+    if (send(socket, rbuf, strlen(rbuf), 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the HTTP client");
         return 1;
     }
