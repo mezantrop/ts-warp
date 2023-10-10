@@ -1,6 +1,9 @@
 # CHANGELOG
 
-* 2023.10.05    Current
+* 2023.10.10    ts-warp-1.4.0, gui-warp-1.0.11 (gui-warp-v1.0.18-mac), ns-warp-1.0.7
+  * `ts-warp`: Incompatible to previous versions, CLI options for connections: `-T` Transparent, `-S` Socks, `-H` HTTP
+  * `ts-warp`: Taransparent connections port: 10800, Internal Socks server port: 7080, Internal HTTP server port: 8080
+  * `http.c`: Internal HTTP proxy fixes
   * `http.c`: `http_server_request()` special buffer for replies
   * `gui-warp.app`: Create missed leafs of configuration directory tree if they are not exist
   * `socks.c`: Finish only client processes on Socks errors

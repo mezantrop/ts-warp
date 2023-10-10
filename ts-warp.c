@@ -80,33 +80,33 @@ char *lfile_name = LOG_FILE_NAME;
 char *tfile_name = ACT_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
-int cn = 1;                                                         /* Active clients number */
-pid_t pid, mpid;                                                    /* Current and main daemon PID */
-struct pid_list *pids = NULL;                                       /* List of active clients with PIDs and Sections */
-int Ssock, Hsock, isock, ssock, csock;                              /* Sockets for Internal-Socks&HTTP/in/out/clients */
-ini_section *ini_root;                                              /* Root section of the INI-file */
+int cn = 1;                                         /* Active clients number */
+pid_t pid, mpid;                                    /* Current and main daemon PID */
+struct pid_list *pids = NULL;                       /* List of active clients with PIDs and Sections */
+int Tsock, Ssock, Hsock, isock, ssock, csock;       /* Sockets for Transparent/Internal-Socks&HTTP/in/out/clients */
+ini_section *ini_root;                              /* Root section of the INI-file */
 
 #if !defined(linux)
-    int pfd;                                                        /* PF device-file on *BSD */
+    int pfd;                                        /* PF device-file on *BSD */
 #endif
 
-int msgid;                                                          /* Message Queue ID */
-int tfd = -1;                                                       /* Traffic log file descriptor */
+int msgid;                                          /* Message Queue ID */
+int tfd = -1;                                       /* Traffic log file descriptor */
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int main(int argc, char* argv[]) {
 /* Usage:
 Usage:
-  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
 
 Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -S IP:Port      Local IP address and port for incoming Socks requests
-  -H IP:Port      Local IP address and port for incoming HTTP requests
-  -c file.ini     Configuration file
+  -T IP:Port      Local IP address and port for incoming Transparent requests
+  -S IP:Port      Local IP address and port for internal Socks server
+  -H IP:Port      Local IP address and port for internal HTTP server
 
   -l file.log     Main log filename
   -v 0..4         Log verbosity level: 0 - off, default: 3
@@ -121,10 +121,12 @@ All parameters are optional:
   -h              This message */
 
     int flg;                                                            /* Command-line options flag */
-    char *iaddr = LISTEN_DEFAULT;                                       /* Internal Socks address and... */
-    char *iport = LISTEN_SOCKS_PORT;                                    /* ...a port to accept clients */
-    char *Haddr = LISTEN_DEFAULT;                                       /* Internal HTTP address and... */
-    char *Hport = LISTEN_HTTP_PORT;                                     /* ...a port to accept clients */
+    char *taddr = LISTEN_DEFAULT;                                       /* Our address and... */
+    char *tport = LISTEN_TRANS_PORT;                                    /* ...a port to accept clients */
+    char *saddr = LISTEN_DEFAULT;                                       /* Internal Socks address and... */
+    char *sport = LISTEN_SOCKS_PORT;                                    /* ...a port to accept clients */
+    char *haddr = LISTEN_DEFAULT;                                       /* Internal HTTP address and... */
+    char *hport = LISTEN_HTTP_PORT;                                     /* ...a port to accept clients */
 
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
@@ -135,7 +137,7 @@ All parameters are optional:
         char *runas_user = RUNAS_USER;                                  /* A user to run ts-warp */
     #endif
 
-    struct addrinfo ihints, *ires = NULL, *hres = NULL;                 /* TS-Warp incoming addresses info structures */
+    struct addrinfo thints, *tres = NULL, *sres = NULL, *hres = NULL;   /* TS-Warp incoming addresses info structures */
     ini_section *s_ini = NULL;                                          /* Current section of the INI-file */
 
     struct sockaddr_storage caddr;                                      /* Client address */
@@ -162,16 +164,21 @@ All parameters are optional:
     struct ini_section *push_ini = NULL;                                /* variables */
 
 
-    while ((flg = getopt(argc, argv, "S:H:c:l:v:t:dp:fu:h")) != -1)
+    while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:h")) != -1)
         switch(flg) {
+            case 'T':                                                   /* Internal Transparent server IP/name */
+                taddr = strsep(&optarg, ":");                           /* IP:PORT */
+                if (optarg) tport = optarg;
+            break;
+
             case 'S':                                                   /* Internal Socks server IP/name */
-                iaddr = strsep(&optarg, ":");                           /* IP:PORT */
-                if (optarg) iport = optarg;
+                saddr = strsep(&optarg, ":");                           /* IP:PORT */
+                if (optarg) sport = optarg;
             break;
 
             case 'H':                                                   /* Internal HTTP server IP/name */
-                Haddr = strsep(&optarg, ":");                           /* IP:PORT */
-                if (optarg) iport = optarg;
+                haddr = strsep(&optarg, ":");                           /* IP:PORT */
+                if (optarg) tport = optarg;
             break;
 
             case 'c':                                                   /* INI-file */
@@ -219,10 +226,12 @@ All parameters are optional:
                 (void)usage(0);
         }
 
-    if (!iaddr[0]) iaddr = LISTEN_DEFAULT;
-    if (!iport[0]) iport = LISTEN_SOCKS_PORT;
-    if (!Haddr[0]) Haddr = LISTEN_DEFAULT;
-    if (!Hport[0]) Hport = LISTEN_HTTP_PORT;
+    if (!taddr[0]) taddr = LISTEN_DEFAULT;
+    if (!tport[0]) tport = LISTEN_TRANS_PORT;
+    if (!saddr[0]) haddr = LISTEN_DEFAULT;
+    if (!sport[0]) hport = LISTEN_SOCKS_PORT;
+    if (!haddr[0]) haddr = LISTEN_DEFAULT;
+    if (!hport[0]) hport = LISTEN_HTTP_PORT;
 
     /* -- Open log-files -------------------------------------------------------------------------------------------- */
     if (!d_flg && !l_flg) {
@@ -237,7 +246,10 @@ All parameters are optional:
         }
         printl(LOG_INFO, "Log file: [%s], verbosity level: [%d]", lfile_name, loglevel);
     }
-    printl(LOG_INFO, "ts-warp incoming address: [%s:%s]", iaddr, iport);
+
+    printl(LOG_INFO, "ts-warp incoming Transparent address: [%s:%s]", taddr, tport);
+    printl(LOG_INFO, "ts-warp Internal Socks address: [%s:%s]", saddr, sport);
+    printl(LOG_INFO, "ts-warp Internal HTTP address: [%s:%s]", haddr, hport);
 
     if (mkfifo(tfile_name, S_IFIFO|S_IRWXU|S_IRGRP|S_IROTH) == -1 && errno != EEXIST)
         printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
@@ -300,30 +312,42 @@ All parameters are optional:
     #endif
 
     /* -- Try validating our address for incoming connections ------------------------------------------------------- */
-    memset(&ihints, 0, sizeof ihints);
-    ihints.ai_family = PF_UNSPEC;
-    ihints.ai_socktype = SOCK_STREAM;
-    ihints.ai_flags = AI_PASSIVE;
-    if ((ret = getaddrinfo(iaddr, iport, &ihints, &ires)) > 0) {
-        printl(LOG_CRIT, "Error resolving ts-warp Socks address [%s]: %s", iaddr, gai_strerror(ret));
+    memset(&thints, 0, sizeof(thints));
+    thints.ai_family = PF_UNSPEC;
+    thints.ai_socktype = SOCK_STREAM;
+    thints.ai_flags = AI_PASSIVE;
+
+    if ((ret = getaddrinfo(taddr, tport, &thints, &tres)) > 0) {
+        printl(LOG_CRIT, "Error resolving ts-warp Transparent address [%s]: %s", taddr, gai_strerror(ret));
+        mexit(1, pfile_name, tfile_name);
+    }
+    printl(LOG_INFO, "ts-warp Transparent address [%s] succesfully resolved to [%s]",
+        taddr, inet2str((struct sockaddr_storage *)(tres->ai_addr), buf));
+
+    if ((ret = getaddrinfo(saddr, sport, &thints, &sres)) > 0) {
+        printl(LOG_CRIT, "Error resolving ts-warp Socks address [%s]: %s", saddr, gai_strerror(ret));
         mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "ts-warp Socks address [%s] succesfully resolved to [%s]",
-        iaddr, inet2str((struct sockaddr_storage *)(ires->ai_addr), buf));
+        saddr, inet2str((struct sockaddr_storage *)(sres->ai_addr), buf));
 
-    if ((ret = getaddrinfo(Haddr, Hport, &ihints, &hres)) > 0) {
-        printl(LOG_CRIT, "Error resolving ts-warp HTTP address [%s]: %s", Haddr, gai_strerror(ret));
+    if ((ret = getaddrinfo(haddr, hport, &thints, &hres)) > 0) {
+        printl(LOG_CRIT, "Error resolving ts-warp HTTP address [%s]: %s", haddr, gai_strerror(ret));
         mexit(1, pfile_name, tfile_name);
     }
     printl(LOG_INFO, "ts-warp HTTP address [%s] succesfully resolved to [%s]",
-        Haddr, inet2str((struct sockaddr_storage *)(hres->ai_addr), buf));
-
+        haddr, inet2str((struct sockaddr_storage *)(hres->ai_addr), buf));
 
     ini_root = read_ini(ifile_name);
     show_ini(ini_root, LOG_VERB);
 
     /* -- Create sockets for incoming connections ------------------------------------------------------------------- */
-    if ((Ssock = socket(ires->ai_family, ires->ai_socktype, ires->ai_protocol)) == -1) {
+    if ((Tsock = socket(tres->ai_family, tres->ai_socktype, tres->ai_protocol)) == -1) {
+        printl(LOG_CRIT, "Error creating a socket for Transparent incoming connections");
+        mexit(1, pfile_name, tfile_name);
+    }
+
+    if ((Ssock = socket(sres->ai_family, sres->ai_socktype, sres->ai_protocol)) == -1) {
         printl(LOG_CRIT, "Error creating a socket for Socks incoming connections");
         mexit(1, pfile_name, tfile_name);
     }
@@ -334,6 +358,7 @@ All parameters are optional:
     }
 
     /* Internal servers to be non-blocking, so we can check which one acceps connection */
+    fcntl(Tsock, F_SETFL, O_NONBLOCK);
     fcntl(Ssock, F_SETFL, O_NONBLOCK);
     fcntl(Hsock, F_SETFL, O_NONBLOCK);
     printl(LOG_VERB, "Sockets for incoming connections created");
@@ -341,6 +366,9 @@ All parameters are optional:
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
+        if (setsockopt(Tsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Transparent connections");
+        else printl(LOG_INFO, "TCP_NODELAY option for Transparent socket enabled");
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Socks incoming connections");
         else printl(LOG_INFO, "TCP_NODELAY option for Socks socket enabled");
@@ -350,6 +378,8 @@ All parameters are optional:
     #endif
 
     int keepalive_opt = 1;
+    if (setsockopt(Tsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Transparent connections");
     if (setsockopt(Ssock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Socks incoming connections");
     if (setsockopt(Hsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
@@ -358,6 +388,8 @@ All parameters are optional:
     #if !defined(__OpenBSD__)
         #if !defined(__APPLE__)
             keepalive_opt = TCP_KEEPIDLE_S;
+            if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Transparent connections");
             if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
                 printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Socks incoming connections");
             if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
@@ -365,12 +397,14 @@ All parameters are optional:
         #endif
 
         keepalive_opt = TCP_KEEPCNT_N;
-        if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Socks incoming connections");
+        if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Transparent connections");
         if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for HTTP incoming connections");
 
         keepalive_opt = TCP_KEEPINTVL_S;
+        if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Transparent connections");
         if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
             printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Socks incoming connections");
         if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
@@ -378,14 +412,23 @@ All parameters are optional:
     #endif          /* __OpenBSD__ */
 
     int raddr = 1;
+    if (setsockopt(Tsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+        printl(LOG_WARN, "Error setting Transparent connections socket to be reusable");
     if (setsockopt(Ssock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting Socks incomming socket to be reusable");
     if (setsockopt(Hsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
         printl(LOG_WARN, "Error setting HTTP incomming socket to be reusable");
 
     /* -- Bind incoming connection sockets -------------------------------------------------------------------------- */
-    if (bind(Ssock, ires->ai_addr, ires->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding socket for Socks incoming connections");
+    if (bind(Tsock, tres->ai_addr, tres->ai_addrlen) < 0) {
+        printl(LOG_CRIT, "Error binding socket for Transparent incoming connections");
+        close(Tsock);
+        mexit(1, pfile_name, tfile_name);
+    }
+    printl(LOG_VERB, "The socket for Transparent connections succesfully bound");
+
+    if (bind(Ssock, sres->ai_addr, sres->ai_addrlen) < 0) {
+        printl(LOG_CRIT, "Error binding socket for Socks incoming connections connections");
         close(Ssock);
         mexit(1, pfile_name, tfile_name);
     }
@@ -399,6 +442,13 @@ All parameters are optional:
     printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
 
     /* -- Start listening for clients ------------------------------------------------------------------------------- */
+    if (listen(Tsock, SOMAXCONN) == -1) {
+        printl(LOG_CRIT, "Error listening the socket for Transparent connections");
+        close(Tsock);
+        mexit(1, pfile_name, tfile_name);
+    }
+    printl(LOG_INFO, "Listening for Transparent connections");
+
     if (listen(Ssock, SOMAXCONN) == -1) {
         printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
         close(Ssock);
@@ -420,12 +470,13 @@ All parameters are optional:
     /* -- Process clients ------------------------------------------------------------------------------------------- */
     while (1) {
         FD_ZERO(&sfd);
+        FD_SET(Tsock, &sfd);
         FD_SET(Ssock, &sfd);
         FD_SET(Hsock, &sfd);
 
         tv.tv_sec = 0;
         tv.tv_usec = 10000;
-        ret = select(Hsock > Ssock ? Hsock + 1 : Ssock + 1, &sfd, NULL, NULL, &tv);
+        ret = select(Hsock + 1, &sfd, NULL, NULL, &tv);
         if (ret < 0) continue;                                          /* On an error skip to the next iteration */
         if (ret == 0) {                                                 /* Timeout - no new connections */
             if (msgid != -1 && msgrcv(msgid, &tmessage, sizeof(tmessage), 1, IPC_NOWAIT) != -1)
@@ -437,7 +488,9 @@ All parameters are optional:
             pidlist_update_traffic(pids, tmessage.mtext);
 
         /* Check which of the internal servers has a pending connection */
-        isock = FD_ISSET(Ssock, &sfd) ? Ssock : Hsock;
+        if (FD_ISSET(Tsock, &sfd)) isock = Tsock; else
+            if (FD_ISSET(Ssock, &sfd)) isock = Ssock; else
+                isock = Hsock;
 
         caddrlen = sizeof caddr;
         memset(&caddr, 0, caddrlen);
@@ -462,7 +515,7 @@ All parameters are optional:
             ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr_len);
         #else
             /* On *BSD with PF */
-            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)ires->ai_addr, &daddr.ip_addr);
+            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)tres->ai_addr, &daddr.ip_addr);
         #endif
         if (ret) {
             printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
@@ -523,26 +576,27 @@ All parameters are optional:
 
             if (!s_ini) {
                 /* -- No proxy server found for the destination IP -------------------------------------------------- */
-                printl(LOG_INFO, "No proxy server is defined for the destination: [%s]",
-                    inet2str(&daddr.ip_addr, buf));
+                printl(LOG_INFO, "No proxy server is defined for the destination: [%s]", inet2str(&daddr.ip_addr, buf));
 
-                if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*tres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
-                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*tres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
+                    (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*sres->ai_addr)) ||
+                    (daddr.ip_addr.ss_family == AF_INET6 &&
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
                     (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
                         !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
-
-                    /* Desination address:port is the same as ts-warp incominig (Socks or HTTP) ip:port, i.e., a client
-                    contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as proxy server */
+                    /* Desination address:port is the same as ts-warp incominig (Taransparent, Socks or HTTP) ip:port,
+                    i.e., a client contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as
+                    proxy server */
                     printl(LOG_WARN, "Dropping loop connection with ts-warp");
                     close(csock);
                     exit(1);
                 }
 
                 /*  -- Direct connection with the destination address bypassing proxy ------------------------------- */
-                printl(LOG_INFO, "Making direct connection with the destination address: [%s]",
-                    inet2str(&daddr.ip_addr, buf));
+                printl(LOG_INFO, "Making direct connection with the destination: [%s]", inet2str(&daddr.ip_addr, buf));
 
                 if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                     printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr.ip_addr, buf));
@@ -558,12 +612,13 @@ All parameters are optional:
                 /* -- Internal TS-Warp proxy servers ---------------------------------------------------------------- */
                 if (isock == Ssock) {
                     /* -- Internal Socks5 server with AUTH_METHOD_NOAUTH support only ------------------------------- */
+                    close(Tsock);
                     close(Ssock);
                     close(Hsock);
 
-                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
-                        (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
-                            S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*sres->ai_addr)) ||
+                        (daddr.ip_addr.ss_family == AF_INET6 &&
+                            !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                         /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
                         ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
@@ -583,8 +638,8 @@ All parameters are optional:
 
                         s_ini = ini_look_server(ini_root, daddr);
                         if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
-                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
-                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
+                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*sres->ai_addr) : \
+                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*sres->ai_addr))) {
 
                             printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
@@ -596,14 +651,14 @@ All parameters are optional:
                                 /* Replying Error to Socks5 client */
                                 printl(LOG_VERB, "Replying the client, Internal Socks5 can't reach desination: [%s]",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                                socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_KO);
+                                socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_KO);
                                 close(csock);
                                 exit(1);
                             } else {
                                 /* Replying OK to Socks5 client */
                                 printl(LOG_VERB, "Replying the client, Internal Socks5 can reach desination: [%s]",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                                socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_OK);
+                                socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_OK);
                             }
 
                             goto cfloop;
@@ -616,18 +671,19 @@ All parameters are optional:
                                 printl(LOG_VERB,
                                     "Replying Socks5 client [OK], the desination: [%s] is managed by external proxy",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                            socks5_server_reply(csock, (struct sockaddr_storage *)(ires->ai_addr), SOCKS5_REPLY_OK);
+                            socks5_server_reply(csock, (struct sockaddr_storage *)(tres->ai_addr), SOCKS5_REPLY_OK);
                         }
                         /* Pass the client to external Socks-servers - proxy forwarding */
                     }
                 } else
                     if (isock == Hsock) {
                         /* -- Internal HTTP server  ----------------------------------------------------------------- */
+                        close(Tsock);
                         close(Ssock);
                         close(Hsock);
-                        if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*ires->ai_addr)) ||
+                        if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
                             (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
-                                S6_ADDR(*ires->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                                S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                             /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
                             ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
@@ -641,8 +697,8 @@ All parameters are optional:
 
                             s_ini = ini_look_server(ini_root, daddr);
                             if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
-                                S4_ADDR(s_ini->proxy_server) == S4_ADDR(*ires->ai_addr) : \
-                                S6_ADDR(s_ini->proxy_server) == S6_ADDR(*ires->ai_addr))) {
+                                S4_ADDR(s_ini->proxy_server) == S4_ADDR(*hres->ai_addr) : \
+                                S6_ADDR(s_ini->proxy_server) == S6_ADDR(*hres->ai_addr))) {
 
                                 printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
@@ -662,8 +718,16 @@ All parameters are optional:
                                     daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
                         }
 
-                } else
-                    break;
+                    } else
+                        if (isock == Tsock) {
+                            close(Tsock);
+                            close(Ssock);
+                            close(Hsock);
+                            printl(LOG_INFO, "Serving request to [%s : %s] as Transparent, section: [%s]",
+                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
+                        }
+                        else
+                            break;
 
             /* -- Start proxy forwarding ---------------------------------------------------------------------------- */
             if (s_ini->p_chain) {
@@ -1010,7 +1074,10 @@ All parameters are optional:
             exit(0);
         }
     }
-    freeaddrinfo(ires);
+
+    freeaddrinfo(tres);
+    freeaddrinfo(sres);
+    freeaddrinfo(hres);
     return 0;
 }
 
@@ -1033,8 +1100,12 @@ void trap_signal(int sig) {
         case SIGQUIT:
         case SIGTERM:
             if (getpid() == mpid) {                                 /* The main daemon */
+                shutdown(Tsock, SHUT_RDWR);
+                close(Tsock);
                 shutdown(Ssock, SHUT_RDWR);
                 close(Ssock);
+                shutdown(Hsock, SHUT_RDWR);
+                close(Hsock);
                 #if !defined(linux)
                     pf_close(pfd);
                 #endif
@@ -1075,12 +1146,13 @@ void trap_signal(int sig) {
 void usage(int ecode) {
 #if !defined(__APPLE__)
     printf("Usage:\n\
-  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h\n\n\
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -S IP:Port\t    Local IP address and port for incoming Socks requests\n\
-  -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
+  -T IP:Port\t    Local IP address and port for incoming Transparent requests\n\
+  -S IP:Port\t    Local IP address and port for internal Socks server\n\
+  -H IP:Port\t    Local IP address and port for internal HTTP server\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
   -l file.log\t    Main log filename, default: %s\n\
@@ -1097,12 +1169,13 @@ All parameters are optional:\n\
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
 #else
     printf("Usage:\n\
-  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -h\n\n\
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -S IP:Port\t    Local IP address and port for incoming Socks requests\n\
-  -H IP:Port\t    Local IP address and port for incoming HTTP requests\n\
+  -T IP:Port\t    Local IP address and port for incoming Transparent requests\n\
+  -S IP:Port\t    Local IP address and port for internal Socks server\n\
+  -H IP:Port\t    Local IP address and port for internal HTTP server\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
   -l file.log\t    Main log filename, default: %s\n\
