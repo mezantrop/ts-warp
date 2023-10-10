@@ -217,15 +217,15 @@ All the ts-warp command-line options can be listed using `$ ts-warp -h`:
 
 ```sh
 Usage:
-  ts-warp -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
 
 Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -S IP:Port      Local IP address and port for incoming Socks requests
-  -H IP:Port      Local IP address and port for incoming HTTP requests
-  -c file.ini     Configuration file
+  -T IP:Port      Local IP address and port for incoming Transparent requests
+  -S IP:Port      Local IP address and port for internal Socks server
+  -H IP:Port      Local IP address and port for internal HTTP server
 
   -l file.log     Main log filename
   -v 0..4         Log verbosity level: 0 - off, default: 3
