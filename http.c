@@ -43,16 +43,21 @@ extern char *pfile_name;
 int http_server_request(int socket, struct uvaddr *daddr) {
     char buf[64 * BUF_SIZE_1KB] = {0};
     char rbuf[STR_SIZE] = {0};
+    int l = 0;
 
     int rcount;
     char *method = NULL, *url = NULL, *proto = NULL;
     char host[HOST_NAME_MAX] = {0};
     uint16_t port = 80;
 
-
-    if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
+    if ((rcount = recv(socket, &buf, sizeof(buf), 0)) == -1) {
         /* Quit immediately; no reply to the client */
         printl(LOG_WARN, "Unable to receive a request from the HTTP client");
+        return 1;
+    }
+
+    if (memcmp(HTTP_REQUEST_METHOD_CONNECT, &buf, strlen(HTTP_REQUEST_METHOD_CONNECT))) {
+        printl(LOG_WARN, "Incorrect HTTP method in the request");
         return 1;
     }
 
@@ -72,7 +77,6 @@ int http_server_request(int socket, struct uvaddr *daddr) {
                         return 1;
                     }
 
-
     /* TODO: Validate the request */
     strcpy(daddr->name, host);
     daddr->ip_addr = str2inet(daddr->name, NULL);
@@ -80,16 +84,14 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     else SIN6_PORT(daddr->ip_addr) = port;
 
     /* TODO: Check connection; Reply real status */
-    snprintf(rbuf, sizeof(rbuf), "%s %s OK\r\nProxy-agent: %s\r\n\r\n", proto, HTTP_RESPONSE_200, PROG_NAME_FULL);
-    if (send(socket, rbuf, strlen(rbuf), 0) == -1) {
+    l = snprintf(rbuf, sizeof(rbuf), "%s %s OK\r\nProxy-agent: %s\r\n\r\n", proto, HTTP_RESPONSE_200, PROG_NAME_FULL);
+    if (l < 1 || send(socket, rbuf, l, 0) == -1) {
         printl(LOG_CRIT, "Unable to send reply to the HTTP client");
         return 1;
     }
 
-
-    printl(LOG_VERB, "HTTP REQUEST: URL: [%s] METHOD: [%s], HOST: [%s], PORT: [%hu], PROTO: [%s]",
+    printl(LOG_VERB, "INTERNAL HTTP got REQUEST: URL: [%s] METHOD: [%s], HOST: [%s], PORT: [%hu], PROTO: [%s]",
         url, method, host, port, proto);
-
 
     return 0;
 }
@@ -102,21 +104,23 @@ int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
     char *usr_pwd_base64;
     char *proto = NULL, *status = NULL, *reason = NULL;
     int rcount = 0;
+    int l = 0;
 
 
     /* Request startline: CONNECT address:port PROTOCOL */
     if (user && password) {
         sprintf(usr_pwd_plain, "%s:%s", user, password);
         base64_strenc(&usr_pwd_base64, usr_pwd_plain);
-        sprintf(r, "%s %s %s\r\n%s %s\r\n\r\n",
+        l = snprintf(r, sizeof(r), "%s %s %s\r\n%s %s\r\n\r\n",
             HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL,
             HTTP_HEADER_PROXYAUTH_BASIC, usr_pwd_base64);
     } else
-        sprintf(r, "%s %s %s\r\n\r\n", HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL);
+        l = snprintf(r, sizeof(r), "%s %s %s\r\n\r\n",
+            HTTP_REQUEST_METHOD_CONNECT, inet2str(daddr, b), HTTP_REQEST_PROTOCOL);
 
     printl(LOG_VERB, "Sending HTTP %s request", HTTP_REQUEST_METHOD_CONNECT);
 
-    if (send(socket, r, strlen(r), 0) == -1) {
+    if (send(socket, r, l, 0) == -1) {
         printl(LOG_CRIT, "Unable to send a request to the HTTP server");
         mexit(1, pfile_name, tfile_name);
     }
@@ -134,7 +138,7 @@ int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
     status = strtok(NULL, " \t\r\n");
     reason = strtok(NULL, " \t\r\n");
 
-    printl(LOG_VERB, "HTTP RESPONSE: PROTO: [%s] STATUS: [%s], REASON: [%s]", proto, status, reason);
+    printl(LOG_VERB, "External HTTP send RESPONSE: PROTO: [%s] STATUS: [%s], REASON: [%s]", proto, status, reason);
 
     if (strcmp(status, HTTP_RESPONSE_200)) {
         printl(LOG_INFO, "Non-succesful responce [%s] from the HTTP server", status);
