@@ -87,7 +87,7 @@ char *xencrypt(char *xkey, char *prefix, char *text) {
 char *xdecrypt(char *hex_hash, char *prefix) {
     char *int_hash = NULL, *xkey = NULL, *pref = NULL, *text = NULL, *s = NULL;
     int hash_len = 0, pref_len = 0;
-    char ch[2];
+    char ch[3] = {0};                                                   /* ch[2] is for NULL-terminated string */
     int xkey_len = 0, b = 0;
 
     if (!hex_hash) return NULL;

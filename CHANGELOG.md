@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2023.10.18    Current
+  * `xedec.c`: Hex hash conversion fix
+
 * 2023.10.10    ts-warp-1.4.0, gui-warp-1.0.11 (gui-warp-v1.0.18-mac), ns-warp-1.0.7
   * `ts-warp`: Incompatible to previous versions, CLI options for connections: `-T` Transparent, `-S` Socks, `-H` HTTP
   * `ts-warp`: Transparent connections port: `10800`, Internal Socks server port: `7080`, Internal HTTP server: `8080`
