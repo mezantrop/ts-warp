@@ -53,7 +53,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.18-mac'
+        self.version = 'v1.0.19-mac'
         self.width = width
         self.height = height
 
@@ -278,7 +278,7 @@ class App:
                 stdin=subprocess.PIPE)
             sout, serr = gwp.communicate(self.password)
         else:
-            gwp = subprocess.Popen([runcmd, command, prefix + '/etc', '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
+            gwp = subprocess.Popen([runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
 
     def ask_password(self):
         padx = 10

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.10.18    Current
+* 2023.10.25    Current
+  * `gui-warp.app`: Staring with `sudo` fix
   * `xedec.c`: Hex hash conversion fix
 
 * 2023.10.10    ts-warp-1.4.0, gui-warp-1.0.11 (gui-warp-v1.0.18-mac), ns-warp-1.0.7
