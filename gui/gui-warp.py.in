@@ -50,11 +50,12 @@ class App:
                  inifile='/usr/local/etc/ts-warp.ini',
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
-                 pidfile='/usr/local/var/run/ts-warp.pid'):
+                 pidfile='/usr/local/var/run/ts-warp.pid',
+                 url_new_vesrsion=''):
 
         self.password = ''
 
-        self.version = 'v1.0.11'
+        self.version = 'v1.0.14'
         self.width = width
         self.height = height
 
@@ -102,11 +103,13 @@ class App:
 
         # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
         tabControl = ttk.Notebook(self.root)
+        tab_about = ttk.Frame(tabControl)
         tab_ini = ttk.Frame(tabControl)
         tab_fw = ttk.Frame(tabControl)
         tab_log = ttk.Frame(tabControl)
         tab_act = ttk.Frame(tabControl)
 
+        tabControl.add(tab_about, text='About')
         tabControl.add(tab_ini, text='INI')
         tabControl.add(tab_fw, text='FW')
         tabControl.add(tab_log, text='Log')
@@ -128,7 +131,8 @@ class App:
         btn_tswhash = ttk.Button(frm_tab_ini_top, text='Password hash')
         btn_tswhash.grid(column=0, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.tswhash = tk.StringVar()
-        self.ent_tswhash = ttk.Entry(frm_tab_ini_top, textvariable=self.tswhash).grid(column=1, row=0, padx=3, sticky=tk.EW)
+        self.ent_tswhash = ttk.Entry(frm_tab_ini_top, textvariable=self.tswhash)
+        self.ent_tswhash.grid(column=1, row=0, padx=3, sticky=tk.EW)
         btn_tswhash['command'] = lambda: self.tswhash.set(
             'tsw01:' + subprocess.Popen([prefix + '/bin/ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
@@ -206,6 +210,50 @@ class App:
 
         tree_act.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
 
+        # -- Tab About ----------------------------------------------------------------------------------------------- #
+        import webbrowser
+
+        tab_about.columnconfigure(0, weight=1)
+        tab_about.rowconfigure(0, weight=0)
+        tab_about.rowconfigure(1, weight=0)
+        tab_about.rowconfigure(2, weight=0)
+        tab_about.rowconfigure(3, weight=0)
+        tab_about.rowconfigure(4, weight=1)
+
+        style_url = ttk.Style()
+        style_url.configure("URL.TLabel", foreground="blue")
+
+        about_text = 'TS-Warp - Transparent proxy server and traffic wrapper\n\
+It is a free and open-source software, but if you want to support it, please do'
+        
+        lbl_about = ttk.Label(tab_about, text=about_text)
+        lbl_about.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
+
+        img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
+        
+        lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=img_bmcoffee)
+        lbl_coffe.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        lbl_coffe.bind("<Button-1>", lambda e: webbrowser.open_new(url_supportus))
+
+        ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=1, sticky=tk.EW, columnspan=2, pady=self._pady)
+
+        btn_newv = ttk.Button(tab_about, text='Check for updates')
+        btn_newv.grid(column=0, row=2, sticky=tk.W)
+
+        lbl_newv = ttk.Label(tab_about, text='Not checked', cursor='hand2', style='URL.TLabel')
+        lbl_newv.grid(column=1, row=2, sticky=tk.W, padx=self._padx, pady=self._pady)
+        lbl_newv.bind("<Button-1>", lambda e: webbrowser.open_new(url_repository))
+
+        btn_newv['command'] = lambda: self.check_new_version(url_new_vesrsion, prefix, lbl_newv)
+
+        ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=3, sticky=tk.EW, columnspan=2, pady=self._pady)
+
+        lbl_contact_txt = ttk.Label(tab_about, text='Mikhail Zakharov, 2021-2023, BSD-2-Clause license')
+        lbl_contact_txt.grid(column=0, row=4, sticky=tk.SW, padx=self._padx, pady=self._pady)
+        lbl_contact_url = ttk.Label(tab_about, text='zmey20000@yahoo.com', style='URL.TLabel')
+        lbl_contact_url.grid(column=1, row=4, sticky=tk.SE, padx=self._padx, pady=self._pady)
+        lbl_contact_url.bind("<Button-1>", lambda e: webbrowser.open_new(url_contact))
+
         # -- Status bar ---------------------------------------------------------------------------------------------- #
         lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
         lfrm_bottom.grid(column=0, row=2, sticky=tk.EW)
@@ -217,6 +265,36 @@ class App:
 
         self.root.mainloop()
 
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def check_new_version(self, rvurl, prefix, t_widget):
+
+        import os
+        # import ssl
+        import urllib
+        import urllib.request
+
+
+        # ssl._create_default_https_context = ssl._create_unverified_context
+
+        try:
+            with urllib.request.urlopen(rvurl) as f:
+                rverl = [int(l.split()[2].strip('"'))
+                        for l in f.read().decode('utf-8').splitlines() if '#define PROG_VERSION_' in l]
+
+                rveri = int(f'{rverl[0]:03d}{rverl[1]:03d}{rverl[2]:03d}')
+        except:
+            t_widget['text'] = 'Failed to get information'
+
+        cver = os.popen('ts-warp -h').read().splitlines()
+        for n, l in enumerate(cver):
+            if l == 'Version:':
+                lverl = cver[n+1].split('-')[2].split('.')
+                lveri = int(f'{int(lverl[0]):03d}{int(lverl[1]):03d}{int(lverl[2]):03d}')
+                break
+
+        t_widget['text'] = f'Click here to download' if rveri - lveri > 0 else f'No update required'
+
+    # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
         if not self.pause_act:
             with open(pidfile, 'r') as pf:
@@ -236,6 +314,7 @@ class App:
         if refresh:
             self.root.after(5000, self.read_file_tree, t_widget, filename, refresh)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
         with open(filename, 'r') as f:
@@ -248,10 +327,12 @@ class App:
             if not self.pause_log:
                 self.root.after(3000, self.readfile, t_widget, filename, refresh)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def savefile(self, t_widget, filename):
         with open(filename, 'w') as f:
             f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def pauselog(self, btn, txt, filename):
         if self.pause_log:
             self.pause_log = False
@@ -261,6 +342,7 @@ class App:
             self.pause_log = True
             btn['text'] = '↭'                                           # Enable auto-refresh
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def pauseact(self, btn, tree, filename):
         if self.pause_act:
             self.pause_act = False
@@ -271,6 +353,7 @@ class App:
             btn['text'] = '▶'                                           # Enable auto-refresh
             self.read_file_tree(tree, filename, refresh=False)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def status(self, lbl, btn, pidfile):
         pf = None
         try:
@@ -288,6 +371,7 @@ class App:
 
         self.root.after(10000, self.status, lbl, btn, pidfile)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def run_script(self, command):
         if os.geteuid() != 0:
             gwp = subprocess.Popen(
@@ -297,6 +381,7 @@ class App:
         else:
             gwp = subprocess.Popen([runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def ask_password(self):
         padx = 10
         pady = 10
@@ -324,7 +409,7 @@ class App:
             self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
         else:
             # Ask for password and launch gui-warp.py
-            self.lbl_pwd = ttk.Label(self.win_pwd, text='Your password:')
+            self.lbl_pwd = ttk.Label(self.win_pwd, text='OS user password:')
             self.lbl_pwd.grid(column=0, row=0, sticky=tk.EW, padx=padx, pady=pady)
 
             self.pwd = tk.StringVar()
@@ -336,6 +421,7 @@ class App:
             self.btn_enter['command'] = lambda: self.get_password()
             self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=padx, pady=pady)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
     def get_password(self):
         gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
         sout, serr = gwp.communicate(self.pwd.get().encode())
@@ -353,6 +439,11 @@ class App:
 
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
+    url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
+    url_repository = 'https://github.com/mezantrop/ts-warp'
+    url_supportus = 'https://www.buymeacoffee.com/mezantrop'
+    url_contact = 'mailto:zmey20000@yahoo.com'
+
     ini = configparser.ConfigParser()
     prefix = "/usr/local"
     ini.read(prefix + '/etc/gui-warp.ini')
@@ -364,6 +455,8 @@ if __name__ == "__main__":
     pidfile = prefix + '/var/run/ts-warp.pid'
     actfile = prefix + '/var/spool/ts-warp/ts-warp.act'
 
+
+
     if 'GUI-WARP' in ini.sections():
         runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
         inifile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['inifile']
@@ -372,4 +465,6 @@ if __name__ == "__main__":
         pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
         actfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['actfile']
 
-    app = App(runcmd=runcmd, inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile)
+    app = App(runcmd=runcmd,
+              inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile,
+              url_new_vesrsion=url_new_vesrsion)
