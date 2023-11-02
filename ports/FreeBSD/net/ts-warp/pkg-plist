@@ -1,0 +1,10 @@
+bin/ts-pass
+bin/ts-warp
+etc/rc.d/ts-warp.sh
+%%ETCDIR%%.ini
+%%ETCDIR%%_pf_freebsd.conf
+man/man1/ts-pass.1.gz
+man/man1/ts-warp.sh.1.gz
+man/man5/ts-warp.5.gz
+man/man8/ts-warp.8.gz
+
