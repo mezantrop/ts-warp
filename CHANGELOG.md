@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2023.11.02    Current
+  * FreeBSD port added
   * `README.md`: minor updates
   * `gui-warp`: `About` tab, many little fixes
   * `gui-warp.app`: `sudo` fix
