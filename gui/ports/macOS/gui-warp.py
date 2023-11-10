@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.21-mac'
+        self.version = 'v1.0.22-mac'
         self.width = width
         self.height = height
 
@@ -62,6 +62,9 @@ class App:
         self._padx = 2
         self._pady = 4
         self._btnw = 2                                                  # Button width
+
+        self.log_size = 0                                               # logfile and pidfile size / timestamps
+        self.pid_time = 0                                               # for file-refreshing
 
         # -- GUI ----------------------------------------------------------------------------------------------------- #
         self.root = tk.Tk()
@@ -297,14 +300,17 @@ It is a free and open-source software, but if you want to support it, please do'
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
         with open(filename, 'r', encoding='utf8') as f:
-            t_widget.delete(1.0, tk.END)
-            t_widget.insert(tk.END, ''.join(f.readlines()))
-            t_widget.see(tk.END)
+            sz = os.path.getsize(filename)
+            if sz > self.log_size:
+                self.log_size = sz
+                t_widget.delete(1.0, tk.END)
+                t_widget.insert(tk.END, ''.join(f.readlines()))
+                t_widget.see(tk.END)
 
         if refresh:
             t_widget.config(state='disabled')
             if not self.pause_log:
-                self.root.after(3000, self.readfile, t_widget, filename, refresh)
+                self.root.after(500, self.readfile, t_widget, filename, refresh)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
@@ -339,6 +345,7 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def status(self, lbl, btn, pidfile):
         pf = None
+
         try:
             pf = open(pidfile, 'r', encoding='utf8')
         except:
@@ -347,12 +354,16 @@ It is a free and open-source software, but if you want to support it, please do'
             btn['text'] = '▶'
 
         if pf:
-            lbl['text'] = '■ Running: ' + pf.readline()[:-1]
-            lbl['foreground'] = 'green'
-            btn['text'] = '■'
+            pt = os.path.getmtime(pidfile)
+            if pt > self.pid_time:
+                self.pid_time = pt
+
+                lbl['text'] = '■ Running: ' + pf.readline()[:-1]
+                lbl['foreground'] = 'green'
+                btn['text'] = '■'
             pf.close()
 
-        self.root.after(10000, self.status, lbl, btn, pidfile)
+        self.root.after(1000, self.status, lbl, btn, pidfile)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def run_script(self, command):
