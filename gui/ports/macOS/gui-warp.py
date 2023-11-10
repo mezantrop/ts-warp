@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.20-mac'
+        self.version = 'v1.0.21-mac'
         self.width = width
         self.height = height
 
@@ -204,12 +204,12 @@ class App:
 
         about_text = 'TS-Warp - Transparent proxy server and traffic wrapper\n\
 It is a free and open-source software, but if you want to support it, please do'
-        
+
         lbl_about = ttk.Label(tab_about, text=about_text)
         lbl_about.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
         img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
-        
+
         lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=img_bmcoffee)
         lbl_coffe.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         lbl_coffe.bind("<Button-1>", lambda e: webbrowser.open_new(url_supportus))
@@ -276,13 +276,13 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
         if not self.pause_act:
-            with open(pidfile, 'r') as pf:
+            with open(pidfile, 'r', encoding='utf8') as pf:
                 subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
 
             for item in t_widget.get_children():
                 t_widget.delete(item)
 
-            with open(filename, 'r') as f:
+            with open(filename, 'r', encoding='utf8') as f:
                 f.readline()
                 while True:
                     l = f.readline()
@@ -296,7 +296,7 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def readfile(self, t_widget, filename, refresh=False):
         t_widget.config(state='normal')
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf8') as f:
             t_widget.delete(1.0, tk.END)
             t_widget.insert(tk.END, ''.join(f.readlines()))
             t_widget.see(tk.END)
@@ -308,11 +308,11 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding='utf8') as f:
             f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
 
         # Rebuild ts-warp_pf.conf when saving the INI-file
-        with open(fwfile, "w") as outfw:
+        with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
 
     # ---------------------------------------------------------------------------------------------------------------- #
@@ -340,7 +340,7 @@ It is a free and open-source software, but if you want to support it, please do'
     def status(self, lbl, btn, pidfile):
         pf = None
         try:
-            pf = open(pidfile, 'r')
+            pf = open(pidfile, 'r', encoding='utf8')
         except:
             lbl['text'] = '■ Stopped'
             lbl['foreground'] = 'red'
@@ -451,10 +451,10 @@ if __name__ == "__main__":
         os.makedirs(prefix + 'var/spool/ts-warp/')
 
     if not os.path.exists(fwfile):
-        with open(fwfile, "w") as outfw:
+        with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
     if not os.path.exists(logfile):
-        open(logfile, 'a').close()
+        open(logfile, 'a', encoding='utf8').close()
 
     app = App(runcmd=runcmd,
               inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile,

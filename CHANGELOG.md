@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.02    Current
+* 2023.11.10    Current
+  * `GUI-Warp`: Better Unicode support
   * FreeBSD port added
   * `README.md`: minor updates
   * `gui-warp`: `About` tab, many little fixes
