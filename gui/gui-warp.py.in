@@ -55,7 +55,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.17'
+        self.version = 'v1.0.19'
         self.width = width
         self.height = height
 
@@ -166,7 +166,7 @@ class App:
 
         fw_txt = tk.Text(tab_fw, highlightthickness=0)
         fw_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_fw.bind("<Visibility>", self.readfile(fw_txt, fwfile, refresh=False))
+        tab_fw.bind("<Visibility>", self.readfile_ini(fw_txt, fwfile))
 
         scroll_fw = ttk.Scrollbar(tab_fw, orient=tk.VERTICAL)
         scroll_fw.grid(column=2, row=1, sticky=tk.NSEW)
@@ -270,14 +270,9 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def check_new_version(self, rvurl, prefix, t_widget):
-
         import os
-        # import ssl
         import urllib
         import urllib.request
-
-
-        # ssl._create_default_https_context = ssl._create_unverified_context
 
         try:
             with urllib.request.urlopen(rvurl) as f:
@@ -435,6 +430,7 @@ It is a free and open-source software, but if you want to support it, please do'
             self.ent_pwd = ttk.Entry(self.win_pwd, textvariable=self.pwd, show='*')
             self.ent_pwd.bind('<Return>', lambda x: self.get_password())
             self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
+            self.ent_pwd.focus_set()
 
             self.btn_enter = ttk.Button(self.win_pwd, text="Enter")
             self.btn_enter['command'] = lambda: self.get_password()
@@ -454,6 +450,7 @@ It is a free and open-source software, but if you want to support it, please do'
         else:
             self.password = self.pwd.get().encode()
             self.win_pwd.destroy()
+            self.root.focus_set()
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -473,8 +470,6 @@ if __name__ == "__main__":
     logfile = prefix + '/var/log/ts-warp.log'
     pidfile = prefix + '/var/run/ts-warp.pid'
     actfile = prefix + '/var/spool/ts-warp/ts-warp.act'
-
-
 
     if 'GUI-WARP' in ini.sections():
         runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']

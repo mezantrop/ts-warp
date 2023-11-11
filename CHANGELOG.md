@@ -1,6 +1,9 @@
 # CHANGELOG
 
 * 2023.11.11    Current
+  * `build.sh`: Setting current `python3` interpreter when building macOS app
+  * `gui-warp`: some remediations for the macOS app on Sonoma
+  * `gui-warp.py`: Fix FW-tab
   * `gui-warp`: Lost contents of the INI-tab return, thanks Luis Pontes <luis.pontes@kyndryl.com> for reporting
   * `gui-warp`: smoother LOG-file refresh, less CPU utilization
   * `gui-warp`: Better Unicode support
