@@ -16,7 +16,7 @@
 
 - Supported platforms:
   - macOS, FreeBSD and OpenBSD with `PF`
-  - Linux with `nftables` or `iptables`
+  - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
 
 - Main features
   | Transparent proxy                        | Socks5               | Socks4                | HTTPS                |
@@ -77,6 +77,14 @@ sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftable
 sudo vi /usr/local/etc/ts-warp_nftables.sh
 
 # on Linux with iptables
+sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
+sudo vi /usr/local/etc/ts-warp_iptables.sh
+
+# on Windows WSL2 (Ubuntu) with iptables
+wsl --set-default-version 2
+
+Packages required for CLI: gcc, make. For GUI-Warp: python3-tk
+
 sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
 sudo vi /usr/local/etc/ts-warp_iptables.sh
 ```
