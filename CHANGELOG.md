@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.10    Current
+* 2023.11.11    Current
+  * `gui-warp`: Lost contents of the INI-tab return, thanks Luis Pontes <luis.pontes@kyndryl.com> for reporting
   * `gui-warp`: smoother LOG-file refresh, less CPU utilization
   * `gui-warp`: Better Unicode support
   * FreeBSD port added

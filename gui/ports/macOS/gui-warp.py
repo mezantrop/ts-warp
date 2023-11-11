@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.22-mac'
+        self.version = 'v1.0.23-mac'
         self.width = width
         self.height = height
 
@@ -130,7 +130,7 @@ class App:
 
         log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_log.bind("<Visibility>", self.readfile(log_txt, logfile, refresh=True))
+        tab_log.bind("<Visibility>", self.readfile_log(log_txt, logfile, refresh=True))
 
         scroll_log = ttk.Scrollbar(tab_log, orient=tk.VERTICAL)
         scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
@@ -165,7 +165,7 @@ class App:
 
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
         ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_ini.bind("<Visibility>", self.readfile(ini_txt, inifile, refresh=False))
+        tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
 
         scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
         scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
@@ -279,13 +279,13 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
         if not self.pause_act:
-            with open(pidfile, 'r', encoding='utf8') as pf:
+            with open(pidfile, 'r', encoding='utf-8') as pf:
                 subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
 
             for item in t_widget.get_children():
                 t_widget.delete(item)
 
-            with open(filename, 'r', encoding='utf8') as f:
+            with open(filename, 'r', encoding='utf-8') as f:
                 f.readline()
                 while True:
                     l = f.readline()
@@ -297,9 +297,17 @@ It is a free and open-source software, but if you want to support it, please do'
             self.root.after(5000, self.read_file_tree, t_widget, filename, refresh)
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def readfile(self, t_widget, filename, refresh=False):
+    def readfile_ini(self, t_widget, filename):
         t_widget.config(state='normal')
-        with open(filename, 'r', encoding='utf8') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
+            t_widget.delete(1.0, tk.END)
+            t_widget.insert(tk.END, ''.join(f.readlines()))
+            t_widget.see(tk.END)
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def readfile_log(self, t_widget, filename, refresh=False):
+        t_widget.config(state='normal')
+        with open(filename, 'r', encoding='utf-8') as f:
             sz = os.path.getsize(filename)
             if sz > self.log_size:
                 self.log_size = sz
@@ -310,7 +318,7 @@ It is a free and open-source software, but if you want to support it, please do'
         if refresh:
             t_widget.config(state='disabled')
             if not self.pause_log:
-                self.root.after(500, self.readfile, t_widget, filename, refresh)
+                self.root.after(500, self.readfile_log, t_widget, filename, refresh)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
@@ -326,7 +334,7 @@ It is a free and open-source software, but if you want to support it, please do'
         if self.pause_log:
             self.pause_log = False
             btn['text'] = '■'                                           # Pause log auto-refresh
-            self.readfile(txt, filename, refresh=True)
+            self.readfile_log(txt, filename, refresh=True)
         else:
             self.pause_log = True
             btn['text'] = '↭'                                           # Enable auto-refresh
