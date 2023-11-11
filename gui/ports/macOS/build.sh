@@ -4,27 +4,37 @@
 # Build gui-warp.app macOS application                                                                                 #
 # -------------------------------------------------------------------------------------------------------------------- #
 
+pv='/Library/Frameworks/Python.framework/Versions/Current'
+
+echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
 make &&
 
-python3 -m venv venv &&
+echo "-- Making environment -------------------------------------------------------------------------------------------" &&
+$pv/bin/python3 -m venv venv &&
 cd venv/bin &&
 source activate &&
-pip3 install --upgrade pip &&
-pip3 install tk &&
-pip3 install py2app &&
-cd ../.. &&
-cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tcl8 venv/lib &&
-cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tcl8.6 venv/lib &&
-cp -r /Library/Frameworks/Python.framework/Versions/Current/lib/tk8.6 venv/lib &&
+$pv/bin/pip3 install --upgrade pip &&
+$pv/bin/pip3 install tk &&
+$pv/bin/pip3 install py2app &&
 
+echo "-- Setting TCL/Tk -----------------------------------------------------------------------------------------------" &&
+cd ../.. &&
+cp -r $pv/lib/tcl8 venv/lib &&
+cp -r $pv/lib/tcl8.6 venv/lib &&
+cp -r $pv/lib/tk8.6 venv/lib &&
+
+echo "-- Setting permissions ------------------------------------------------------------------------------------------" &&
 chmod 755 ts-warp &&
 chmod 755 ts-pass &&
 chmod 755 ts-warp.sh &&
 chmod 755 ts-warp_autofw.sh &&
 
-python3 setup.py py2app &&
+echo "-- Building the app ---------------------------------------------------------------------------------------------" &&
+$pv/bin/python3 setup.py py2app &&
 
+echo "-- Archiving ----------------------------------------------------------------------------------------------------" &&
 tar cvf - -C dist gui-warp.app | gzip --best > gui-warp.app.tgz &&
 
+echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
 rm -rf build dist venv

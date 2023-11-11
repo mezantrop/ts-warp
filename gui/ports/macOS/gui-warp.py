@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.23-mac'
+        self.version = 'v1.0.24-mac'
         self.width = width
         self.height = height
 
@@ -97,6 +97,7 @@ class App:
         self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=2)
         self.cmb_lvl.current(1)
         self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
+        self.cmb_lvl.bind("<FocusIn>", self.root.focus_set())
 
         ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
         lfrm_top.columnconfigure(5, weight=1)
@@ -249,14 +250,9 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def check_new_version(self, rvurl, prefix, t_widget):
-
         import os
-        # import ssl
         import urllib
         import urllib.request
-
-
-        # ssl._create_default_https_context = ssl._create_unverified_context
 
         try:
             with urllib.request.urlopen(rvurl) as f:
@@ -418,6 +414,7 @@ It is a free and open-source software, but if you want to support it, please do'
             self.ent_pwd = ttk.Entry(self.win_pwd, textvariable=self.pwd, show='*')
             self.ent_pwd.bind('<Return>', lambda x: self.get_password())
             self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
+            self.ent_pwd.focus_set()
 
             self.btn_enter = ttk.Button(self.win_pwd, text="Enter")
             self.btn_enter['command'] = lambda: self.get_password()
@@ -437,7 +434,7 @@ It is a free and open-source software, but if you want to support it, please do'
         else:
             self.password = self.pwd.get().encode()
             self.win_pwd.destroy()
-
+            self.root.focus_set()
 
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
