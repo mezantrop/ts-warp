@@ -224,7 +224,7 @@ class App:
         tab_about.rowconfigure(4, weight=1)
 
         style_url = ttk.Style()
-        style_url.configure("URL.TLabel", foreground="blue")
+        style_url.configure("URL.TLabel", foreground="orange")
 
         about_text = 'TS-Warp - Transparent proxy server and traffic wrapper\n\
 It is a free and open-source software, but if you want to support it, please do'
