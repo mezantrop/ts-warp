@@ -119,5 +119,5 @@ void pidlist_show(struct pid_list *root, int tfd) {
             inet2str(&c->traffic.daddr, buf2), c->traffic.dbytes);
         c = c->next;
     }
-    write(tfd, "\n", 1);                 /* Empty line indicates end of data */
+    (void)!write(tfd, "\n", 1);                 /* Empty line indicates end of data. (void)! - just to make GCC happy */
 }

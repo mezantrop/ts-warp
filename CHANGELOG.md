@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.11    Current
+* 2023.11.12    Current
+  * `pidlist.c`: `warn_unused_result` on GCC suppressed
   * `build.sh`: Setting current `python3` interpreter when building macOS app
   * `gui-warp`: some remediations for the macOS app on Sonoma
   * `gui-warp.py`: Fix FW-tab
