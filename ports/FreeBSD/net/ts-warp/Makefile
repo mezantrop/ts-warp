@@ -1,5 +1,5 @@
 PORTNAME=	ts-warp
-DISTVERSION=	1.4.0.20231102
+DISTVERSION=	1.4.0.20231116
 CATEGORIES=	net
 MASTER_SITES=	GH
 
@@ -14,14 +14,15 @@ USES=		tar:tgz
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	mezantrop
-GH_TAGNAME=	9ba6d03
+GH_TAGNAME=	4c04cb2
+
+USE_RC_SUBR=	ts-warp
 
 MAKE_ARGS+=	CC="${CC}"
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/ts-warp ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_PROGRAM} ${WRKSRC}/ts-pass ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_SCRIPT} ${WRKSRC}/ts-warp.sh ${STAGEDIR}${PREFIX}/etc/rc.d
 	${INSTALL_MAN} ${WRKSRC}/man/ts-pass.1 ${STAGEDIR}${MAN1PREFIX}/man/man1
 	${INSTALL_MAN} ${WRKSRC}/man/ts-warp.sh.1 ${STAGEDIR}${MAN1PREFIX}/man/man1
 	${INSTALL_MAN} ${WRKSRC}/man/ts-warp.5 ${STAGEDIR}${MAN5PREFIX}/man/man5
@@ -32,3 +33,4 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/examples/ts-warp_pf_freebsd.conf ${STAGEDIR}${PREFIX}/etc
 
 .include <bsd.port.mk>
+

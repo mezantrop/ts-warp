@@ -1,0 +1,52 @@
+#!/bin/sh
+
+. /etc/rc.subr
+
+name=tswarp
+rcvar=tswarp_enable
+
+load_rc_config $name
+
+inifile="%%PREFIX%%/etc/ts-warp.ini"
+pfconf="%%PREFIX%%/etc/ts-warp_pf.conf"
+logfile="%%PREFIX%%/var/log/ts-warp.log"
+pidfile="%%PREFIX%%/var/run/ts-warp.pid"
+actfile="%%PREFIX%%/var/spool/ts-warp/ts-warp.act"
+
+required_files="${inifile} ${pfconf}"
+
+: ${tswarp_enable:="NO"}
+: ${tswarp_flags:="-c ${inifile} -l ${logfile} -p ${pidfile} -t ${actfile} -d -v 2"}
+
+command="%%PREFIX%%/bin/ts-warp"
+start_precmd="ts-warp_prestart"
+stop_postcmd="/sbin/pfctl -f /etc/pf.conf"
+
+ts-warp_prestart()
+{
+    echo "Configuring PF for TS-Warp"
+
+    awk -v pf_conf=${pfconf} '
+            /ts-warp/       {next}
+            /ns-warp/       {next}
+            /rdr-anchor/    {rdrpos = NR}
+                            {pf[NR] = $0}
+
+        END {
+            for (i = 0; i < NR; i++)
+                if (i == rdrpos + 1) {
+                    print("rdr-anchor \"ts-warp\"")
+                    print("rdr-anchor \"ns-warp\"")
+                } else
+                    print(pf[i])
+            print("anchor \"ts-warp\"")
+            print("anchor \"ns-warp\"")
+            printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
+        }
+    ' /etc/pf.conf | /sbin/pfctl -f -
+}
+
+
+load_rc_config $name
+run_rc_command "$1"
+
