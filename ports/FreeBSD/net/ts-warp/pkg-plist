@@ -1,6 +1,5 @@
 bin/ts-pass
 bin/ts-warp
-etc/rc.d/ts-warp.sh
 %%ETCDIR%%.ini
 %%ETCDIR%%_pf_freebsd.conf
 man/man1/ts-pass.1.gz
