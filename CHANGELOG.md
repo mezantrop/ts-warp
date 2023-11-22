@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2023.11.20    Current
+* 2023.11.22    Current
+  * `examples/*.in`: Table names replaced `SOCKS` -> `TSWARP`
+  * `Makefile`: `FreeBSD` `pkg` build as `root` creates config files for `nobody` user. Check and modify if needed.
   * FreeBSD port updated and moved out of sources
   * `pidlist.c`: `warn_unused_result` on GCC suppressed
   * `build.sh`: Setting current `python3` interpreter when building macOS app

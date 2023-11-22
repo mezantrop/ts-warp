@@ -4,7 +4,7 @@
 
 # Change/add IP addresses, network interfaces, ports and username
 #
-# In the 'table' definition: 
+# In the 'table' definition:
 # a) Networks 10.0.10.0/16, 192.168.1.0/24, 192.168.3.0/24, 123.45.123.0/24 and
 #   123.45.234.96/24 are reachable via SOCKS-servers
 # b) !10.0.12.1, !192.168.1.237 and !123.45.1.11  are SOCKS-server addresses
@@ -13,8 +13,8 @@
 #
 # In the 'rdr' rule:
 # Port 10800 is a port our SOCKS-redirector works on
-# 
-# In the 'route-to' rule user 'USER' is a process owner username of 
+#
+# In the 'route-to' rule user 'USER' is a process owner username of
 # the applictions to redirect to SOCKS servers.
 #
 #   Note, user here is needed to prevent redirection loops when connecting
@@ -24,11 +24,11 @@
 #   if all destinations with SOCKS-servers are defined in the INI-file.
 
 
-table <socks> { \
+table <TSWARP> { \
     10.0.10.0/16, !10.0.12.1, \
     192.168.1.0/24, 192.168.3.0/24, !192.168.1.237, \
     123.45.123.0/24, 123.45.234.96/24, !123.45.1.11 \
 }
 
-rdr pass log on lo0 inet proto tcp from any to { <socks> } -> 127.0.0.1 port 10800
-pass out on !lo0 route-to lo0 inet proto tcp from any to { <socks> } keep state user %USER%
+rdr pass log on lo0 inet proto tcp from any to { <TSWARP> } -> 127.0.0.1 port 10800
+pass out on !lo0 route-to lo0 inet proto tcp from any to { <TSWARP> } keep state user %USER%

@@ -4,14 +4,14 @@
 # TS-Warp - IPTABLES special configuration for Linux example                   #
 # ---------------------------------------------------------------------------- #
 
-iptables -t nat -N SOCKS
+iptables -t nat -N TSWARP
 
-# Exclude SOCKS servers
-iptables -t nat -A SOCKS -d 10.0.12.1,192.168.1.237,123.45.1.11 -j RETURN
+# Exclude TSWARP servers
+iptables -t nat -A TSWARP -d 10.0.12.1,192.168.1.237,123.45.1.11 -j RETURN
 
 # Destination network/address definitions
-iptables -t nat -A SOCKS -p tcp -d 10.0.10.0/16 -j REDIRECT --to-ports 10800
-iptables -t nat -A SOCKS -p tcp -d 192.168.1.0/24,192.168.3.0/24 -j REDIRECT --to-ports 10800
-iptables -t nat -A SOCKS -p tcp -d 123.45.123.0/24,123.45.234.96/24 -j REDIRECT --to-ports 10800
+iptables -t nat -A TSWARP -p tcp -d 10.0.10.0/16 -j REDIRECT --to-ports 10800
+iptables -t nat -A TSWARP -p tcp -d 192.168.1.0/24,192.168.3.0/24 -j REDIRECT --to-ports 10800
+iptables -t nat -A TSWARP -p tcp -d 123.45.123.0/24,123.45.234.96/24 -j REDIRECT --to-ports 10800
 
-iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner %USER% -j SOCKS
+iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner %USER% -j TSWARP
