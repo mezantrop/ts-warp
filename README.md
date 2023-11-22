@@ -291,8 +291,8 @@ Note, Python 3 interpreter with `tkinter` support is required to run the GUI fro
 
 ### macOS All-in-one TS-Warp + GUI-Warp App
 
-Download macOS standalone precompiled [Application](gui/ports/macOS/gui-warp.app.tgz) and
-read related [README.md](gui/ports/macOS/README.md)
+Check [releases](https://github.com/mezantrop/ts-warp/releases) and download macOS standalone precompiled application.
+Read related [README.md](gui/ports/macOS/README.md) for information and instructions.
 
 ### Contacts
 
