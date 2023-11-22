@@ -24,6 +24,7 @@
 
 # -------------------------------------------------------------------------------------------------------------------- #
 PREFIX ?= /usr/local
+RUNUSER ?= nobody
 
 CC = cc
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
@@ -49,24 +50,40 @@ ts-warp_autofw.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
-	@[ `id -u` -eq 0 ] || { echo "FATAL: You must run configuration targets only as normal (non-root) user!"; exit 1; }
-
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
-	whoami > .configured
+	@[ $(USER) == "root" ] && { \
+		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
+		echo $(RUNUSER) > .configured; \
+	} || { \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
+		echo $(USER) > .configured; \
+	}
 
 examples-special:
-	@[ `id -u` -ne 0 ] || { echo "FATAL: You must run configuration targets only as normal (non-root) user!"; exit 1; }
-
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
-	sed "s|%USER%|`whoami`|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
-	whoami > .configured
+	@[ $(USER) == "root" ] && { \
+		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
+		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
+		echo $(RUNUSER) > .configured; \
+	} || { \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
+		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
+		echo $(USER) > .configured; \
+	}
 
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
