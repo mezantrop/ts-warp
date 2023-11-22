@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.22    Current
+* 2023.11.22    ts-warp-1.4.6, gui-warp-1.0.19 (gui-warp-v1.0.24-mac), ns-warp-1.0.7
+  * `gui-warp.app`: Move precompiled app out of sources
   * `examples/*.in`: Table names replaced `SOCKS` -> `TSWARP`
   * `Makefile`: `FreeBSD` `pkg` build as `root` creates config files for `nobody` user. Check and modify if needed.
   * FreeBSD port updated and moved out of sources
