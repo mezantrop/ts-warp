@@ -2,7 +2,8 @@
 
 This directory contains source code of TS-Warp project modified to be built as macOS standalone all-in-one application
 
-Download and unarchive the prebuilt [gui-warp.app](gui-warp.app.tgz) or run [build.sh](build.sh) script to build your own copy.
+Check [releases](https://github.com/mezantrop/ts-warp/releases) and download macOS standalone precompiled application or
+run [build.sh](build.sh) script to build your own copy.
 
 ## Important notes
 
