@@ -55,7 +55,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.19'
+        self.version = 'v1.0.20'
         self.width = width
         self.height = height
 
@@ -232,7 +232,7 @@ It is a free and open-source software, but if you want to support it, please do'
         lbl_about = ttk.Label(tab_about, text=about_text)
         lbl_about.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-        img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
+        img_bmcoffee = tk.PhotoImage(file=prefix + "/share/ts-warp/bmcoffee.png")
 
         lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=img_bmcoffee)
         lbl_coffe.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
@@ -472,12 +472,18 @@ if __name__ == "__main__":
     actfile = prefix + '/var/spool/ts-warp/ts-warp.act'
 
     if 'GUI-WARP' in ini.sections():
-        runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
-        inifile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['inifile']
-        fwfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['fwfile']
-        logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
-        pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
-        actfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['actfile']
+        if 'runcmd' in ini['GUI-WARP'].keys():
+            runcmd = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['runcmd']
+        if 'inifile' in ini['GUI-WARP'].keys():
+            inifile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['inifile']
+        if 'fwfile' in ini['GUI-WARP'].keys():
+            fwfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['fwfile']
+        if 'logfile' in ini['GUI-WARP'].keys():
+            logfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['logfile']
+        if 'pidfile' in ini['GUI-WARP'].keys():
+            pidfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['pidfile']
+        if 'actfile' in ini['GUI-WARP'].keys():
+            actfile = ini['GUI-WARP']['prefix'] + ini['GUI-WARP']['actfile']
 
     app = App(runcmd=runcmd,
               inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile,
