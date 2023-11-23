@@ -40,6 +40,8 @@ install: all
 	install -m 755 gui-warp.py $(PREFIX)/bin/
 	install -d $(PREFIX)/etc/
 	install -m 755 gui-warp.ini $(PREFIX)/etc/
+	install -d $(PREFIX)/share/ts-warp/
+	install -m 755 bmcoffee.png $(PREFIX)/share/ts-warp/
 
 uninstall:
 	rm -f $(PREFIX)/bin/gui-warp.py

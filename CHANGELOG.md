@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 2023.11.23    Current
+  * `gui/Makefile`: images go to `share/ts-warp` directory
+  * `gui-warp.py`: Better parsing of `gui-warp.ini` - key error fix
+
 * 2023.11.22    ts-warp-1.4.6, gui-warp-1.0.19 (gui-warp-v1.0.24-mac), ns-warp-1.0.7
   * `gui-warp.app`: Move precompiled app out of sources
   * `examples/*.in`: Table names replaced `SOCKS` -> `TSWARP`
