@@ -108,6 +108,13 @@ Using terminal, in the directory with TS-Warp source code run as the normal user
   make
   ```
 
+If you aplanning to install into a diferent location, than the default `/usr/local`, you may considering to change the
+built-in default paths as well:
+
+  ```sh
+  make PREFIX=/path/to/install
+  ```
+
 #### Install the application
 
 Typically, installation requires root privileges. Below we use `sudo` to achieve the goal, but on some operating

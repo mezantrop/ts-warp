@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.23    Current
+* 2023.11.29    Current
+  * `Makefile`, `README.md`: Better custom installation `PREFIX`
   * `gui/Makefile`: images go to `share/ts-warp` directory
   * `gui-warp.py`: Better parsing of `gui-warp.ini` - key error fix
 
