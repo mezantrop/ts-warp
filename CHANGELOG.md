@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.11.30    Current
-  * `gui-warp.py`, `gui-warp.app`: Links to releases
+  * `gui-warp.py`, `gui-warp.app`: Links to releases; better PID-file checking
   * `Makefile`, `README.md`: Better custom installation `PREFIX`
   * `gui/Makefile`: images go to `share/ts-warp` directory
   * `gui-warp.py`: Better parsing of `gui-warp.ini` - key error fix

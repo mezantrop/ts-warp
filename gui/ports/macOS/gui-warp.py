@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.25-mac'
+        self.version = 'v1.0.26-mac'
         self.width = width
         self.height = height
 
@@ -275,8 +275,11 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
         if not self.pause_act:
-            with open(pidfile, 'r', encoding='utf-8') as pf:
-                subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
+            try:
+                with open(pidfile, 'r', encoding='utf-8') as pf:
+                    subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
+            except:
+                pass
 
             for item in t_widget.get_children():
                 t_widget.delete(item)
