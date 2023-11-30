@@ -54,7 +54,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.24-mac'
+        self.version = 'v1.0.25-mac'
         self.width = width
         self.height = height
 
@@ -439,7 +439,7 @@ It is a free and open-source software, but if you want to support it, please do'
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
     url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
-    url_repository = 'https://github.com/mezantrop/ts-warp'
+    url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/gui-warp.app.tgz'
     url_supportus = 'https://www.buymeacoffee.com/mezantrop'
     url_contact = 'mailto:zmey20000@yahoo.com'
 
