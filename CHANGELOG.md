@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2023.11.30    Current
+* 2023.12.07    Current
+  * `socks.c`: Typo fix
   * `gui-warp.py`, `gui-warp.app`: Links to releases; better PID-file checking
   * `Makefile`, `README.md`: Better custom installation `PREFIX`
   * `gui/Makefile`: images go to `share/ts-warp` directory
