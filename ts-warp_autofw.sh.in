@@ -150,7 +150,7 @@ make_hosts() {
 
 # ---------------------------------------------------------------------------- #
 make_proxy() {
-    # Collect Socks server information
+    # Collect proxy server information
 
     sservers_raw=`printf "%s\n" "$cfg" |
         grep -E 'socks_server|proxy_server' |
@@ -319,15 +319,14 @@ pass out on !lo0 inet proto tcp from any to { <$TSW_TNAME> } route-to lo0 keep s
         ;;
 
     Linux)
-        [ `nft -v` ] &&
-            make_conf_nftables || {
-                [ `iptables -V` ] &&
-                    make_conf_iptables ||
-                    printf "FATAL: Unable to find nftables nor iptables"
-                    exit 1
+        iptables -V > /dev/null &&
+            make_conf_iptables || {
+                nft -v > /dev/null &&
+                    make_conf_nftables ||
+                        printf "FATAL: Unable to find iptables nor nftables"
+                        exit 1
             }
         ;;
-
     *)
         printf "FATAL: Unsupported OS\n"
         exit 1
