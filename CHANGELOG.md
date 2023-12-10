@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.12.10    Current
-  * `ts-warp_autofw.sh.in`: On Linux try Iptables firts, then Nftables; fix execution.
+  * `ts-warp.sh.in`, `ts-warp_autofw.sh.in`: On Linux try Iptables firts, then Nftables; fix execution.
   * `socks.c`: Typo fix
   * `gui-warp.py`, `gui-warp.app`: Links to releases; better PID-file checking
   * `Makefile`, `README.md`: Better custom installation `PREFIX`
