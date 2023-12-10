@@ -66,18 +66,18 @@ _start() {
 
     case `uname -s` in
         Linux)
-            if [ "`nft -v`" ] ; then
-                printf "Using NFTABLES Firewall "
-                [ -f "$tswarp_prefix"/etc/ts-warp_nftables.sh ]  &&
-                    "$tswarp_prefix"/etc/ts-warp_nftables.sh || {
-                        printf "FATAL: Unable to find ts-warp_nftables.sh\n"
-                        exit 1
-                    }
-            elif [ "`iptables -V`" ] ; then
+            if iptables -V ; then
                     printf "Using IPTABLES Firewall "
                     [ -f "$tswarp_prefix"/etc/ts-warp_iptables.sh ] &&
                     "$tswarp_prefix"/etc/ts-warp_iptables.sh || {
                         printf "FATAL: Unable to find ts-warp_iptables.sh\n"
+                        exit 1
+                    }
+            elif nft -v ; then
+                printf "Using NFTABLES Firewall "
+                [ -f "$tswarp_prefix"/etc/ts-warp_nftables.sh ]  &&
+                    "$tswarp_prefix"/etc/ts-warp_nftables.sh || {
+                        printf "FATAL: Unable to find ts-warp_nftables.sh\n"
                         exit 1
                     }
             else
