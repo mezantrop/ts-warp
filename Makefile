@@ -50,7 +50,7 @@ ts-warp_autofw.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
-	@[ $(USER) == "root" ] && { \
+	@[ $(USER) = "root" ] && { \
 		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
 		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
 		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
@@ -68,7 +68,7 @@ examples-general:
 	}
 
 examples-special:
-	@[ $(USER) == "root" ] && { \
+	@[ $(USER) = "root" ] && { \
 		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
 		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
 		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
