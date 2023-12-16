@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * 2023.12.16    Current
-  * `ts-warp.sh.in`: remove unuser variables
+  * `ts-warp.sh.in`: remove unused variables
   * `ts-warp.c`: Drop direct requests to `Transparent` port
   * `Makefile`: `examples-*` target user-name check fix
   * `ts-warp.sh.in`, `ts-warp_autofw.sh.in`: On Linux try Iptables firts, then Nftables; fix execution.
