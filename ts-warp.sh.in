@@ -43,8 +43,6 @@ tswarp_actfile="$tswarp_prefix/var/spool/ts-warp/ts-warp.act"
 tswarp_loglevel="2"
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
 
-linux_firewall="nftables"       # Under Linux set nftables or iptables
-
 # ---------------------------------------------------------------------------- #
 _start() {
     _status
