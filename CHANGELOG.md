@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2023.12.16    Current
+* 2023.12.22    ts-warp-1.4.7, gui-warp-1.0.22 (gui-warp-v1.0.26-mac), ns-warp-1.0.7
   * `ts-warp.sh.in`: remove unused variables
   * `ts-warp.c`: Drop direct requests to `Transparent` port
   * `Makefile`: `examples-*` target user-name check fix
