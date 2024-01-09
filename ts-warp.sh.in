@@ -148,7 +148,10 @@ _stop() {
     [ -f "$tswarp_pidfile" ] && rm -f "$tswarp_pidfile"
     pkill -x ts-warp
 
-    uname -s | grep -i 'Linux' >/dev/null || /sbin/pfctl -f /etc/pf.conf
+    uname -s | grep -i 'Linux' >/dev/null || {
+        /sbin/pfctl -a ts-warp -F all
+        /sbin/pfctl -a ns-warp -F all
+    }
 }
 
 # ---------------------------------------------------------------------------- #

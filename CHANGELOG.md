@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 2024.01.09    Current
+  * `ts-warp.sh.in`: on `stop` flush only `TS-Warp` related anchors
+  * Minor cosmetic changes
+
 * 2023.12.22    ts-warp-1.4.7, gui-warp-1.0.22 (gui-warp-v1.0.26-mac), ns-warp-1.0.7
   * `ts-warp.sh.in`: remove unused variables
   * `ts-warp.c`: Drop direct requests to `Transparent` port
@@ -135,7 +139,7 @@
   * `ns-warp.sh`: Startup script; `README.md` update; Minor changes
   * `ns-warp`: Run as different user
   * `ts-warp.sh`: Check if a process from the pid-file really exists
-  * Manpages formatting: https://github.com/mezantrop/ts-warp/issues/5
+  * [Manpages formatting](https://github.com/mezantrop/ts-warp/issues/5)
   * `Makefile`: Multiple minor changes
   * `README.md`: `gui-warp.py` with `sudo`; a new screenshot
   * `gui-warp.py`: Minor updates
