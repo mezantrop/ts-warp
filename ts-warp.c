@@ -615,109 +615,107 @@ All parameters are optional:
                     close(Tsock);
                     close(Ssock);
                     close(Hsock);
-
-                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*sres->ai_addr)) ||
+                    if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) != S4_ADDR(*sres->ai_addr)) ||
                         (daddr.ip_addr.ss_family == AF_INET6 &&
-                            !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                            memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))))
+                                goto proxyforward;
 
-                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
-                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
-                        printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
+                    /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
+                    ts-warp directly: no NAT/redirection, but TS-Warp is indicated as Socks-server */
+                    printl(LOG_INFO, "Serving the client with embedded TS-Warp Socks-server");
 
-                        if (socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
-                            printl(LOG_WARN, "Embedded TS-Warp Socks server does not accept connections");
-                            close(csock);
-                            exit(1);
-                        }
+                    if (socks5_server_hello(csock) == AUTH_METHOD_NOACCEPT) {
+                        printl(LOG_WARN, "Embedded TS-Warp Socks server does not accept connections");
+                        close(csock);
+                        exit(1);
+                    }
 
-                        if (!socks5_server_request(csock, &daddr)) {
-                            printl(LOG_WARN, "Embedded TS-Warp Socks server lost connection with the client");
-                            close(csock);
-                            exit(1);
-                        }
+                    if (!socks5_server_request(csock, &daddr)) {
+                        printl(LOG_WARN, "Embedded TS-Warp Socks server lost connection with the client");
+                        close(csock);
+                        exit(1);
+                    }
 
-                        s_ini = ini_look_server(ini_root, daddr);
-                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
-                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*sres->ai_addr) : \
-                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*sres->ai_addr))) {
+                    s_ini = ini_look_server(ini_root, daddr);
+                    if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
+                        S4_ADDR(s_ini->proxy_server) == S4_ADDR(*sres->ai_addr) : \
+                        S6_ADDR(s_ini->proxy_server) == S6_ADDR(*sres->ai_addr))) {
 
-                            printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
+                        printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
+                            daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+
+                        if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                            printl(LOG_WARN, "Unable to connect with destination: [%s]",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
 
-                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
-                                printl(LOG_WARN, "Unable to connect with destination: [%s]",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-
-                                /* Replying Error to Socks5 client */
-                                printl(LOG_VERB, "Replying the client, Internal Socks5 can't reach desination: [%s]",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                                socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_KO);
-                                close(csock);
-                                exit(1);
-                            } else {
-                                /* Replying OK to Socks5 client */
-                                printl(LOG_VERB, "Replying the client, Internal Socks5 can reach desination: [%s]",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                                socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_OK);
-                            }
-
-                            goto cfloop;
-
+                            /* Replying Error to Socks5 client */
+                            printl(LOG_VERB, "Replying the client, Internal Socks5 can't reach desination: [%s]",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                            socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_KO);
+                            close(csock);
+                            exit(1);
                         } else {
-                            printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
-                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
-
                             /* Replying OK to Socks5 client */
-                                printl(LOG_VERB,
-                                    "Replying Socks5 client [OK], the desination: [%s] is managed by external proxy",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                            socks5_server_reply(csock, (struct sockaddr_storage *)(tres->ai_addr), SOCKS5_REPLY_OK);
+                            printl(LOG_VERB, "Replying the client, Internal Socks5 can reach desination: [%s]",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                            socks5_server_reply(csock, (struct sockaddr_storage *)(sres->ai_addr), SOCKS5_REPLY_OK);
                         }
-                        /* Pass the client to external Socks-servers - proxy forwarding */
+
+                        goto cfloop;
+
+                    } else {
+                        printl(LOG_INFO, "Serving request to [%s : %s] with external proxy server, section: [%s]",
+                            daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
+
+                        /* Replying OK to Socks5 client */
+                            printl(LOG_VERB,
+                                "Replying Socks5 client [OK], the desination: [%s] is managed by external proxy",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+                        socks5_server_reply(csock, (struct sockaddr_storage *)(tres->ai_addr), SOCKS5_REPLY_OK);
                     }
+                    /* Pass the client to external Socks-servers - proxy forwarding */
                 } else
                     if (isock == Hsock) {
                         /* -- Internal HTTP server  ----------------------------------------------------------------- */
                         close(Tsock);
                         close(Ssock);
                         close(Hsock);
-                        if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
-                            (daddr.ip_addr.ss_family == AF_INET6 && !memcmp(S6_ADDR(daddr.ip_addr),
-                                S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                        if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) != S4_ADDR(*hres->ai_addr)) ||
+                            (daddr.ip_addr.ss_family == AF_INET6 && memcmp(S6_ADDR(daddr.ip_addr),
+                                S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))))
+                                    goto proxyforward;
 
-                            /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
-                            ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
-                            printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
+                        /* Desination address:port is the same as ts-warp income ip:port, i.e., a client contacted
+                        ts-warp directly: no NAT/redirection, but TS-Warp is indicated as HTTP-server */
+                        printl(LOG_INFO, "Serving the client with embedded TS-Warp HTTP-server");
 
-                            if (http_server_request(csock, &daddr)) {
-                                printl(LOG_WARN, "Embedded TS-Warp HTTP server lost connection with the client");
+                        if (http_server_request(csock, &daddr)) {
+                            printl(LOG_WARN, "Embedded TS-Warp HTTP server lost connection with the client");
+                            close(csock);
+                            exit(1);
+                        }
+
+                        s_ini = ini_look_server(ini_root, daddr);
+                        if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
+                            S4_ADDR(s_ini->proxy_server) == S4_ADDR(*hres->ai_addr) : \
+                            S6_ADDR(s_ini->proxy_server) == S6_ADDR(*hres->ai_addr))) {
+
+                            printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
+                                daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
+
+                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                                printl(LOG_WARN, "Unable to connect with destination: [%s]",
+                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
                                 close(csock);
                                 exit(1);
                             }
 
-                            s_ini = ini_look_server(ini_root, daddr);
-                            if (!s_ini || (s_ini && SA_FAMILY(s_ini->proxy_server) == AF_INET ? \
-                                S4_ADDR(s_ini->proxy_server) == S4_ADDR(*hres->ai_addr) : \
-                                S6_ADDR(s_ini->proxy_server) == S6_ADDR(*hres->ai_addr))) {
+                            goto cfloop;
 
-                                printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
-                                    daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-
-                                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
-                                    printl(LOG_WARN, "Unable to connect with destination: [%s]",
-                                        daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
-                                    close(csock);
-                                    exit(1);
-                                }
-
-                                goto cfloop;
-
-                            } else
-                                printl(LOG_INFO,
-                                    "Serving request to [%s : %s] with external proxy server, section: [%s]",
-                                    daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
-                        }
-
+                        } else
+                            printl(LOG_INFO,
+                                "Serving request to [%s : %s] with external proxy server, section: [%s]",
+                                daddr.name, inet2str(&daddr.ip_addr, buf), s_ini->section_name);
                     } else
                         if (isock == Tsock) {
                             close(Tsock);
@@ -743,6 +741,7 @@ All parameters are optional:
                             break;
 
             /* -- Start proxy forwarding ---------------------------------------------------------------------------- */
+            proxyforward:
             if (s_ini->p_chain) {
 
                 /* -- Proxy chains ---------------------------------------------------------------------------------- */
