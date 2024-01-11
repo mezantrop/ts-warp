@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2024.01.09    Current
+* 2024.01.11    Current
+  * `ts-warp.c`: Cleaner code
+  * `ts-warp.ini`: Examples are commented
   * `ts-warp.sh.in`: on `stop` flush only `TS-Warp` related anchors
   * Minor cosmetic changes
 
