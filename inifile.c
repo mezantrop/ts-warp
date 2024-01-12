@@ -83,6 +83,7 @@ ini_section *read_ini(char *ifile_name) {
             c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
             c_sect->proxy_user = NULL;
             c_sect->proxy_password = NULL;
+            c_sect->proxy_key = NULL;
             c_sect->p_chain = NULL;
             c_sect->target_entry = NULL;
             c_sect->nit_domain = NULL;
@@ -189,6 +190,10 @@ ini_section *read_ini(char *ifile_name) {
                             printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]", ln, INI_ENTRY_PROXY_PASSWORD);
                             mexit(1, pfile_name, tfile_name);
                         }
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY)) {
+                    /* Implement private key loading */
+                    ;
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {
                     if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_NONE))

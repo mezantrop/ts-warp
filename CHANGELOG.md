@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.11    Current
+* 2024.01.12    Current
+  * SSH2 proxy preparation
   * `ts-warp.c`: Cleaner code
   * `ts-warp.ini`: Examples are commented
   * `ts-warp.sh.in`: on `stop` flush only `TS-Warp` related anchors

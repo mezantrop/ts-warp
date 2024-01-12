@@ -63,8 +63,11 @@
 
 #include "network.h"
 #include "utility.h"
+
 #include "socks.h"
 #include "http.h"
+#include "ssh2.h"
+
 #include "inifile.h"
 #include "logfile.h"
 #include "pidfile.h"
@@ -884,6 +887,10 @@ All parameters are optional:
                             }
                         break;
 
+                        case PROXY_PROTO_SSH2:
+                        /* TODO: Implement SSH2 client */
+                        break;
+
                         default:
                             /* Unreacheable. Must be cleared already by read_ini() */
                             printl(LOG_WARN, "Detected unsupported CHAIN proxy type: [%c]",
@@ -984,6 +991,19 @@ All parameters are optional:
 
                         if (http_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password)) {
                             printl(LOG_WARN, "HTTP proxy server returned an error");
+                            close(csock);
+                            exit(2);
+                        }
+                    break;
+
+                    case PROXY_PROTO_SSH2:
+                        /* TODO: Implement SSH2 client */
+                        printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
+                            inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
+
+                        if (ssh2_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password,
+                                s_ini->proxy_key)) {
+                            printl(LOG_WARN, "SSH2 proxy server returned an error");
                             close(csock);
                             exit(2);
                         }
