@@ -23,7 +23,6 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 /* -- HTTP proxy (CONNECT method) implementation -------------------------------------------------------------------- */
 #include <stdarg.h>
 #include <string.h>
@@ -35,9 +34,8 @@
 #include "http.h"
 #include "logfile.h"
 
-
+/* ------------------------------------------------------------------------------------------------------------------ */
 extern char *pfile_name;
-
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int http_server_request(int socket, struct uvaddr *daddr) {
