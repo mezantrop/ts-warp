@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* 2024.01.12    Current
+* 2024.01.13    Current
+  * `Makefile`: Install manpages
+  * libssh2 init/deinit
   * SSH2 proxy preparation
   * `ts-warp.c`: Cleaner code
   * `ts-warp.ini`: Examples are commented

@@ -25,7 +25,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 PREFIX ?= /usr/local
 
-.PHONY:	install
+.PHONY:	all install deinstall uninstall clean
 
 all: gui-warp.py gui-warp.ini
 
@@ -42,10 +42,16 @@ install: all
 	install -m 755 gui-warp.ini $(PREFIX)/etc/
 	install -d $(PREFIX)/share/ts-warp/
 	install -m 755 bmcoffee.png $(PREFIX)/share/ts-warp/
+	install -d $(PREFIX)/man/
+	install -d $(PREFIX)/man/man1/
+	install -m 755 ../man/gui-warp.py.1 $(PREFIX)/man/man1
+
+deinstall: uninstall
 
 uninstall:
 	rm -f $(PREFIX)/bin/gui-warp.py
 	rm -f $(PREFIX)/etc/gui-warp.ini
+	rm -f $(PREFIX)/man/man1/gui-warp.py.1
 
 clean:
 	rm -rf __pycache__

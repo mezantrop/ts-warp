@@ -27,11 +27,11 @@ PREFIX ?= /usr/local
 RUNUSER ?= nobody
 
 CC = cc
-CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
+CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1 -DWITH_LIBSSH2=0
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o http.o ssh2.o ts-warp.o utility.o xedec.o
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean examples-general examples-special install install-configs install-examples release uninstall version
+.PHONY:	all clean examples-general examples-special install install-configs install-examples release deinstall uninstall version
 
 all: ts-warp examples-special ts-pass
 
@@ -162,7 +162,16 @@ install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -d $(PREFIX)/var/log/
 	install -d $(PREFIX)/var/run/
 	install -d $(PREFIX)/var/spool/ts-warp/
+	install -d $(PREFIX)/man/
+	install -d $(PREFIX)/man/man1/
+	install -d $(PREFIX)/man/man5/
+	install -d $(PREFIX)/man/man8/
+	install -m 755 man/ts-pass.1 $(PREFIX)/man/man1
+	install -m 755 man/ts-warp.sh.1 $(PREFIX)/man/man1
+	install -m 755 man/ts-warp.5 $(PREFIX)/man/man5
+	install -m 755 man/ts-warp.8 $(PREFIX)/man/man8
 
+deinstall: uninstall
 uninstall:
 	rm -f $(PREFIX)/bin/ts-warp
 	rm -f $(PREFIX)/bin/ts-pass
@@ -176,6 +185,10 @@ uninstall:
 	rm -f $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	rm -f $(PREFIX)/var/log/ts-warp.log
 	rm -f $(PREFIX)/var/run/ts-warp.pid
+	rm -f $(PREFIX)/man/man1/ts-pass.1
+	rm -f $(PREFIX)/man/man1/ts-warp.sh.1
+	rm -f $(PREFIX)/man/man5/ts-warp.5
+	rm -f $(PREFIX)/man/man8/ts-warp.8
 
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured
