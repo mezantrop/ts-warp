@@ -270,6 +270,13 @@ All parameters are optional:
         struct passwd *pwd = getpwnam(runas_user);
     #endif
 
+    #if (WITH_LIBSSH2)                                                   /* Init LIBSSH2 */
+        if ((ret = libssh2_init(0))) {
+            fprintf (stderr, "libssh2 initialization failed (%d)\n", ret);
+            return 1;
+        }
+    #endif
+
     if (d_flg) {
         /* -- Daemonizing ------------------------------------------------------------------------------------------- */
         signal(SIGHUP, trap_signal);
@@ -1110,6 +1117,9 @@ All parameters are optional:
     freeaddrinfo(tres);
     freeaddrinfo(sres);
     freeaddrinfo(hres);
+    #if (WITH_LIBSSH2)
+        libssh2_exit();                                                 /* Deinitialize LIBSSH2 */
+    #endif
     return 0;
 }
 

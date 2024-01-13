@@ -71,6 +71,9 @@ void mexit(int status, char *pid_file, char *act_file) {
     kill(0, SIGTERM);
     printl(LOG_WARN, "Clients requested to exit");
     while (wait3(&status, WNOHANG, 0) > 0) ;
+    #if (WITH_LIBSSH2)
+        libssh2_exit();                                                 /* Deinitialize LIBSSH2 */
+    #endif
     printl(LOG_CRIT, "Program finished");
     if (pid_file) {
         if (unlink(pid_file)) {
