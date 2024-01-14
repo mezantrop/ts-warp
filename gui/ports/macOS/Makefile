@@ -29,8 +29,8 @@ SRCPATH = ../../../
 CC = cc
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
 WARP_FILES = $(SRCPATH)base64.c $(SRCPATH)inifile.c $(SRCPATH)logfile.c $(SRCPATH)natlook.c $(SRCPATH)network.c \
-$(SRCPATH)pidfile.c $(SRCPATH)pidlist.c $(SRCPATH)socks.c $(SRCPATH)http.c $(SRCPATH)ts-warp.c $(SRCPATH)utility.c \
-$(SRCPATH)xedec.c
+$(SRCPATH)pidfile.c $(SRCPATH)pidlist.c $(SRCPATH)ssh2.c $(SRCPATH)socks.c $(SRCPATH)http.c $(SRCPATH)ts-warp.c \
+$(SRCPATH)utility.c $(SRCPATH)xedec.c
 PASS_FILES = $(SRCPATH)ts-pass.c $(SRCPATH)xedec.c
 
 .PHONY:	all clean ts-warp_x64 ts-warp_arm
