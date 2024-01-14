@@ -61,6 +61,11 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
+
+#if (WITH_LIBSSH2)
+    #include <libssh2.h>
+#endif
+
 #include "network.h"
 #include "utility.h"
 
@@ -958,6 +963,7 @@ All parameters are optional:
                             inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
                         /* -- Perform NIT Lookup -------------------------------------------------------------------- */
+                        /* TODO: Rewrite as a function and make it available for all proxies */
                         if (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->proxy_server) != S4_ADDR(daddr.ip_addr)) {
                             if (s_ini->nit_domain &&
                                 (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
@@ -1003,18 +1009,20 @@ All parameters are optional:
                         }
                     break;
 
-                    case PROXY_PROTO_SSH2:
-                        /* TODO: Implement SSH2 client */
-                        printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
-                            inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
+                    #if (WITH_LIBSSH2)
+                        case PROXY_PROTO_SSH2:
+                            /* TODO: Implement SSH2 client */
+                            printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
+                                inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                        if (ssh2_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password,
-                                s_ini->proxy_key)) {
-                            printl(LOG_WARN, "SSH2 proxy server returned an error");
-                            close(csock);
-                            exit(2);
-                        }
-                    break;
+                            if (ssh2_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password,
+                                    s_ini->proxy_key)) {
+                                printl(LOG_WARN, "SSH2 proxy server returned an error");
+                                close(csock);
+                                exit(2);
+                            }
+                        break;
+                    #endif
 
                     default:
                         /* Unreacheable. Should be cleared already by read_ini() */

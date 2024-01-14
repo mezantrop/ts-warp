@@ -27,11 +27,16 @@ PREFIX ?= /usr/local
 RUNUSER ?= nobody
 
 CC = cc
-CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1 -DWITH_LIBSSH2=0
-WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o socks.o http.o ssh2.o ts-warp.o utility.o xedec.o
+CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
+WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
+utility.o xedec.o
+WARP_FILES = base64.c inifile.c logfile.c natlook.c network.c pidfile.c pidlist.c ssh2.c socks.c http.c ts-warp.c \
+utility.c xedec.c
+
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean examples-general examples-special install install-configs install-examples release deinstall uninstall version
+.PHONY:	all clean examples-general examples-special install install-configs install-examples release ts-warp-ssh2 \
+deinstall uninstall version
 
 all: ts-warp examples-special ts-pass
 
@@ -42,6 +47,9 @@ version:
 
 ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
+
+ts-warp-ssh2:
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp -lssh2 $(WARP_FILES)
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh

@@ -24,6 +24,9 @@
 */
 
 /* -- SSH2 protocol (using https://libssh2.org/ library) ------------------------------------------------------------ */
+#if (WITH_LIBSSH2)
+
+#include <libssh2.h>
 #include <string.h>
 #include <sys/socket.h>
 
@@ -39,5 +42,29 @@ extern char *pfile_name;
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int ssh2_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password, char *priv_key) {
+    LIBSSH2_SESSION *session = NULL;
+    const char *fingerprint;
+    char buf[61];
+
+
+    if (!(session = libssh2_session_init())) {
+        printl(LOG_WARN, "Unable to initialize SSH2 session");
+        return 1;
+    }
+
+    if (!libssh2_session_handshake(session, socket)) {
+        printl(LOG_WARN, "Unable to perform SSH2 handshake");
+        return 1;
+    }
+
+    fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
+    for(int i = 0; i < 20; i++)
+        sprintf(buf + i * 3, "%02X:", (unsigned char)fingerprint[i]);
+    buf[60] = '\0';
+
+    printl(LOG_INFO, "SSH2 Fingerprint: [%s]", buf);
+
     return 0;
 }
+
+#endif

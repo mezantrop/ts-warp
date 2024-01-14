@@ -27,7 +27,7 @@
 #include "version.h"
 
 #if !defined (WITH_LIBSSH2)
-   #define WITH_LIBSSH2 1
+   #define WITH_LIBSSH2 0
 #endif
 
 #define PROXY_PROTO_SSH2                'S'

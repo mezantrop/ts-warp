@@ -1,8 +1,10 @@
 # CHANGELOG
 
-* 2024.01.13    Current
+* 2024.01.14    Current
+  * `Makefile`: `ts-warp-ssh2` special target (for development) with `LIBSSH2`
+  * `ssh2.c`: Started `ssh2_client_request()`
   * `Makefile`: Install manpages
-  * libssh2 init/deinit
+  * `LIBSSH2` init/deinit
   * SSH2 proxy preparation
   * `ts-warp.c`: Cleaner code
   * `ts-warp.ini`: Examples are commented
