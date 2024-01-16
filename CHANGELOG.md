@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* 2024.01.16    Current
+* `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
+
 * 2024.01.16    ts-warp-1.4.8, gui-warp-1.0.22 (gui-warp-v1.0.27-mac), ns-warp-1.0.7
   * `gui-warp.app`: update link points to `GUI-Warp.dmg` image
   * `gui-warp.app`: `build.sh` creates DMG image
