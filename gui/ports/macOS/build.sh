@@ -8,7 +8,7 @@ pv='/Library/Frameworks/Python.framework/Versions/Current'
 
 echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
-rm -rf build dist venv GUI-Warp GUI-Warp-tmp.dmg
+rm -rf build dist venv GUI-Warp *.dmg
 
 echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
 make &&
