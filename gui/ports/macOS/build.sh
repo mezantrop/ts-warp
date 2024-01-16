@@ -6,6 +6,10 @@
 
 pv='/Library/Frameworks/Python.framework/Versions/Current'
 
+echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
+make clean &&
+rm -rf build dist venv GUI-Warp GUI-Warp-tmp.dmg
+
 echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
 make &&
 
@@ -32,9 +36,15 @@ chmod 755 ts-warp_autofw.sh &&
 echo "-- Building the app ---------------------------------------------------------------------------------------------" &&
 $pv/bin/python3 setup.py py2app &&
 
-echo "-- Archiving ----------------------------------------------------------------------------------------------------" &&
-tar cvf - -C dist gui-warp.app | gzip --best > gui-warp.app.tgz &&
+# echo "-- Archiving ----------------------------------------------------------------------------------------------------" &&
+# tar cvf - -C dist gui-warp.app | gzip --best > gui-warp.app.tgz &&
+
+echo "-- Creating DMG -------------------------------------------------------------------------------------------------" &&
+mkdir GUI-Warp
+mv dist/gui-warp.app GUI-Warp
+hdiutil create GUI-Warp-tmp.dmg -ov -volname "GUI-Warp" -fs HFS+ -srcfolder "GUI-Warp"
+hdiutil convert GUI-Warp-tmp.dmg -format UDZO -o GUI-Warp.dmg
 
 echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
-rm -rf build dist venv
+rm -rf build dist venv GUI-Warp GUI-Warp-tmp.dmg
