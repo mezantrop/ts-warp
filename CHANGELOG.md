@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* 2024.01.14    Current
+* 2024.01.16    ts-warp-1.4.8, gui-warp-1.0.22 (gui-warp-v1.0.27-mac), ns-warp-1.0.7
   * `gui-warp.app`: update link points to `GUI-Warp.dmg` image
   * `gui-warp.app`: `build.sh` creates DMG image
   * `Makefile`: `ts-warp-ssh2` special target (for development) with `LIBSSH2`
