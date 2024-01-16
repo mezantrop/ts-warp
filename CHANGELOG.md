@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2024.01.14    Current
+  * `gui-warp.app`: update link points to `GUI-Warp.dmg` image
   * `gui-warp.app`: `build.sh` creates DMG image
   * `Makefile`: `ts-warp-ssh2` special target (for development) with `LIBSSH2`
   * `ssh2.c`: Started `ssh2_client_request()`

@@ -442,7 +442,7 @@ It is a free and open-source software, but if you want to support it, please do'
 # -------------------------------------------------------------------------------------------------------------------- #
 if __name__ == "__main__":
     url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
-    url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/gui-warp.app.tgz'
+    url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/GUI-Warp.dmg'
     url_supportus = 'https://www.buymeacoffee.com/mezantrop'
     url_contact = 'mailto:zmey20000@yahoo.com'
 
