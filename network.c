@@ -107,12 +107,12 @@ char *inet2str(struct sockaddr_storage *ai_addr, char *str_addr) {
         case AF_INET:
             inet_ntop(AF_INET, &SIN4_ADDR(*ai_addr), buf, INET_ADDRSTRLEN);
             sprintf(str_addr, "%s:%d", buf, ntohs(SIN4_PORT(*ai_addr)));
-            break;
+        break;
 
         case AF_INET6:
             inet_ntop(AF_INET6, &SIN6_ADDR(*ai_addr), buf, INET6_ADDRSTRLEN);
             sprintf(str_addr, "%s:%d", buf, ntohs(SIN6_PORT(*ai_addr)));
-            break;
+        break;
 
         default:
             printl(LOG_WARN, "Unrecognized address family: %d", ai_addr->ss_family);
