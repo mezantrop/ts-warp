@@ -1015,7 +1015,7 @@ All parameters are optional:
                             printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                            if (ssh2_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password,
+                            if (ssh2_client_request(ssock, &daddr, s_ini->proxy_user, s_ini->proxy_password,
                                     s_ini->proxy_key)) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);

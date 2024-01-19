@@ -59,10 +59,12 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int ssh2_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password, char *priv_key) {
+int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key) {
     LIBSSH2_SESSION *session = NULL;
+    LIBSSH2_CHANNEL *channel = NULL;
     const char *fingerprint;
     char *userauthlist;
+    int port = 0;
     int auth_pw = 0;
     char buf[61];
 
@@ -127,7 +129,26 @@ int ssh2_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
     }
 
     getchannel:
-/* channel =  libssh2_channel_direct_tcpip(session, ); */
+
+    switch (daddr->ip_addr.ss_family) {
+        case AF_INET:
+            if (!daddr->name[0])
+                inet_ntop(AF_INET, &SIN4_ADDR(daddr->ip_addr), daddr->name, INET_ADDRSTRLEN);
+            port = ntohs(SIN4_PORT(daddr->ip_addr));
+        break;
+
+        case AF_INET6:
+            if (!daddr->name[0])
+                inet_ntop(AF_INET6, &SIN6_ADDR(daddr->ip_addr), daddr->name, INET6_ADDRSTRLEN);
+            port = ntohs(SIN6_PORT(daddr->ip_addr));
+        break;
+
+        default:
+            printl(LOG_WARN, "Unrecognized address family: %d", daddr->ip_addr.ss_family);
+            return 1;
+    }
+
+    channel = libssh2_channel_direct_tcpip(session, daddr->name, port);
 
     return 0;
 }

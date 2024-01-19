@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * 2024.01.19    Current
+* `ssh2.c`: `libssh2_channel_direct_tcpip()` added
 * `ssh2.c`: `libssh2_userauth_*()` added
 * `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
 
