@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.16    Current
+* 2024.01.19    Current
+* `ssh2.c`: `libssh2_userauth_*()` added
 * `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
 
 * 2024.01.16    ts-warp-1.4.8, gui-warp-1.0.22 (gui-warp-v1.0.27-mac), ns-warp-1.0.7
