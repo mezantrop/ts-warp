@@ -40,7 +40,7 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 extern char *pfile_name;
 
-char *password = NULL;
+char *gpassword = NULL;
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 static void kbd_callback(const char *name, int name_len, const char *instruction, int instruction_len, int num_prompts,
@@ -51,8 +51,8 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
     (void)instruction;
     (void)instruction_len;
     if (num_prompts == 1) {
-            responses[0].text = strdup(password);
-            responses[0].length = strlen(password);
+        responses[0].text = strdup(gpassword);
+        responses[0].length = strlen(gpassword);
     }
     (void)prompts;
     (void)abstract;
@@ -84,50 +84,52 @@ int ssh2_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
 
     printl(LOG_WARN, "SSH2 Fingerprint: [%s]", buf);
 
-	/* check what authentication methods are available */
-	userauthlist = libssh2_userauth_list(session, user, strlen(user));
-	fprintf(stderr, "Authentication methods: %s\n", userauthlist);
-	if (strstr(userauthlist, "password")) auth_pw |= 1;
-	if (strstr(userauthlist, "keyboard-interactive")) auth_pw |= 2;
-	if (strstr(userauthlist, "publickey")) auth_pw |= 4;
+    /* check what authentication methods are available */
+    userauthlist = libssh2_userauth_list(session, user, strlen(user));
+    fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+    if (strstr(userauthlist, "password")) auth_pw |= 1;
+    if (strstr(userauthlist, "keyboard-interactive")) auth_pw |= 2;
+    if (strstr(userauthlist, "publickey")) auth_pw |= 4;
 
-	if (auth_pw & 1) {
-		/* We could authenticate via password */
-        	if (libssh2_userauth_password(session, user, password)) {
-            		printl(LOG_WARN, "Authentication by password failed!");
-		} else {
-			printl(LOG_VERB,"Authentication by password succeeded.");
-			goto getchannel;
-		}
-	}
+    if (auth_pw & 1) {
+        /* We could authenticate via password */
+            if (libssh2_userauth_password(session, user, password)) {
+                printl(LOG_WARN, "Authentication by password failed!");
+        } else {
+            printl(LOG_VERB,"Authentication by password succeeded.");
+            goto getchannel;
+        }
+    }
 
-	if (auth_pw & 2) {
-		/* Or via keyboard-interactive */
-		if (libssh2_userauth_keyboard_interactive(session, user, &kbd_callback) ) {
-			printl(LOG_WARN, "Authentication by keyboard-interactive failed!");
-		} else {
-			printl(LOG_VERB, "Authentication by keyboard-interactive succeeded.");
-			goto getchannel;
-		}
-	}
+    if (auth_pw & 2) {
+        /* Or via keyboard-interactive */
+        gpassword = password;
+        if (libssh2_userauth_keyboard_interactive(session, user, &kbd_callback) ) {
+            printl(LOG_WARN, "Authentication by keyboard-interactive failed!");
+        } else {
+            printl(LOG_VERB, "Authentication by keyboard-interactive succeeded.");
+            goto getchannel;
+        }
+    }
 
-	if (auth_pw & 4) {
-        	/* Or by public key */
-		if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, password)) {
-			printl(LOG_WARN, "Authentication by public key failed!");
-			return 1;
-		} else {
-			printl(LOG_VERB, "Authentication by public key succeeded.");
-			goto getchannel;
-		}
-	} else {
-		printl(LOG_WARN, "No supported authentication methods found!");
-		return 1;
-	}
+    if (auth_pw & 4) {
+            /* Or by public key */
+        if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, password)) {
+            printl(LOG_WARN, "Authentication by public key failed!");
+            return 1;
+        } else {
+            printl(LOG_VERB, "Authentication by public key succeeded.");
+            goto getchannel;
+        }
+    } else {
+        printl(LOG_WARN, "No supported authentication methods found!");
+        return 1;
+    }
 
-getchannel:
+    getchannel:
+/* channel =  libssh2_channel_direct_tcpip(session, ); */
 
     return 0;
 }
 
-#endif
+#endif                /* WITH_LIBSSH2 */
