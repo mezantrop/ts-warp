@@ -24,8 +24,6 @@
 */
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-#include <libssh2.h>
-
 #include "version.h"
 
 #if !defined (WITH_LIBSSH2)
@@ -34,5 +32,11 @@
 
 #define PROXY_PROTO_SSH2                'S'
 
+#if (WITH_LIBSSH2)
+
+#include <libssh2.h>
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 int ssh2_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password, char *priv_key);
+
+#endif                  /* WITH_LIBSSH2 */
