@@ -59,7 +59,7 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key) {
+LIBSSH2_CHANNEL *ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key) {
     LIBSSH2_SESSION *session = NULL;
     LIBSSH2_CHANNEL *channel = NULL;
     const char *fingerprint;
@@ -71,12 +71,12 @@ int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *pass
 
     if (!(session = libssh2_session_init())) {
         printl(LOG_WARN, "Unable to initialize SSH2 session");
-        return 1;
+        return NULL;
     }
 
-    if (!libssh2_session_handshake(session, socket)) {
+    if (libssh2_session_handshake(session, socket)) {
         printl(LOG_WARN, "Unable to perform SSH2 handshake");
-        return 1;
+        return NULL;
     }
 
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
@@ -88,7 +88,7 @@ int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *pass
 
     /* check what authentication methods are available */
     userauthlist = libssh2_userauth_list(session, user, strlen(user));
-    fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+    printl(LOG_VERB, "Authentication methods: [%s]", userauthlist);
     if (strstr(userauthlist, "password")) auth_pw |= 1;
     if (strstr(userauthlist, "keyboard-interactive")) auth_pw |= 2;
     if (strstr(userauthlist, "publickey")) auth_pw |= 4;
@@ -118,17 +118,19 @@ int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *pass
             /* Or by public key */
         if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, password)) {
             printl(LOG_WARN, "Authentication by public key failed!");
-            return 1;
+            return NULL;
         } else {
             printl(LOG_VERB, "Authentication by public key succeeded.");
             goto getchannel;
         }
     } else {
         printl(LOG_WARN, "No supported authentication methods found!");
-        return 1;
+        return NULL;
     }
 
     getchannel:
+
+    printl(LOG_VERB, "SSH2 Getting a Channel");
 
     switch (daddr->ip_addr.ss_family) {
         case AF_INET:
@@ -145,12 +147,15 @@ int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *pass
 
         default:
             printl(LOG_WARN, "Unrecognized address family: %d", daddr->ip_addr.ss_family);
-            return 1;
+            return NULL;
     }
 
-    channel = libssh2_channel_direct_tcpip(session, daddr->name, port);
+    printl(LOG_VERB, "Destination SSH2 address: [%s]:[%d]", daddr->name, port);
+    channel = libssh2_channel_direct_tcpip(session, daddr->name, port);        /* Return channel or NULL */
+    if (channel)
+        libssh2_session_set_blocking(session, 0);
 
-    return 0;
+    return channel;
 }
 
 #endif                /* WITH_LIBSSH2 */

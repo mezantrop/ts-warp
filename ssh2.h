@@ -37,6 +37,6 @@
 #include <libssh2.h>
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key);
+LIBSSH2_CHANNEL *ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key);
 
 #endif                  /* WITH_LIBSSH2 */

@@ -171,6 +171,9 @@ All parameters are optional:
     struct pid_list *d = NULL, *c = NULL;                               /* PID list related ... */
     struct ini_section *push_ini = NULL;                                /* variables */
 
+    #if (WITH_LIBSSH2)
+        LIBSSH2_CHANNEL *ssh2ch = NULL;                                 /* SSH2 channel - IO stream */
+    #endif
 
     while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:h")) != -1)
         switch(flg) {
@@ -1015,8 +1018,8 @@ All parameters are optional:
                             printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                            if (ssh2_client_request(ssock, &daddr, s_ini->proxy_user, s_ini->proxy_password,
-                                    s_ini->proxy_key)) {
+                            if (!(ssh2ch = ssh2_client_request(ssock, &daddr, s_ini->proxy_user, s_ini->proxy_password,
+                                    s_ini->proxy_key))) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);
                                 exit(2);
@@ -1047,67 +1050,140 @@ All parameters are optional:
             tmessage.mtext.dbytes = 0;
 
             while (1) {
-                FD_ZERO(&rfd);
-                FD_SET(csock, &rfd);
-                FD_SET(ssock, &rfd);
+                #if (WITH_LIBSSH2)
+                    if (ssh2ch) {
+                        printl(LOG_VERB, "WITH_LIBSSH2!");
 
-                tv.tv_sec = 0;
-                tv.tv_usec = 100000;
-                ret = select(ssock > csock ? ssock + 1: csock + 1, &rfd, 0, 0, &tv);
+                        int wr = 0;
 
-                if (ret < 0) break;
-                if (ret == 0) continue;
-                if (ret > 0) {
-                    memset(buf, 0, BUF_SIZE);
-                    tmessage.mtext.timestamp = time(NULL);                          /* Fill in traffic timestamp */
-                    if (FD_ISSET(csock, &rfd)) {
-                        /* Client writes */
-                        rec = recv(csock, buf, BUF_SIZE, 0);
-                        if (rec == 0) {
-                            printl(LOG_VERB, "Connection closed by the client");
-                            break;
-                        }
-                        if (rec == -1) {
-                            printl(LOG_CRIT, "Error receving data from the client");
-                            break;
-                        }
-                        while ((snd = send(ssock, buf, rec, 0)) == 0) {
-                            printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
-                            usleep(100);                                /* 0.1 ms */
-                            break;
-                        }
-                        if (snd == -1) {
-                            printl(LOG_CRIT, "Error sending data to proxy server");
-                            break;
-                        }
+                        FD_ZERO(&rfd);
+                        FD_SET(csock, &rfd);
 
-                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
-                        tmessage.mtext.cbytes += rec;
+                        tv.tv_sec = 0;
+                        tv.tv_usec = 100000;
+                        ret = select(csock + 1, &rfd, 0, 0, &tv);
+
+                        if (ret < 0) break;
+                        if (ret == 0) continue;
+                        if (ret > 0) {
+                            memset(buf, 0, BUF_SIZE);
+                            tmessage.mtext.timestamp = time(NULL);                      /* Fill in traffic timestamp */
+                            if (FD_ISSET(csock, &rfd)) {
+                                /* Client writes */
+                                rec = recv(csock, buf, BUF_SIZE, 0);
+                                if (rec == 0) {
+                                    printl(LOG_VERB, "Connection closed by the client");
+                                    break;
+                                }
+                                if (rec == -1) {
+                                    printl(LOG_CRIT, "Error receving data from the client");
+                                    break;
+                                }
+
+                                do {
+                                    snd = libssh2_channel_write(ssh2ch, buf, rec);
+                                    if (snd < 0) {
+                                        printl(LOG_CRIT, "libssh2_channel_write() failue: [%d]", snd);
+                                        break;
+                                    }
+                                    wr += snd;
+                                } while(snd > 0 && wr < rec);
+
+                                printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+                            }
+
+                            while (1) {
+                                /* Server writes */
+                                rec = libssh2_channel_read(ssh2ch, buf, sizeof(buf));
+                                if (!LIBSSH2_ERROR_EAGAIN && rec < 0) {
+                                    printl(LOG_CRIT, "libssh2_channel_read() failure: [%d]", rec);
+                                    break;
+                                }
+
+                                wr = 0;
+                                while (wr < rec) {
+                                    snd = send(csock, buf + wr, rec - wr, 0);
+                                    if (snd <= 0) {
+                                        printl(LOG_CRIT, "Error sending data to proxy server");
+                                        break;
+                                    }
+                                    wr += snd;
+                                }
+
+                                printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+
+                                if (libssh2_channel_eof(ssh2ch)) {
+                                    printl(LOG_VERB, "Connection closed by the client");
+                                    break;
+                                }
+                            }
+                        }
                     } else {
-                        /* Server writes */
-                        rec = recv(ssock, buf, BUF_SIZE, 0);
-                        if (rec == 0) {
-                            printl(LOG_INFO, "Connection closed by proxy server");
-                            break;
-                        }
-                        if (rec == -1) {
-                            printl(LOG_CRIT, "Error receving data from proxy server");
-                            break;
-                        }
-                        while ((snd = send(csock, buf, rec, 0)) == 0) {
-                            printl(LOG_CRIT, "S:[0] -> C:[0] bytes");
-                            usleep(100);
-                        }
-                        if (snd == -1) {
-                            printl(LOG_CRIT, "Error sending data to proxy server");
-                            break;
-                        }
+                #endif
+                    FD_ZERO(&rfd);
+                    FD_SET(csock, &rfd);
+                    FD_SET(ssock, &rfd);
 
-                        printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
-                        tmessage.mtext.dbytes += rec;
+                    tv.tv_sec = 0;
+                    tv.tv_usec = 100000;
+                    ret = select(ssock > csock ? ssock + 1: csock + 1, &rfd, 0, 0, &tv);
+
+                    if (ret < 0) break;
+                    if (ret == 0) continue;
+                    if (ret > 0) {
+                        memset(buf, 0, BUF_SIZE);
+                        tmessage.mtext.timestamp = time(NULL);                          /* Fill in traffic timestamp */
+                        if (FD_ISSET(csock, &rfd)) {
+                            /* Client writes */
+                            rec = recv(csock, buf, BUF_SIZE, 0);
+                            if (rec == 0) {
+                                printl(LOG_VERB, "Connection closed by the client");
+                                break;
+                            }
+                            if (rec == -1) {
+                                printl(LOG_CRIT, "Error receving data from the client");
+                                break;
+                            }
+                            while ((snd = send(ssock, buf, rec, 0)) == 0) {
+                                printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
+                                usleep(100);                                /* 0.1 ms */
+                                break;
+                            }
+                            if (snd == -1) {
+                                printl(LOG_CRIT, "Error sending data to proxy server");
+                                break;
+                            }
+
+                            printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+                            tmessage.mtext.cbytes += rec;
+                        } else {
+                            /* Server writes */
+                            rec = recv(ssock, buf, BUF_SIZE, 0);
+                            if (rec == 0) {
+                                printl(LOG_INFO, "Connection closed by proxy server");
+                                break;
+                            }
+                            if (rec == -1) {
+                                printl(LOG_CRIT, "Error receving data from proxy server");
+                                break;
+                            }
+                            while ((snd = send(csock, buf, rec, 0)) == 0) {
+                                printl(LOG_CRIT, "S:[0] -> C:[0] bytes");
+                                usleep(100);
+                            }
+                            if (snd == -1) {
+                                printl(LOG_CRIT, "Error sending data to proxy server");
+                                break;
+                            }
+
+                            printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+                            tmessage.mtext.dbytes += rec;
+                        }
+                        if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                     }
-                    if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
+                #if (WITH_LIBSSH2)
                 }
+                #endif
             }
 
             shutdown(csock, SHUT_RDWR);

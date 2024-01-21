@@ -48,7 +48,7 @@ version:
 ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
 
-ts-warp-ssh2:
+ts-warp-ssh2: examples-special ts-pass
 	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp -lssh2 $(WARP_FILES)
 
 ts-warp.sh:
@@ -156,7 +156,7 @@ install-configs:
 			;; \
 	esac
 
-install: ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
+install: ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
 
 	chown "`cat .configured`" $(PREFIX)/etc/ts-warp*
