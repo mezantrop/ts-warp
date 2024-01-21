@@ -38,6 +38,7 @@
 #include "network.h"
 #include "socks.h"
 #include "http.h"
+#include "ssh2.h"
 #include "logfile.h"
 #include "pidfile.h"
 #include "xedec.h"
@@ -151,7 +152,8 @@ ini_section *read_ini(char *ifile_name) {
                     c_sect->proxy_type = entry.val[0];
                     if (c_sect->proxy_type != PROXY_PROTO_SOCKS_V4 &&
                         c_sect->proxy_type != PROXY_PROTO_SOCKS_V5 &&
-                        toupper(c_sect->proxy_type) != PROXY_PROTO_HTTP) {
+                        toupper(c_sect->proxy_type) != PROXY_PROTO_HTTP &&
+                        toupper(c_sect->proxy_type) != PROXY_PROTO_SSH2) {
                             printl(LOG_WARN, "LN: [%d] Resetting unsupported proxy type [%c] to default: [%c]",
                                 ln, c_sect->proxy_type, PROXY_PROTO_SOCKS_V5);
                             c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
@@ -172,7 +174,9 @@ ini_section *read_ini(char *ifile_name) {
                     chain_this = chain_temp;
             } else
                 /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
-                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) ||
+                    !strcasecmp(entry.var, INI_ENTRY_SOCKS_PASSWORD)) {
+
                     if (chk_inivar(&c_sect->proxy_password, INI_ENTRY_PROXY_PASSWORD, ln))
                             free(c_sect->proxy_password);
 
@@ -192,8 +196,7 @@ ini_section *read_ini(char *ifile_name) {
                         }
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY)) {
-                    /* Implement private key loading */
-                    ;
+                    c_sect->proxy_key = strdup(entry.val);
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {
                     if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_NONE))
@@ -371,9 +374,9 @@ void show_ini(struct ini_section *ini, int loglvl) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Proxy: [%s] Type: [%c] User/Password: [%s/%s]",
+        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Proxy: [%s] Type: [%c] User/Password: [%s/%s], Key: [%s]",
             s->section_name, ini_balance[s->section_balance], inet2str(&s->proxy_server, ip1), s->proxy_type,
-            s->proxy_user?:"", s->proxy_password ? "********" : "");
+            s->proxy_user?:"", s->proxy_password ? "********" : "", s->proxy_key);
 
         /* Display Socks chain */
         if (s->p_chain) {
