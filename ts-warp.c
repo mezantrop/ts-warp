@@ -1052,8 +1052,6 @@ All parameters are optional:
             while (1) {
                 #if (WITH_LIBSSH2)
                     if (ssh2ch) {
-                        printl(LOG_VERB, "WITH_LIBSSH2!");
-
                         int wr = 0;
 
                         FD_ZERO(&rfd);
@@ -1064,7 +1062,6 @@ All parameters are optional:
                         ret = select(csock + 1, &rfd, 0, 0, &tv);
 
                         if (ret < 0) break;
-                        if (ret == 0) continue;
                         if (ret > 0) {
                             memset(buf, 0, BUF_SIZE);
                             tmessage.mtext.timestamp = time(NULL);                      /* Fill in traffic timestamp */
@@ -1091,31 +1088,36 @@ All parameters are optional:
 
                                 printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
                             }
+                        }
 
-                            while (1) {
-                                /* Server writes */
-                                rec = libssh2_channel_read(ssh2ch, buf, sizeof(buf));
-                                if (!LIBSSH2_ERROR_EAGAIN && rec < 0) {
-                                    printl(LOG_CRIT, "libssh2_channel_read() failure: [%d]", rec);
+                        while (1) {
+                            /* Server writes */
+                            rec = libssh2_channel_read(ssh2ch, buf, BUF_SIZE);
+                            if (rec == LIBSSH2_ERROR_EAGAIN) {
+                                printl(LOG_VERB, "LIBSSH2_ERROR_EAGAIN!");
+                                break;     /* Let's try again */
+                            }
+
+                            if (rec < 0) {
+                                printl(LOG_CRIT, "libssh2_channel_read() failure: [%d]", rec);
+                                break;
+                            }
+
+                            wr = 0;
+                            while (wr < rec) {
+                                snd = send(csock, buf + wr, rec - wr, 0);
+                                if (snd <= 0) {
+                                    printl(LOG_CRIT, "Error sending data to proxy server");
                                     break;
                                 }
+                                wr += snd;
+                            }
 
-                                wr = 0;
-                                while (wr < rec) {
-                                    snd = send(csock, buf + wr, rec - wr, 0);
-                                    if (snd <= 0) {
-                                        printl(LOG_CRIT, "Error sending data to proxy server");
-                                        break;
-                                    }
-                                    wr += snd;
-                                }
+                            printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
 
-                                printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
-
-                                if (libssh2_channel_eof(ssh2ch)) {
-                                    printl(LOG_VERB, "Connection closed by the client");
-                                    break;
-                                }
+                            if (libssh2_channel_eof(ssh2ch)) {
+                                printl(LOG_VERB, "Connection closed by the server");
+                                goto shutdown_ssh2;
                             }
                         }
                     } else {
@@ -1185,6 +1187,13 @@ All parameters are optional:
                 }
                 #endif
             }
+
+            #if (WITH_LIBSSH2)
+                shutdown_ssh2:
+
+                if (ssh2ch) libssh2_channel_free(ssh2ch);
+                /* TODO: Should we: libssh2_session_disconnect() and libssh2_session_free() ? */
+            #endif
 
             shutdown(csock, SHUT_RDWR);
             shutdown(ssock, SHUT_RDWR);

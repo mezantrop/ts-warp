@@ -1,7 +1,8 @@
 # CHANGELOG
 
 * 2024.01.21    Current
-* SSH is not usable still! Added SSH2 to the main loop
+* SSH2 proxy first successful run
+* Added SSH2 to the main loop
 * `ssh2.c`: `libssh2_channel_direct_tcpip()` added
 * `ssh2.c`: `libssh2_userauth_*()` added
 * `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
