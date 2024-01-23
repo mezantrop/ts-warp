@@ -33,19 +33,31 @@ $(SRCPATH)pidfile.c $(SRCPATH)pidlist.c $(SRCPATH)ssh2.c $(SRCPATH)socks.c $(SRC
 $(SRCPATH)utility.c $(SRCPATH)xedec.c
 PASS_FILES = $(SRCPATH)ts-pass.c $(SRCPATH)xedec.c
 
-.PHONY:	all clean ts-warp_x64 ts-warp_arm
+.PHONY:	all clean ts-warp_x64 ts-warp_arm ts-warp_x64-ssh2 ts-warp_arm-ssh2
 
 all: ts-warp
 
 ts-warp_x64:
-	$(CC) $(CFLAGS) -o ts-warp_x64 -target x86_64-apple-macos10.12 $(WARP_FILES)
-	$(CC) $(CFLAGS) -o ts-pass_x64 -target x86_64-apple-macos10.12 $(PASS_FILES)
+	$(CC) $(CFLAGS) -o ts-warp_x64 -target x86_64-apple-macos11 $(WARP_FILES)
+	$(CC) $(CFLAGS) -o ts-pass_x64 -target x86_64-apple-macos11 $(PASS_FILES)
 
 ts-warp_arm:
 	$(CC) $(CFLAGS) -o ts-warp_arm -target arm64-apple-macos11 $(WARP_FILES)
 	$(CC) $(CFLAGS) -o ts-pass_arm -target arm64-apple-macos11 $(PASS_FILES)
 
 ts-warp: ts-warp_x64 ts-warp_arm
+	lipo -create -output ts-warp ts-warp_x64 ts-warp_arm
+	lipo -create -output ts-pass ts-pass_x64 ts-pass_arm
+
+ts-warp_x64-ssh2:
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_x64 -lcrypto -lssl -lssh2 -lz -L./ -target x86_64-apple-macos11 $(WARP_FILES)
+	$(CC) $(CFLAGS) -o ts-pass_x64 -target x86_64-apple-macos11 $(PASS_FILES)
+
+ts-warp_arm-ssh2:
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_arm -lcrypto -lssl -lssh2 -lz -L./ -target arm64-apple-macos11 $(WARP_FILES)
+	$(CC) $(CFLAGS) -o ts-pass_arm -target arm64-apple-macos11 $(PASS_FILES)
+
+ts-warp-ssh2: ts-warp_x64-ssh2 ts-warp_arm-ssh2
 	lipo -create -output ts-warp ts-warp_x64 ts-warp_arm
 	lipo -create -output ts-pass ts-pass_x64 ts-pass_arm
 

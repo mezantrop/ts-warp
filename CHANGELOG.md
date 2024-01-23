@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.21    Current
+* 2024.01.23    Current
+* `gui-warp.app`: `Makefile` and `build.sh` prepred for static `LIBSSH2`
 * SSH2 proxy first successful run
 * Added SSH2 to the main loop
 * `ssh2.c`: `libssh2_channel_direct_tcpip()` added

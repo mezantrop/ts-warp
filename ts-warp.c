@@ -1014,7 +1014,6 @@ All parameters are optional:
 
                     #if (WITH_LIBSSH2)
                         case PROXY_PROTO_SSH2:
-                            /* TODO: Implement SSH2 client */
                             printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
@@ -1086,7 +1085,7 @@ All parameters are optional:
                                     wr += snd;
                                 } while(snd > 0 && wr < rec);
 
-                                printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, snd);
+                                printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, wr);
                             }
                         }
 
@@ -1095,7 +1094,7 @@ All parameters are optional:
                             rec = libssh2_channel_read(ssh2ch, buf, BUF_SIZE);
                             if (rec == LIBSSH2_ERROR_EAGAIN) {
                                 printl(LOG_VERB, "LIBSSH2_ERROR_EAGAIN!");
-                                break;     /* Let's try again */
+                                break;                  /* Let's try again */
                             }
 
                             if (rec < 0) {
@@ -1113,7 +1112,7 @@ All parameters are optional:
                                 wr += snd;
                             }
 
-                            printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, snd);
+                            printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, wr);
 
                             if (libssh2_channel_eof(ssh2ch)) {
                                 printl(LOG_VERB, "Connection closed by the server");
