@@ -11,7 +11,13 @@ make clean &&
 rm -rf build dist venv GUI-Warp *.dmg
 
 echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
-make &&
+# NB! Static libraries are in current directory! If changing, adjust Makefile as well!
+[ -n "$WITH_LIBSSH2" ] && {
+	[ ! -f ./libssh2.a -o ! -f ./libcrypto.a -o ! -f libssl.a ] && {
+		echo "Unable to find static SSH2 library, skipping it"
+		make
+	} || make ts-warp-ssh2
+} || make
 
 echo "-- Making environment -------------------------------------------------------------------------------------------" &&
 $pv/bin/python3 -m venv venv &&
