@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.23    Current
+* 2024.01.24    Current
+* `ts-warp.c`: Be silent on `LIBSSH2_ERROR_EAGAIN` in `libssh2_channel_read()`
 * `gui-warp.app`: `Makefile` and `build.sh` prepred for static `LIBSSH2`
 * SSH2 proxy first successful run
 * Added SSH2 to the main loop
