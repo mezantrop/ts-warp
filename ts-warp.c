@@ -1092,10 +1092,8 @@ All parameters are optional:
                         while (1) {
                             /* Server writes */
                             rec = libssh2_channel_read(ssh2ch, buf, BUF_SIZE);
-                            if (rec == LIBSSH2_ERROR_EAGAIN) {
-                                printl(LOG_VERB, "LIBSSH2_ERROR_EAGAIN!");
+                            if (rec == LIBSSH2_ERROR_EAGAIN)
                                 break;                  /* Let's try again */
-                            }
 
                             if (rec < 0) {
                                 printl(LOG_CRIT, "libssh2_channel_read() failure: [%d]", rec);
