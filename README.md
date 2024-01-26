@@ -19,7 +19,7 @@
   - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
 
 - Main features
-  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2 with libssh2    |
+  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2                 |
   |----------------------------------------|--------------------|----------------------|--------------------|----------------------|
   | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:   |
   | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square: |
