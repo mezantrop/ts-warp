@@ -83,8 +83,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, struct uvaddr *daddr, char *use
     for(int i = 0; i < 20; i++)
         sprintf(buf + i * 3, "%02X:", (unsigned char)fingerprint[i]);
     buf[60] = '\0';
-
-    printl(LOG_WARN, "SSH2 Fingerprint: [%s]", buf);
+    printl(LOG_INFO, "SSH2 Fingerprint: [%s]", buf);
 
     /* check what authentication methods are available */
     userauthlist = libssh2_userauth_list(session, user, strlen(user));

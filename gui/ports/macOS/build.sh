@@ -11,7 +11,7 @@ make clean &&
 rm -rf build dist venv GUI-Warp *.dmg
 
 echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
-# NB! Static libraries are in current directory! If changing, adjust Makefile as well!
+# NB! Static libraries must be located in the current directory! If changing, adjust Makefile as well!
 [ -n "$WITH_LIBSSH2" ] && {
 	[ ! -f ./libssh2.a -o ! -f ./libcrypto.a -o ! -f libssl.a ] && {
 		echo "Unable to find static SSH2 library, skipping it"

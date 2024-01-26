@@ -19,23 +19,23 @@
   - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
 
 - Main features
-  | Transparent proxy                        | Socks5               | Socks4                | HTTPS                |
-  | ---------------------------------------- | -------------------- | --------------------- | -------------------- |
-  | Proxy protocol                           | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
-  | Proxy chains                             | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
-  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
-  | Basic authentication (username/password) | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
-  | IPv6 stack support                       | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
-  | Remote names resolution: [NS-Warp](ns)   | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
+  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2 with libssh2    |
+  |----------------------------------------|--------------------|----------------------|--------------------|----------------------|
+  | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:   |
+  | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square: |
+  | Proxy workload balancer                | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:   |
+  | Authentication                         | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
+  | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
+  | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
 
-  | Internal proxy                           | Socks5               | Socks4                | HTTPS                |
-  | ---------------------------------------- | -------------------- | --------------------- | -------------------- |
-  | Proxy protocol                           | :white_check_mark:   | :black_square_button: | :white_check_mark:   |
-  | Proxy chains                             | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
-  | Proxy workload balancer                  | :white_check_mark:   | :white_check_mark:    | :white_check_mark:   |
-  | Basic authentication (username/password) | :white_large_square: | :white_large_square:  | :white_large_square: |
-  | IPv6 stack support                       | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
-  | Remote names resolution                  | :white_check_mark:   | :white_large_square:  | :white_check_mark:   |
+  | Internal proxy                         | Socks5               | HTTPS                |
+  |----------------------------------------|----------------------|----------------------|
+  | Proxy protocol                         | :white_check_mark:   | :white_check_mark:   |
+  | Proxy chains                           | :white_check_mark:   | :white_check_mark:   |
+  | Proxy workload balancer                | :white_check_mark:   | :white_check_mark:   |
+  | Authentication                         | :white_large_square: | :white_large_square: |
+  | IPv6 stack support                     | :white_check_mark:   | :white_check_mark:   |
+  | Remote names resolution                | :white_check_mark:   | :white_check_mark:   |
 
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
@@ -64,6 +64,9 @@ See it [here](CHANGELOG.md)
 ```sh
 git clone https://github.com/mezantrop/ts-warp && cd ts-warp
 make && sudo make install clean
+
+# If SSH2 proxy support is required, install https://libssh2.org library and instead of the above run:
+make ts-warp-ssh2 sudo make install clean
 
 # Copy and edit configuration files
 sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
@@ -113,6 +116,12 @@ built-in default paths as well:
 
   ```sh
   make PREFIX=/path/to/install
+  ```
+
+If SSH2 proxy support is required, install https://libssh2.org library first and run:
+
+  ```sh
+  make ts-warp-ssh2 sudo make install clean
   ```
 
 #### Install the application

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.24    Current
+* 2024.01.26    Current
+* SSH2 proxy-client introduction
 * `ts-warp.c`: Be silent on `LIBSSH2_ERROR_EAGAIN` in `libssh2_channel_read()`
 * `gui-warp.app`: `Makefile` and `build.sh` prepred for static `LIBSSH2`
 * SSH2 proxy first successful run
