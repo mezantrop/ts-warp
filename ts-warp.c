@@ -902,12 +902,14 @@ All parameters are optional:
                             }
                         break;
 
-                        case PROXY_PROTO_SSH2:
-                        /* TODO: Implement SSH2 client */
-                        break;
+                        #if (WITH_LIBSSH2)
+                            case PROXY_PROTO_SSH2:
+                            /* Not planned */
+                            break;
+                        #endif
 
                         default:
-                            /* Unreacheable. Must be cleared already by read_ini() */
+                            /* Unreachable. Must be cleared already by read_ini() */
                             printl(LOG_WARN, "Detected unsupported CHAIN proxy type: [%c]",
                                 s_ini->p_chain->chain_member->proxy_type);
                             close(csock);
@@ -1027,7 +1029,7 @@ All parameters are optional:
                     #endif
 
                     default:
-                        /* Unreacheable. Should be cleared already by read_ini() */
+                        /* Unreachable. Should be cleared already by read_ini() */
                         printl(LOG_WARN, "Detected unsupported proxy type: [%c]", s_ini->proxy_type);
                         close(csock);
                         exit(2);
@@ -1086,6 +1088,7 @@ All parameters are optional:
                                 } while(snd > 0 && wr < rec);
 
                                 printl(rec != snd ? LOG_CRIT : LOG_VERB, "C:[%d] -> S:[%d] bytes", rec, wr);
+                                tmessage.mtext.cbytes += rec;
                             }
                         }
 
@@ -1111,11 +1114,14 @@ All parameters are optional:
                             }
 
                             printl(rec != snd ? LOG_CRIT : LOG_VERB, "S:[%d] -> C:[%d] bytes", rec, wr);
+                            tmessage.mtext.dbytes += rec;
 
                             if (libssh2_channel_eof(ssh2ch)) {
                                 printl(LOG_VERB, "Connection closed by the server");
                                 goto shutdown_ssh2;
                             }
+
+                            if (msgid != -1) msgsnd(msgid, &tmessage, sizeof(struct traffic_message), IPC_NOWAIT);
                         }
                     } else {
                 #endif
