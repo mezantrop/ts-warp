@@ -19,14 +19,16 @@
   - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
 
 - Main features
-  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2                 |
-  |----------------------------------------|--------------------|----------------------|--------------------|----------------------|
-  | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:   |
-  | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square: |
-  | Proxy workload balancer                | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:   |
-  | Authentication                         | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
-  | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
-  | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:   |
+  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2                  |
+  |----------------------------------------|--------------------|----------------------|--------------------|-----------------------|
+  | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:    |
+  | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square:* |
+  | Proxy workload balancer                | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:    |
+  | Authentication                         | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
+  | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
+  | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
+
+\* In proxy chains, SSH2-proxy server can only be a target of a proxy chain
 
   | Internal proxy                         | Socks5               | HTTPS                |
   |----------------------------------------|----------------------|----------------------|
