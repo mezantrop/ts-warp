@@ -855,7 +855,7 @@ All parameters are optional:
                             } else {
                                 /* We are at the end of the chain, so connect with the section server */
                                 printl(LOG_VERB, "Initiate CHAIN Socks4 protocol: request [%s] -> [%s]",
-                                    inet2str(&sc->chain_member->proxy_server, buf),
+                                    inet2str(&sc->chain_member->proxy_server, suf),
                                     inet2str(&s_ini->proxy_server, buf));
 
                                 if (socks4_client_request(ssock, SOCKS4_CMD_TCPCONNECT,
@@ -887,7 +887,7 @@ All parameters are optional:
                             } else {
                                 /* We are at the end of the chain, so connect with the section server */
                                 printl(LOG_VERB, "Initiate CHAIN HTTP protocol: request [%s] -> [%s]",
-                                    inet2str(&sc->chain_member->proxy_server, buf),
+                                    inet2str(&sc->chain_member->proxy_server, suf),
                                     inet2str(&s_ini->proxy_server, buf));
 
                                 if (http_client_request(ssock,
