@@ -10,9 +10,11 @@
 
 ### Features
 
-- Proxy services with TCP-traffic redirection to external Socks4/5 and HTTPS proxy servers
+- Proxy services with TCP-traffic redirection to external Socks4/5, HTTPS and SSH2* proxy servers
   - Transparent firewall-based traffic redirector
   - Internal Socks and HTTPS proxy server
+
+\* Requires [libssh2](https://libssh2.org) library
 
 - Supported platforms:
   - macOS, FreeBSD and OpenBSD with `PF`
