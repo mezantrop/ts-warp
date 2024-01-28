@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* 2024.01.27    Current
+* 2024.01.28    Current
+* `ts-warp.c`: `NIT lookup` lifted up the code to work for all proxies
 * `ts-warp.c`: minor logging bugfix, `README.md` updates
 * SSH2 proxy-client introduction
 * `ts-warp.c`: Be silent on `LIBSSH2_ERROR_EAGAIN` in `libssh2_channel_read()`

@@ -903,9 +903,10 @@ All parameters are optional:
                         break;
 
                         #if (WITH_LIBSSH2)
-                            case PROXY_PROTO_SSH2:
-                            /* Not planned */
-                            break;
+                            /* Not implemented */
+
+                            /* case PROXY_PROTO_SSH2:
+                            break; */
                         #endif
 
                         default:
@@ -934,6 +935,25 @@ All parameters are optional:
                     inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
                 single_server:
+
+                /* -- Perform NIT (IPv4 only!) Lookup --------------------------------------------------------------- */
+                /* Should we do this for chains as well? */
+                if (s_ini->nit_domain && daddr.ip_addr.ss_family == AF_INET &&
+                    S4_ADDR(s_ini->proxy_server) != S4_ADDR(daddr.ip_addr) &&
+                    (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
+                        S4_ADDR(s_ini->nit_ipmask))) {
+
+                    printl(LOG_VERB, "Looking up NIT: [%s]", inet2str(&daddr.ip_addr, buf));
+                    if (getnameinfo((const struct sockaddr *)&daddr.ip_addr, sizeof(daddr.ip_addr), daddr.name,
+                        sizeof(daddr.name), 0, 0, NI_NAMEREQD)) {
+
+                        printl(LOG_WARN, "Unable to resolve client destination address [%s] via NIT",
+                            inet2str(&daddr.ip_addr, buf));
+                        close(csock);
+                        exit(2);
+                    }
+                    printl(LOG_VERB, "NIT Lookup resolved: [%s] to [%s]", inet2str(&daddr.ip_addr, buf), daddr.name);
+                }
 
                 switch (s_ini->proxy_type) {
                     case PROXY_PROTO_SOCKS_V5:
@@ -966,22 +986,6 @@ All parameters are optional:
 
                         printl(LOG_VERB, "Initiate Socks5 protocol: request [%s] -> [%s]",
                             inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
-
-                        /* -- Perform NIT Lookup -------------------------------------------------------------------- */
-                        /* TODO: Rewrite as a function and make it available for all proxies */
-                        if (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(s_ini->proxy_server) != S4_ADDR(daddr.ip_addr)) {
-                            if (s_ini->nit_domain &&
-                                (S4_ADDR(s_ini->nit_ipaddr) & S4_ADDR(s_ini->nit_ipmask)) == (S4_ADDR(daddr.ip_addr) &
-                                    S4_ADDR(s_ini->nit_ipmask)))
-                                        if (getnameinfo((const struct sockaddr *)&daddr.ip_addr, sizeof(daddr.ip_addr),
-                                            daddr.name, sizeof(daddr.name), 0, 0, NI_NAMEREQD)) {
-                                                printl(LOG_WARN,
-                                                    "Unable to resolve client destination address [%s] via NIT",
-                                                    inet2str(&daddr.ip_addr, buf));
-                                                close(csock);
-                                                exit(2);
-                                        }
-                        }
 
                         if (socks5_client_request(ssock, SOCKS5_CMD_TCPCONNECT, &daddr.ip_addr, daddr.name)) {
                             printl(LOG_CRIT, "Socks5 proxy server returned an error");
