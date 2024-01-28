@@ -1,16 +1,16 @@
 # CHANGELOG
 
 * 2024.01.28    Current
-* `ts-warp.c`: `NIT lookup` lifted up the code to work for all proxies
-* `ts-warp.c`: minor logging bugfix, `README.md` updates
-* SSH2 proxy-client introduction
-* `ts-warp.c`: Be silent on `LIBSSH2_ERROR_EAGAIN` in `libssh2_channel_read()`
-* `gui-warp.app`: `Makefile` and `build.sh` prepred for static `LIBSSH2`
-* SSH2 proxy first successful run
-* Added SSH2 to the main loop
-* `ssh2.c`: `libssh2_channel_direct_tcpip()` added
-* `ssh2.c`: `libssh2_userauth_*()` added
-* `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
+  * `ts-warp.c`: `NIT lookup` lifted up the code to work for all proxies
+  * `ts-warp.c`: minor logging bugfix, `README.md` updates
+  * SSH2 proxy-client introduction
+  * `ts-warp.c`: Be silent on `LIBSSH2_ERROR_EAGAIN` in `libssh2_channel_read()`
+  * `gui-warp.app`: `Makefile` and `build.sh` prepred for static `LIBSSH2`
+  * SSH2 proxy first successful run
+  * Added SSH2 to the main loop
+  * `ssh2.c`: `libssh2_channel_direct_tcpip()` added
+  * `ssh2.c`: `libssh2_userauth_*()` added
+  * `gui-warp.app`: `build.sh` Stage `clean` removes correct `dmg` at right time
 
 * 2024.01.16    ts-warp-1.4.8, gui-warp-1.0.22 (gui-warp-v1.0.27-mac), ns-warp-1.0.7
   * `gui-warp.app`: update link points to `GUI-Warp.dmg` image
