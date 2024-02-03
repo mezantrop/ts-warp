@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.01.28    Current**
+* **2024.02.03    Current**
+  * `http.c`: `http_client_request()` tolerate fail on `send()` and `recv()`
   * `ts-warp.c`: `NIT lookup` lifted up the code to work for all proxies
   * `ts-warp.c`: minor logging bugfix, `README.md` updates
   * SSH2 proxy-client introduction

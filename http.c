@@ -43,7 +43,7 @@ int http_server_request(int socket, struct uvaddr *daddr) {
     char rbuf[STR_SIZE] = {0};
     int l = 0;
 
-    int rcount;
+    int rcount = 0;
     char *method = NULL, *url = NULL, *proto = NULL;
     char host[HOST_NAME_MAX] = {0};
     uint16_t port = 80;
@@ -120,14 +120,14 @@ int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
 
     if (send(socket, r, l, 0) == -1) {
         printl(LOG_CRIT, "Unable to send a request to the HTTP server");
-        mexit(1, pfile_name, tfile_name);
+        return 1;
     }
 
     printl(LOG_VERB, "Expecting HTTP reply");
 
     if ((rcount = recv(socket, &r, sizeof(r), 0)) == -1) {
         printl(LOG_CRIT, "Unable to receive a reply from the HTTP server");
-        mexit(1, pfile_name, tfile_name);
+        return 1;
     }
 
     /* Parse HTTP reply */
