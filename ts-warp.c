@@ -742,7 +742,8 @@ All parameters are optional:
                             if ((daddr.ip_addr.ss_family == AF_INET &&
                                     S4_ADDR(daddr.ip_addr) == S4_ADDR(*tres->ai_addr)) ||
                                 (daddr.ip_addr.ss_family == AF_INET6 &&
-                                    !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*tres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                                    !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*tres->ai_addr),
+                                        sizeof(S6_ADDR(daddr.ip_addr))))) {
 
                                 /* Desination address:port is the same as ts-warp transparent income ip:port, i.e.,
                                 a client contacted ts-warp directly: no NAT/redirection, no Proxy */
@@ -902,11 +903,11 @@ All parameters are optional:
                             }
                         break;
 
-                        #if (WITH_LIBSSH2)
-                            /* Not implemented */
-
-                            /* case PROXY_PROTO_SSH2:
-                            break; */
+                        #if (WITH_LIBSSH2)                                  /* Not implemented */
+                            case PROXY_PROTO_SSH2:
+                                printl(LOG_WARN, "SSH2 is not implemented as part of proxy CHAIN");
+                            close(csock);
+                            exit(2);
                         #endif
 
                         default:
