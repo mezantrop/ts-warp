@@ -40,6 +40,7 @@ OPTIONS = {
     'iconfile': 'media/gui-warp.icns',
     'arch': 'universal2',
     'packages': ['tkinter'],
+    'resources': ['../../../LICENSE']
 }
 
 setup(

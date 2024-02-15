@@ -68,6 +68,7 @@ class App:
 
         # -- GUI ----------------------------------------------------------------------------------------------------- #
         self.root = tk.Tk()
+        self.root.createcommand('tk::mac::ReopenApplication', self.root.deiconify)
 
         # Password dialog as modal window
         if os.geteuid() != 0:
