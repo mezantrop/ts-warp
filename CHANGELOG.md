@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.02.12    Current**
+* **2024.02.15    Current**
+  * `gui-warp.app`: on macOS deiconify from Dock; `LICENSE` file added to the application
   * `ts-warp.c`: Drop SSH2 proxy connection if it's in a mid of a `CHAIN`. `Single SSH2-proxy` and
     `SSH2-proxy-as-a-target` of a `CHAIN` are supported
   * `http.c`: `http_client_request()` tolerate fail on `send()` and `recv()`
