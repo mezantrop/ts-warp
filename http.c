@@ -95,7 +95,7 @@ int http_server_request(int socket, struct uvaddr *daddr) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, char *password) {
+int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char *password) {
     char r[BUF_SIZE_1KB] = {0};
     char b[HOST_NAME_MAX] = {0};
     char usr_pwd_plain[BUF_SIZE_1KB] = {0};
@@ -118,17 +118,41 @@ int http_client_request(int socket, struct sockaddr_storage *daddr, char *user, 
 
     printl(LOG_VERB, "Sending HTTP %s request", HTTP_REQUEST_METHOD_CONNECT);
 
-    if (send(socket, r, l, 0) == -1) {
-        printl(LOG_CRIT, "Unable to send a request to the HTTP server");
-        return 1;
-    }
+    switch (cs.t) {
+        case CHS_SOCKET:
+            if (send(cs.s, r, l, 0) == -1) {
+                printl(LOG_CRIT, "Unable to send a request to the HTTP server via socket");
+                return 1;
+            }
 
-    printl(LOG_VERB, "Expecting HTTP reply");
+            printl(LOG_VERB, "Expecting HTTP reply");
 
-    if ((rcount = recv(socket, &r, sizeof(r), 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive a reply from the HTTP server");
-        return 1;
-    }
+            if ((rcount = recv(cs.s, &r, sizeof(r), 0)) == -1) {
+                printl(LOG_CRIT, "Unable to receive a reply from the HTTP server via socket");
+                return 1;
+            }
+        break;
+
+        case CHS_CHANNEL:
+            #if (WITH_LIBSSH2)
+                if (libssh2_channel_write(cs.c, (char*)&r, l) < 0) {
+                    printl(LOG_CRIT, "Unable to send a request to the HTTP server via SSH2 channel");
+                    return 1;
+                }
+
+                while ((rcount = libssh2_channel_read(cs.c, (char*)&r, sizeof(r))) == LIBSSH2_ERROR_EAGAIN) ;
+                if (rcount < 0) {
+                    printl(LOG_CRIT, "Unable to send a request to the HTTP server via SSH2 channel");
+                    return 1;
+                }
+            #endif
+        break;
+
+        default:
+            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            return 1;
+        break;
+        }
 
     /* Parse HTTP reply */
     r[rcount] = '\0';

@@ -64,7 +64,7 @@ const char *socks5_status[] = {
 };
 
 /* -- Socks client functions ---------------------------------------------------------------------------------------- */
-int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user) {
+int socks4_client_request(chs cs, uint8_t cmd, struct sockaddr_in *daddr, char *user) {
     /* Send Socks4 request */
 
     s4_request req;
@@ -88,16 +88,40 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
 
     printl(LOG_VERB, "Sending IPv4 Socks4 request");
 
-    if (send(socket, &req, 8 + idlen + 1, 0) == -1) {
-        printl(LOG_CRIT, "Unable to send a request to the Socks4 server");
-        return SOCKS4_REPLY_KO;
-    }
+    switch (cs.t) {
+        case CHS_SOCKET:
+            if (send(cs.s, &req, 8 + idlen + 1, 0) == -1) {
+                printl(LOG_CRIT, "Unable to send a request to the Socks4 server via socket");
+                return SOCKS4_REPLY_KO;
+            }
 
-    printl(LOG_VERB, "IPv4 Socks4 request sent");
+            printl(LOG_VERB, "IPv4 Socks4 request sent");
 
-    if ((rcount = recv(socket, &rep, sizeof(s4_reply), 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive a reply from the Socks4 server");
-        return SOCKS4_REPLY_KO;
+            if ((rcount = recv(cs.s, &rep, sizeof(s4_reply), 0)) == -1) {
+                printl(LOG_CRIT, "Unable to receive a reply from the Socks4 server via socket");
+                return SOCKS4_REPLY_KO;
+            }
+        break;
+
+        case CHS_CHANNEL:
+            #if (WITH_LIBSSH2)
+                if (libssh2_channel_write(cs.c, (char*)&req, 8 + idlen + 1) < 0) {
+                    printl(LOG_CRIT, "Unable to send a request to the Socks4 server via SSH2 channel");
+                    return SOCKS4_REPLY_KO;
+                }
+
+                while ((rcount = libssh2_channel_read(cs.c, (char*)&rep, sizeof(s4_reply))) == LIBSSH2_ERROR_EAGAIN) ;
+                if (rcount < 0) {
+                    printl(LOG_CRIT, "Unable to receive a reply from the Socks4 server via SSH2 channel");
+                    return SOCKS4_REPLY_KO;
+                }
+            #endif
+        break;
+
+        default:
+            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            return SOCKS4_REPLY_KO;
+        break;
     }
 
     printl(LOG_VERB, "Socks4 reply: [%d][%d]:[%s], Bytes [%d]",
@@ -114,7 +138,7 @@ int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, ch
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_client_hello(int socket, unsigned int auth_method, ...) {
+int socks5_client_hello(chs cs, unsigned int auth_method, ...) {
     /* Send Socks5 Hello and receive a reply.
 
     Specify one mandatory auth_method, list the rest of auth methods as variadic arguments. Make sure the last of them
@@ -124,6 +148,10 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
     s5_reply_hello rep;
     va_list ap;
     unsigned int am = 0;
+    #if (WITH_LIBSSH2)
+        int rcount = 0;
+    #endif
+
 
     if (auth_method == AUTH_METHOD_NOACCEPT) {
         printl(LOG_CRIT, "socks5_client_hello(): auth_method must not be AUTH_METHOD_NOACCEPT");
@@ -142,16 +170,40 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
     req.ver = PROXY_PROTO_SOCKS_V5 - '0';
     req.nauth = am;
 
-    /* Send 'hello' request */
-    if (send(socket, &req, am + sizeof req.ver + sizeof req.nauth, 0) == -1) {
-        printl(LOG_CRIT, "Unable to send 'hello' request to the Socks5 server");
-        return AUTH_METHOD_NOACCEPT;
-    }
+    switch (cs.t) {
+        case CHS_SOCKET:
+            /* Send 'hello' request */
+            if (send(cs.s, &req, am + sizeof(req.ver) + sizeof(req.nauth), 0) == -1) {
+                printl(LOG_CRIT, "Unable to send 'hello' request to the Socks5 server via socket");
+                return AUTH_METHOD_NOACCEPT;
+            }
 
-    /* Receive 'hello' response from Socks5 server */
-    if ((recv(socket, &rep, sizeof rep, 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive 'hello' reply from the Socks5 server");
-        return AUTH_METHOD_NOACCEPT;
+            /* Receive 'hello' response from Socks5 server */
+            if ((recv(cs.s, &rep, sizeof(rep), 0)) == -1) {
+                printl(LOG_CRIT, "Unable to receive 'hello' reply from the Socks5 server via socket");
+                return AUTH_METHOD_NOACCEPT;
+            }
+        break;
+
+        case CHS_CHANNEL:
+            #if (WITH_LIBSSH2)
+                if (libssh2_channel_write(cs.c, (char*)&req, am + sizeof(req.ver) + sizeof(req.nauth)) < 0) {
+                    printl(LOG_CRIT, "Unable to send 'hello' request to the Socks5 server via SSH2 channel");
+                    return AUTH_METHOD_NOACCEPT;
+                }
+
+                while ((rcount = libssh2_channel_read(cs.c, (char*)&rep, sizeof(rep))) == LIBSSH2_ERROR_EAGAIN) ;
+                if (rcount < 0) {
+                    printl(LOG_CRIT, "Unable to receive 'hello' reply from the Socks5 server via SSH2 channel");
+                    return AUTH_METHOD_NOACCEPT;
+                }
+            #endif
+        break;
+
+        default:
+            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            return AUTH_METHOD_NOACCEPT;
+        break;
     }
 
     /* Veryfy Socks version */
@@ -165,10 +217,10 @@ int socks5_client_hello(int socket, unsigned int auth_method, ...) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_client_auth(int socket, char *user, char *password) {
+int socks5_client_auth(chs cs, char *user, char *password) {
     char buf[513];                                                      /* Max Socks5 auth request size */
     int idlen = 0, pwlen = 0;
-    int rcount;
+    int rcount = 0;
     s5_reply_auth *rep = NULL;
 
     idlen = strnlen(user, 255);
@@ -181,15 +233,40 @@ int socks5_client_auth(int socket, char *user, char *password) {
     buf[2 + idlen] = pwlen;
     memcpy(buf + 2 + idlen + 1, password, pwlen);
 
-    if (send(socket, buf, 2 + idlen + 1 + pwlen, 0) == -1) {
-        printl(LOG_CRIT, "Unable to send an auth request to the Socks5 server");
-        return SOCKS5_REPLY_KO;
-    }
 
-    memset(buf, 0, sizeof buf);
-    if ((rcount = recv(socket, &buf, sizeof buf, 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server");
-        return SOCKS5_REPLY_KO;
+    switch (cs.t) {
+        case CHS_SOCKET:
+            if (send(cs.s, buf, 2 + idlen + 1 + pwlen, 0) == -1) {
+                printl(LOG_CRIT, "Unable to send an auth request to the Socks5 server via socket");
+                return SOCKS5_REPLY_KO;
+            }
+
+            memset(buf, 0, sizeof buf);
+            if ((rcount = recv(cs.s, &buf, sizeof(buf), 0)) == -1) {
+                printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server via socket");
+                return SOCKS5_REPLY_KO;
+            }
+        break;
+
+        case CHS_CHANNEL:
+            #if (WITH_LIBSSH2)
+                if (libssh2_channel_write(cs.c, (char*)&buf, 2 + idlen + 1 + pwlen) < 0) {
+                    printl(LOG_CRIT, "Unable to send auth request to the Socks5 server via SSH2 channel");
+                    return SOCKS5_REPLY_KO;
+                }
+
+                while ((rcount = libssh2_channel_read(cs.c, (char*)&buf, sizeof(buf))) == LIBSSH2_ERROR_EAGAIN) ;
+                if (rcount < 0) {
+                    printl(LOG_CRIT, "Unable to receive auth reply from the Socks5 server via SSH2 channel");
+                    return SOCKS5_REPLY_KO;
+                }
+            #endif
+        break;
+
+        default:
+            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            return SOCKS5_REPLY_KO;
+        break;
     }
 
     rep = (s5_reply_auth *)buf;
@@ -200,7 +277,7 @@ int socks5_client_auth(int socket, char *user, char *password) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *daddr, char *dname) {
+int socks5_client_request(chs cs, uint8_t cmd, struct sockaddr_storage *daddr, char *dname) {
     /* Perform Socks5 request; IPv4/IPv6 addresses: atype 1/4, Domain name: atype 3 */
 
     s5_reply_short *rep;
@@ -236,9 +313,27 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         printl(LOG_VERB, "Sending IPv4 Socks5 request");
 
-        if (send(socket, req, sizeof(s5_request_ipv4), 0) == -1) {
-            printl(LOG_CRIT, "Unable to send a request to the Socks5 server");
-            return SOCKS5_REPLY_KO;
+        switch (cs.t) {
+            case CHS_SOCKET:
+                if (send(cs.s, req, sizeof(s5_request_ipv4), 0) == -1) {
+                    printl(LOG_CRIT, "Unable to send a request to the Socks5 server via socket");
+                    return SOCKS5_REPLY_KO;
+                }
+            break;
+
+            case CHS_CHANNEL:
+                #if (WITH_LIBSSH2)
+                    if (libssh2_channel_write(cs.c, (char *)req, sizeof(s5_request_ipv4)) < 0) {
+                        printl(LOG_CRIT, "Unable to send auth request to the Socks5 server via SSH2 channel");
+                        return SOCKS5_REPLY_KO;
+                    }
+                #endif
+            break;
+
+            default:
+                printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+                return SOCKS5_REPLY_KO;
+            break;
         }
 
         printl(LOG_VERB, "IPv4 Socks5 request sent");
@@ -253,9 +348,27 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         printl(LOG_VERB, "Sending IPv6 Socks5 request");
 
-        if (send(socket, req, 4 + sizeof(s5_request_ipv6), 0) == -1) {
-            printl(LOG_CRIT, "Unable to send a request to the Socks server");
-            return SOCKS5_REPLY_KO;
+        switch (cs.t) {
+            case CHS_SOCKET:
+                if (send(cs.s, req, 4 + sizeof(s5_request_ipv6), 0) == -1) {
+                    printl(LOG_CRIT, "Unable to send a request to the Socks5 server via socket");
+                    return SOCKS5_REPLY_KO;
+                }
+            break;
+
+            case CHS_CHANNEL:
+                #if (WITH_LIBSSH2)
+                    if (libssh2_channel_write(cs.c, (char*)&req, 4 + sizeof(s5_request_ipv6)) < 0) {
+                        printl(LOG_CRIT, "Unable to send a request to the Socks5 server via SSH2 channel");
+                        return SOCKS5_REPLY_KO;
+                    }
+                #endif
+            break;
+
+            default:
+                printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+                return SOCKS5_REPLY_KO;
+            break;
         }
 
         printl(LOG_VERB, "IPv6 Socks5 request sent");
@@ -275,9 +388,27 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
 
         printl(LOG_VERB, "Sending NAME Socks5 request");
 
-        if (send(socket, req,  sizeof(s5_request_short) + 1 + atype_len + 2,  0) == -1) {
-            printl(LOG_CRIT, "Unable to send a request to the Socks server");
-            return SOCKS5_REPLY_KO;
+        switch (cs.t) {
+            case CHS_SOCKET:
+                if (send(cs.s, req,  sizeof(s5_request_short) + 1 + atype_len + 2,  0) == -1) {
+                    printl(LOG_CRIT, "Unable to send a request to the Socks5 server via socket");
+                    return SOCKS5_REPLY_KO;
+                }
+            break;
+
+            case CHS_CHANNEL:
+                #if (WITH_LIBSSH2)
+                    if (libssh2_channel_write(cs.c, (char*)&req, sizeof(s5_request_short) + 1 + atype_len + 2) < 0) {
+                        printl(LOG_CRIT, "Unable to send a request to the Socks5 server via SSH2 channel");
+                        return SOCKS5_REPLY_KO;
+                    }
+                #endif
+            break;
+
+            default:
+                printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+                return SOCKS5_REPLY_KO;
+            break;
         }
 
         printl(LOG_VERB, "NAME Socks5 request sent");
@@ -290,12 +421,31 @@ int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *dadd
     printl(LOG_VERB, "Expecting Socks5 server reply");
 
     /* Receive reply from the server */
-    memset(buf, 0, sizeof buf);
+    memset(buf, 0, sizeof(buf));
 
-    /* 6 + atype_len: 6 is a SOCK5 header length - variable address field */
-    if ((rcount = recv(socket, &buf, 6 + atype_len, 0)) == -1) {
-        printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server");
-        return SOCKS5_REPLY_KO;
+    switch (cs.t) {
+        case CHS_SOCKET:
+            /* 6 + atype_len: 6 is a SOCK5 header length - variable address field */
+            if ((rcount = recv(cs.s, &buf, 6 + atype_len, 0)) == -1) {
+                printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server via socket");
+                return SOCKS5_REPLY_KO;
+            }
+        break;
+
+        case CHS_CHANNEL:
+            #if (WITH_LIBSSH2)
+                while ((rcount = libssh2_channel_read(cs.c, (char*)&buf, 6 + atype_len)) == LIBSSH2_ERROR_EAGAIN) ;
+                if (rcount < 0) {
+                    printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server via SSH2 channel");
+                    return SOCKS5_REPLY_KO;
+                }
+            #endif
+        break;
+
+        default:
+            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            return SOCKS5_REPLY_KO;
+        break;
     }
 
     rep = (s5_reply_short *)buf;

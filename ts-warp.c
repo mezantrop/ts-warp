@@ -61,7 +61,6 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-
 #if (WITH_LIBSSH2)
     #include <libssh2.h>
 #endif
@@ -91,7 +90,8 @@ char *pfile_name = PID_FILE_NAME;
 int cn = 1;                                         /* Active clients number */
 pid_t pid, mpid;                                    /* Current and main daemon PID */
 struct pid_list *pids = NULL;                       /* List of active clients with PIDs and Sections */
-int Tsock, Ssock, Hsock, isock, ssock, csock;       /* Sockets for Transparent/Internal-Socks&HTTP/in/out/clients */
+int Tsock, Ssock, Hsock, isock, csock;              /* Sockets for Transparent/Internal-Socks&HTTP/in/clients */
+chs ssock;                                          /* Structure for Out socket or SSH2 channel */
 ini_section *ini_root;                              /* Root section of the INI-file */
 
 #if !defined(linux)
@@ -173,7 +173,9 @@ All parameters are optional:
 
     #if (WITH_LIBSSH2)
         LIBSSH2_CHANNEL *ssh2ch = NULL;                                 /* SSH2 channel - IO stream */
+        struct uvaddr p_server;
     #endif
+
 
     while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:h")) != -1)
         switch(flg) {
@@ -589,6 +591,11 @@ All parameters are optional:
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
 
+            ssock.t = CHS_SOCKET;                                       /* Type socket */
+            #if (WITH_LIBSSH2)
+                ssock.c = NULL;
+            #endif
+
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
@@ -616,7 +623,7 @@ All parameters are optional:
                 /*  -- Direct connection with the destination address bypassing proxy ------------------------------- */
                 printl(LOG_INFO, "Making direct connection with the destination: [%s]", inet2str(&daddr.ip_addr, buf));
 
-                if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                if ((ssock.s = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                     printl(LOG_WARN, "Unable to connect with destination: [%s]", inet2str(&daddr.ip_addr, buf));
                     close(csock);
                     exit(1);
@@ -662,7 +669,7 @@ All parameters are optional:
                         printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp SOCKS server",
                             daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
 
-                        if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                        if ((ssock.s = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                             printl(LOG_WARN, "Unable to connect with destination: [%s]",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
 
@@ -721,7 +728,7 @@ All parameters are optional:
                             printl(LOG_INFO, "Serving request to: [%s] with Internal TS-Warp HTTP server",
                                 daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
 
-                            if ((ssock = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
+                            if ((ssock.s = connect_desnation(*(struct sockaddr *)&daddr.ip_addr)) == -1) {
                                 printl(LOG_WARN, "Unable to connect with destination: [%s]",
                                     daddr.name[0] ? daddr.name : inet2str(&daddr.ip_addr, buf));
                                 close(csock);
@@ -770,7 +777,7 @@ All parameters are optional:
                     inet2str(&sc->chain_member->proxy_server, buf), sc->chain_member->proxy_type);
 
                 /* Connect the first member of the chain */
-                if ((ssock = connect_desnation(*(struct sockaddr *)&sc->chain_member->proxy_server)) == -1) {
+                if ((ssock.s = connect_desnation(*(struct sockaddr *)&sc->chain_member->proxy_server)) == -1) {
                     printl(LOG_WARN, "Unable to connect with CHAIN proxy server: [%s] type [%c]",
                         inet2str(&sc->chain_member->proxy_server, buf), sc->chain_member->proxy_type);
                     close(csock);
@@ -903,11 +910,50 @@ All parameters are optional:
                             }
                         break;
 
-                        #if (WITH_LIBSSH2)                                  /* Not implemented */
+                        #if (WITH_LIBSSH2)
                             case PROXY_PROTO_SSH2:
-                                printl(LOG_WARN, "SSH2 is not implemented as part of proxy CHAIN");
-                            close(csock);
-                            exit(2);
+                                if (ssh2ch) {
+                                    printl(LOG_WARN, "Only ONE SSH2 proxy could be used per CHAIN");
+                                    close(csock);
+                                    exit(2);
+                                }
+
+                                if (sc->next) {
+                                    /* We want to connect with the next chain member */
+                                    printl(LOG_VERB, "Initiate CHAIN SSH2 protocol: request: [%s] -> [%s] mid chain cell",
+                                        inet2str(&sc->chain_member->proxy_server, suf),
+                                        inet2str(&sc->next->chain_member->proxy_server, buf));
+
+                                    p_server.ip_addr = sc->next->chain_member->proxy_server;
+                                    if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
+                                        sc->chain_member->proxy_user, sc->chain_member->proxy_password,
+                                        sc->chain_member->proxy_key))) {
+
+                                        printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
+                                        close(csock);
+                                        exit(2);
+                                    }
+                                } else {
+                                    /* As the last link in the chain and we want to connect the section server */
+                                    printl(LOG_VERB, "Initiate CHAIN SSH2 protocol: request [%s] -> [%s] last chain cell",
+                                        inet2str(&sc->chain_member->proxy_server, suf),
+                                        inet2str(&s_ini->proxy_server, buf));
+
+                                    p_server.ip_addr = s_ini->proxy_server;
+                                    if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
+                                        sc->chain_member->proxy_user, sc->chain_member->proxy_password,
+                                        sc->chain_member->proxy_key))) {
+
+                                        printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
+                                        close(csock);
+                                        exit(2);
+                                    }
+
+                                    ssock.t = CHS_CHANNEL;
+                                    ssock.c = ssh2ch;
+                                    goto single_server;
+                                }
+                            break;
                         #endif
 
                         default:
@@ -925,7 +971,7 @@ All parameters are optional:
                 printl(LOG_INFO, "Connecting the proxy server: [%s] type [%c]",
                     inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
-                if ((ssock = connect_desnation(*(struct sockaddr *)&s_ini->proxy_server)) == -1) {
+                if ((ssock.s = connect_desnation(*(struct sockaddr *)&s_ini->proxy_server)) == -1) {
                     printl(LOG_WARN, "Unable to connect with the proxy server: [%s] type [%c]",
                         inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
                     close(csock);
@@ -1024,7 +1070,7 @@ All parameters are optional:
                             printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                            if (!(ssh2ch = ssh2_client_request(ssock, &daddr, s_ini->proxy_user, s_ini->proxy_password,
+                            if (!(ssh2ch = ssh2_client_request(ssock.s, &daddr, s_ini->proxy_user, s_ini->proxy_password,
                                     s_ini->proxy_key))) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);
@@ -1132,11 +1178,11 @@ All parameters are optional:
                 #endif
                     FD_ZERO(&rfd);
                     FD_SET(csock, &rfd);
-                    FD_SET(ssock, &rfd);
+                    FD_SET(ssock.s, &rfd);
 
                     tv.tv_sec = 0;
                     tv.tv_usec = 100000;
-                    ret = select(ssock > csock ? ssock + 1: csock + 1, &rfd, 0, 0, &tv);
+                    ret = select(ssock.s > csock ? ssock.s + 1: csock + 1, &rfd, 0, 0, &tv);
 
                     if (ret < 0) break;
                     if (ret == 0) continue;
@@ -1154,7 +1200,7 @@ All parameters are optional:
                                 printl(LOG_CRIT, "Error receving data from the client");
                                 break;
                             }
-                            while ((snd = send(ssock, buf, rec, 0)) == 0) {
+                            while ((snd = send(ssock.s, buf, rec, 0)) == 0) {
                                 printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
                                 usleep(100);                                /* 0.1 ms */
                                 break;
@@ -1168,7 +1214,7 @@ All parameters are optional:
                             tmessage.mtext.cbytes += rec;
                         } else {
                             /* Server writes */
-                            rec = recv(ssock, buf, BUF_SIZE, 0);
+                            rec = recv(ssock.s, buf, BUF_SIZE, 0);
                             if (rec == 0) {
                                 printl(LOG_INFO, "Connection closed by proxy server");
                                 break;
@@ -1204,13 +1250,13 @@ All parameters are optional:
             #endif
 
             shutdown(csock, SHUT_RDWR);
-            shutdown(ssock, SHUT_RDWR);
+            shutdown(ssock.s, SHUT_RDWR);
             printl(LOG_INFO, "The client finished operations");
             printl(LOG_INFO, "The client traffic summary: C: [%s]:[%llu], D: [%s]:[%llu]",
                 inet2str(&caddr, suf), tmessage.mtext.cbytes, inet2str(&daddr.ip_addr, buf), tmessage.mtext.dbytes);
 
             close(csock);
-            close(ssock);
+            close(ssock.s);
             exit(0);
         }
     }
@@ -1256,8 +1302,8 @@ void trap_signal(int sig) {
                 mexit(0, pfile_name, tfile_name);
             } else {                                                /* A client process */
                 shutdown(csock, SHUT_RDWR);
-                shutdown(ssock, SHUT_RDWR);
-                close(ssock);
+                shutdown(ssock.s, SHUT_RDWR);
+                close(ssock.s);
                 close(csock);
                 printl(LOG_INFO, "Client exited");
                 exit(0);
