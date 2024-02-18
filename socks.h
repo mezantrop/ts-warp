@@ -277,10 +277,10 @@ typedef struct {
 #define SOCKS5_REPLY_ATYPE_ERROR    0x08            /* Address type is not supported */
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
-int socks4_client_request(int socket, uint8_t cmd, struct sockaddr_in *daddr, char *user);
-int socks5_client_hello(int socket, unsigned int auth_method, ...);
-int socks5_client_auth(int socket, char *user, char *password);
-int socks5_client_request(int socket, uint8_t cmd, struct sockaddr_storage *daddr, char *dname);
+int socks4_client_request(chs cs, uint8_t cmd, struct sockaddr_in *daddr, char *user);
+int socks5_client_hello(chs cs, unsigned int auth_method, ...);
+int socks5_client_auth(chs cs, char *user, char *password);
+int socks5_client_request(chs cs, uint8_t cmd, struct sockaddr_storage *daddr, char *dname);
 int socks5_server_hello(int socket);
 uint8_t socks5_server_request(int socket, struct uvaddr *daddr);
 uint8_t socks5_server_reply(int socket, struct sockaddr_storage *iaddr, uint8_t atype);

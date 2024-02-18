@@ -38,6 +38,10 @@
    #define WITH_TCP_NODELAY 1
 #endif
 
+#if (WITH_LIBSSH2)
+    #include <libssh2.h>
+#endif
+
 #define TCP_KEEPIDLE_S  120         /* Wait 2 minutes in sec before sending keep_alives */
 #define TCP_KEEPINTVL_S 30          /* Interval between keep_alives probes in seconds */
 #define TCP_KEEPCNT_N   8           /* A number of probes before marking a session broken */
@@ -98,6 +102,19 @@ typedef struct uvaddr {
     struct sockaddr_storage ip_addr;
     char name[HOST_NAME_MAX];
 } uvaddr;
+
+#define CHS_CHANNEL     0
+#define CHS_SOCKET      1
+
+typedef struct chs {                                            /* Channel / Socket structure */
+    #if (WITH_LIBSSH2)
+        LIBSSH2_CHANNEL *c;                                     /* libssh2 channel */
+    #endif
+    int s;                                                      /* socket */
+    char t;                                                     /* type CHS_CHANNEL|CHS_SOCKET */
+} chs;
+
+#define CHS(cs)     cs.t ? (void *)(&cs.s) : (void *)cs.c       /* Return socket or SSH2 channel */
 
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */

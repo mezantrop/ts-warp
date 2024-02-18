@@ -30,7 +30,7 @@
   | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
   | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
 
-\* In proxy chains, SSH2-proxy server can only be a target of a proxy chain
+\* Only one SSH2 proxy server allowed per chain
 
   | Internal proxy                         | Socks5               | HTTPS                |
   |----------------------------------------|----------------------|----------------------|
