@@ -286,7 +286,7 @@ Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](exam
 
 ### GUI front-end
 
-![gui-warp.py](gui/gui-warp_py.png)
+![gui-warp.py](gui/gui-warp_py.jpg)
 
 The GUI front-end application to control `ts-warp` daemon can be installed from the `gui` directory:
 
