@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.02.23    Current**
+  * `examples\ts-warp.ini`: Ports specified for `HTTPS` and `SSH2` proxies
   * `ts-warp.c`: Prevent `HTTP`-port overwriting `TRANSPARENT`-port
   * `build.sh` when makind `gui-warp.app` downloads/builds static SSL and SSH2 libraries `WITH_LIBSSH2=1 sh ./build.sh`
   * `SSH2` proxy supported in any position of a `CHAIN`
