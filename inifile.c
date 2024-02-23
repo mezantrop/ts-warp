@@ -58,6 +58,8 @@ ini_section *read_ini(char *ifile_name) {
     chain_list *chain_root = NULL, *chain_this = NULL, *chain_temp = NULL;
     int target_type = INI_TARGET_NOTSET;
     int ln = 0;
+    char *proxy_server = NULL, *proxy_port = NULL;
+    int fproxy_port = 0;
 
 
     if (!(fini = fopen(ifile_name, "r"))) {
@@ -95,6 +97,12 @@ ini_section *read_ini(char *ifile_name) {
 
             if (!ini_root) ini_root = c_sect; else l_sect->next = c_sect;
             l_sect = c_sect;                                        /* lsect always points to the last section */
+            if (proxy_server) {
+                free(proxy_server); proxy_server = NULL;
+            }
+            if (proxy_port && fproxy_port) {
+                free(proxy_port); proxy_port = NULL; fproxy_port = 0;
+                }
         } else {                                                    /* Entries within sections */
             s = d = buffer;
             do {
@@ -145,19 +153,47 @@ ini_section *read_ini(char *ifile_name) {
             /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
             if (!strcasecmp(entry.var, INI_ENTRY_PROXY_SERVER) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_SERVER)) {
                 chk_inivar(&c_sect->proxy_server, INI_ENTRY_PROXY_SERVER, ln);
-                c_sect->proxy_server = str2inet(entry.val1, entry.mod1 ? entry.mod1 : "1080");
+                proxy_server = strdup(entry.val1);
+                if (entry.mod1) {
+                    proxy_port = strdup(entry.mod1);
+                    c_sect->proxy_server = str2inet(proxy_server, proxy_port);
+                    fproxy_port = 1;
+                } else
+                    c_sect->proxy_server = str2inet(proxy_server, proxy_port ? proxy_port : SOCKS_PORT);
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_TYPE)) {
                     chk_inivar(&c_sect->proxy_type, INI_ENTRY_PROXY_TYPE, ln);
-                    c_sect->proxy_type = entry.val[0];
-                    if (c_sect->proxy_type != PROXY_PROTO_SOCKS_V4 &&
-                        c_sect->proxy_type != PROXY_PROTO_SOCKS_V5 &&
-                        toupper(c_sect->proxy_type) != PROXY_PROTO_HTTP &&
-                        toupper(c_sect->proxy_type) != PROXY_PROTO_SSH2) {
+                    c_sect->proxy_type = toupper(entry.val[0]);
+                    switch(c_sect->proxy_type) {
+                        case PROXY_PROTO_SOCKS_V4:
+                        case PROXY_PROTO_SOCKS_V5:
+                            if (!proxy_port) {
+                                proxy_port = SOCKS_PORT;
+                                c_sect->proxy_server = str2inet(proxy_server, SOCKS_PORT);
+                            }
+                        break;
+
+                        case PROXY_PROTO_HTTP:
+                            if (!proxy_port) {
+                                proxy_port = SQUID_PORT;
+                                c_sect->proxy_server = str2inet(proxy_server, SQUID_PORT);
+                            }
+                        break;
+
+                        case PROXY_PROTO_SSH2:
+                            if (!proxy_port) {
+                                proxy_port = SSH2_PORT;
+                                c_sect->proxy_server = str2inet(proxy_server, SSH2_PORT);
+                            }
+                        break;
+
+                        default:
                             printl(LOG_WARN, "LN: [%d] Resetting unsupported proxy type [%c] to default: [%c]",
                                 ln, c_sect->proxy_type, PROXY_PROTO_SOCKS_V5);
                             c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
-                        }
+                            c_sect->proxy_server = str2inet(proxy_server, SOCKS_PORT);
+                            proxy_port = SOCKS_PORT;
+                    }
             } else
                 /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_USER) || !strcasecmp(entry.var, INI_ENTRY_SOCKS_USER)) {
@@ -286,6 +322,9 @@ ini_section *read_ini(char *ifile_name) {
             free(entry.val);
         }
     }
+
+    if (proxy_server) free(proxy_server);
+    if (proxy_port && fproxy_port) free(proxy_port);
 
     create_chains(ini_root, chain_root);
 

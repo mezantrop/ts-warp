@@ -60,7 +60,11 @@
 #define LISTEN_IPV4         "127.0.0.1"             /* We listen on this IPv4 address or */
 #define LISTEN_IPV6         "::1"                   /* on this IPv6 address */
 #define LISTEN_DEFAULT      LISTEN_IPV4
-#define SOCKS_PORT          "1080"                  /* That is remote Socks server port */
+
+#define SOCKS_PORT          "1080"                  /* This is remote Socks server port */
+#define SQUID_PORT          "3128"                  /* This is HTTPS proxy port */
+#define SSH2_PORT           "22"                    /* This is SSH2 proxy port */
+
 #define LISTEN_SOCKS_PORT   "7080"                  /* Our internal TCP Socks port */
 #define LISTEN_HTTP_PORT    "8080"                  /* Our internal HTTP server port */
 #define LISTEN_TRANS_PORT   "10800"                 /* Our transparent port */

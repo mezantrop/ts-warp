@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.02.23    Current**
+  * `inifile.c`: Enable default proxy port-numbers based on `proxy_type`: Socks4/5: 1080, HTTPS: 3128, SSH2: 22
   * `examples\ts-warp.ini`: Ports specified for `HTTPS` and `SSH2` proxies
   * `ts-warp.c`: Prevent `HTTP`-port overwriting `TRANSPARENT`-port
   * `build.sh` when makind `gui-warp.app` downloads/builds static SSL and SSH2 libraries `WITH_LIBSSH2=1 sh ./build.sh`
