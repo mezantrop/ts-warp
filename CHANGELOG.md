@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* **2024.02.21    Current**
+* **2024.02.23    Current**
   * `ts-warp.c`: Prevent `HTTP`-port overwriting `TRANSPARENT`-port
   * `build.sh` when makind `gui-warp.app` downloads/builds static SSL and SSH2 libraries `WITH_LIBSSH2=1 sh ./build.sh`
   * `SSH2` proxy supported in any position of a `CHAIN`
