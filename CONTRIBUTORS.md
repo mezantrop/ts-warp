@@ -3,6 +3,7 @@
 ## Testing, bug-hunting
 
 * Alicja Michalska <alka96@protonmail.com>
+* András Dániel Árk @Deniel00 <info@deniel.dev>
 * Bart Couvreur <bart.couvreur@kyndryl.com>
 * Gema Robles <gema.robles.rodriguez@kyndryl.com>
 * Gleb Reys <gleb@reys.net>

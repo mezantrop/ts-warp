@@ -191,7 +191,7 @@ All parameters are optional:
 
             case 'H':                                                   /* Internal HTTP server IP/name */
                 haddr = strsep(&optarg, ":");                           /* IP:PORT */
-                if (optarg) tport = optarg;
+                if (optarg) hport = optarg;
             break;
 
             case 'c':                                                   /* INI-file */
