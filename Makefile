@@ -49,7 +49,7 @@ ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
 
 ts-warp-ssh2: examples-special ts-pass
-	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp -lssh2 $(WARP_FILES)
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp $(WARP_FILES) -lssh2 
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
