@@ -70,7 +70,8 @@ git clone https://github.com/mezantrop/ts-warp && cd ts-warp
 make && sudo make install clean
 
 # If SSH2 proxy support is required, install https://libssh2.org library and instead of the above run:
-make ts-warp-ssh2 sudo make install clean
+make ts-warp-ssh2
+sudo make install clean
 
 # Copy and edit configuration files
 sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
