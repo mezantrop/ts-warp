@@ -139,7 +139,7 @@ ini_section *read_ini(char *ifile_name) {
                 continue;
             }
 
-            if (!entry.val1 || !entry.val1[0]) {
+            if ((!entry.val1 || !entry.val1[0]) && !entry.val[0]) {
                 printl(LOG_WARN, "LN: %d IGNORED: The variable must be assigned a value", ln);
                 free(entry.val);
                 continue;
