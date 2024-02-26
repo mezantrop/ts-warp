@@ -162,7 +162,7 @@ All parameters are optional:
     char buf[BUF_SIZE];                                                 /* Multipurpose buffer */
     char suf[STR_SIZE];                                                 /* String buffer */
     int ret;                                                            /* Various function return codes */
-    int rec, snd;                                                       /* received/sent bytes */
+    int rec = 0, snd = 0;                                               /* received/sent bytes */
     pid_t cpid;                                                         /* Child PID */
 
     key_t mskey;                                                        /* IPC ID */
