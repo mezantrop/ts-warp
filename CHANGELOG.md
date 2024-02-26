@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.02.26    Current**
+  * `build.sh`: MacOS application build fix for `LIBSSH2`
   * `ts-warp.c`, `Makefile`: `LIBSSH2` compilation issues under Linux
   * `inifile.c`: Enable default proxy port-numbers based on `proxy_type`: Socks4/5: 1080, HTTPS: 3128, SSH2: 22
   * `examples\ts-warp.ini`: Ports specified for `HTTPS` and `SSH2` proxies
