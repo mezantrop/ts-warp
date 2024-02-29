@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * **2024.02.29    Current**
-  * `ssh2.c`: Authentication methods reworked. `proxy_key_passphrase` TNI-entry appeared
+  * `ssh2.c`: Authentication methods reworked. `proxy_key_passphrase` INI-entry appeared
   * `inifile.c`: Allow `proxy_key` to be specified in the INI-file
   * `build.sh`: MacOS application build fix for `LIBSSH2`
   * `ts-warp.c`, `Makefile`: `LIBSSH2` compilation issues under Linux
