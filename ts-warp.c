@@ -927,7 +927,7 @@ All parameters are optional:
                                     p_server.ip_addr = sc->next->chain_member->proxy_server;
                                     if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
-                                        sc->chain_member->proxy_key))) {
+                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
 
                                         printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
                                         close(csock);
@@ -942,7 +942,7 @@ All parameters are optional:
                                     p_server.ip_addr = s_ini->proxy_server;
                                     if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
-                                        sc->chain_member->proxy_key))) {
+                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
 
                                         printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
                                         close(csock);
@@ -1071,7 +1071,7 @@ All parameters are optional:
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
                             if (!(ssh2ch = ssh2_client_request(ssock.s, &daddr, s_ini->proxy_user, s_ini->proxy_password,
-                                    s_ini->proxy_key))) {
+                                    s_ini->proxy_key, s_ini->proxy_key_passphrase))) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);
                                 exit(2);

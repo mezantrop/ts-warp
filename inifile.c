@@ -86,6 +86,7 @@ ini_section *read_ini(char *ifile_name) {
             c_sect->proxy_type = PROXY_PROTO_SOCKS_V5;
             c_sect->proxy_user = NULL;
             c_sect->proxy_password = NULL;
+            c_sect->proxy_key_passphrase = NULL;
             c_sect->proxy_key = NULL;
             c_sect->p_chain = NULL;
             c_sect->target_entry = NULL;
@@ -223,7 +224,6 @@ ini_section *read_ini(char *ifile_name) {
                                 printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash!", ln);
                                 mexit(1, pfile_name, tfile_name);
                             }
-
                             c_sect->proxy_password = strdup(x);
                             free(x);
                         } else {
@@ -233,6 +233,25 @@ ini_section *read_ini(char *ifile_name) {
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY)) {
                     c_sect->proxy_key = strdup(entry.val);
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY_PASSPHRASE)) {
+                    if (chk_inivar(&c_sect->proxy_key_passphrase, INI_ENTRY_PROXY_KEY_PASSPHRASE, ln))
+                            free(c_sect->proxy_key_passphrase);
+
+                        if (!strcasecmp(entry.val1, XEDEC_PLAIN))
+                            c_sect->proxy_key_passphrase = strdup(entry.val + strlen(XEDEC_PLAIN) + 1);
+                        else if (!strcasecmp(entry.val1, XEDEC_TSW01)) {
+                            if (!(x = xdecrypt(entry.val + strlen(XEDEC_TSW01) + 1, XEDEC_TSW01))) {
+                                printl(LOG_CRIT, "LN: [%d] Detected wrong encryption hash!", ln);
+                                mexit(1, pfile_name, tfile_name);
+                            }
+                            c_sect->proxy_key_passphrase = strdup(x);
+                            free(x);
+                        } else {
+                            printl(LOG_CRIT, "LN: [%d] Malformed INI-file entry: [%s]",
+                                ln, INI_ENTRY_PROXY_KEY_PASSPHRASE);
+                            mexit(1, pfile_name, tfile_name);
+                        }
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_SECTION_BALANCE)) {
                     if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_NONE))
