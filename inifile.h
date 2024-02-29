@@ -38,7 +38,8 @@ typedef struct ini_section {
     uint8_t proxy_type;                                                 /* Proxy type Socks: '4', '5'  or HTTP: 'H' */
     char *proxy_user;                                                   /* Proxy server username */
     char *proxy_password;                                               /* Proxy server user password */
-    char *proxy_key;                                                    /* User's private key */
+    char *proxy_key;                                                    /* User's private key filename */
+    char *proxy_key_passphrase;
     struct proxy_chain *p_chain;                                        /* Proxy chain */
     struct ini_target *target_entry;                                    /* List of target definitions */
 
@@ -91,12 +92,13 @@ typedef struct chain_list {                                 /* Chains as they de
 #define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
 #define INI_ENTRY_SECTION_BALANCE_ROUNDROBIN    "roundrobin"        /* 2 */
 
-#define INI_ENTRY_PROXY_SERVER      "proxy_server"
-#define INI_ENTRY_PROXY_CHAIN       "proxy_chain"
-#define INI_ENTRY_PROXY_TYPE        "proxy_type"                    /* H: HTTP, 4: Socks4, 5: Socks5 (default), S: SSH2 */
-#define INI_ENTRY_PROXY_USER        "proxy_user"
-#define INI_ENTRY_PROXY_PASSWORD    "proxy_password"
-#define INI_ENTRY_PROXY_KEY         "proxy_key"                     /* Currently SSH2 private key */
+#define INI_ENTRY_PROXY_SERVER          "proxy_server"
+#define INI_ENTRY_PROXY_CHAIN           "proxy_chain"
+#define INI_ENTRY_PROXY_TYPE            "proxy_type"            /* H: HTTP, 4: Socks4, 5: Socks5 (default), S: SSH2 */
+#define INI_ENTRY_PROXY_USER            "proxy_user"
+#define INI_ENTRY_PROXY_PASSWORD        "proxy_password"
+#define INI_ENTRY_PROXY_KEY             "proxy_key"             /* Currently SSH2 private key filename */
+#define INI_ENTRY_PROXY_KEY_PASSPHRASE  "proxy_key_passphrase"  /* SSH2 private key passphrase */
 
 /* TODO: Deprecated INI_ENTRY_SOCKS_* variables to be removed */
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"
