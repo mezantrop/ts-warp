@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.02.29    Current**
+* **2024.03.01    Current**
+  * `ts-warp.c`, `ssh2.c`: Fix SSH2 related memory leaks, proper SSH session closure
+  * `inifile.c`: Hide SSH privatekey key passphrase in logs
   * `ssh2.c`: Authentication methods reworked. `proxy_key_passphrase` INI-entry appeared
   * `inifile.c`: Allow `proxy_key` to be specified in the INI-file
   * `build.sh`: MacOS application build fix for `LIBSSH2`
