@@ -5,7 +5,7 @@
 GUI frontend for TS-Warp - Transparent proxy server and traffic wrapper
 ------------------------------------------------------------------------------------------------------------------------
 
-Copyright (c) 2022-2023 Mikhail Zakharov <zmey20000@yahoo.com>
+Copyright (c) 2022-2024 Mikhail Zakharov <zmey20000@yahoo.com>
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 following conditions are met:
@@ -251,7 +251,7 @@ It is a free and open-source software, but if you want to support it, please do'
 
         ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=3, sticky=tk.EW, columnspan=2, pady=self._pady)
 
-        lbl_contact_txt = ttk.Label(tab_about, text='Mikhail Zakharov, 2021-2023, BSD-2-Clause license')
+        lbl_contact_txt = ttk.Label(tab_about, text='Mikhail Zakharov, 2021-2024, BSD-2-Clause license')
         lbl_contact_txt.grid(column=0, row=4, sticky=tk.SW, padx=self._padx, pady=self._pady)
         lbl_contact_url = ttk.Label(tab_about, text='zmey20000@yahoo.com', style='URL.TLabel')
         lbl_contact_url.grid(column=1, row=4, sticky=tk.SE, padx=self._padx, pady=self._pady)

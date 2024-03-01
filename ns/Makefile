@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 # NS-Warp - DNS responder/proxy                                                                                        #
 # -------------------------------------------------------------------------------------------------------------------- #
-# Copyright (c) 2022-2023, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2022-2024, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:

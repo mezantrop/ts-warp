@@ -2,7 +2,7 @@
 # TS-Warp - Transparent proxy server and traffic wrapper                                                               #
 # -------------------------------------------------------------------------------------------------------------------- #
 
-# Copyright (c) 2021-2023, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2021-2024, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:
@@ -49,7 +49,7 @@ ts-warp: $(WARP_OBJS)
 	$(CC) -o $@ $(WARP_OBJS)
 
 ts-warp-ssh2: examples-special ts-pass
-	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp $(WARP_FILES) -lssh2 
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp $(WARP_FILES) -lssh2
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
