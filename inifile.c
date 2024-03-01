@@ -147,8 +147,9 @@ ini_section *read_ini(char *ifile_name) {
             }
 
             printl(LOG_VERB, "LN: [%d] V: [%s] v1: [%s] v2: [%s] m1: [%s] m2: [%s]",
-                ln, entry.var, entry.val1?:"", entry.val2?:"",
-                !strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) ? "********" : entry.mod1?:"", entry.mod2?:"");
+                ln, entry.var, entry.val1 ? : "", entry.val2 ? : "",
+                !strcasecmp(entry.var, INI_ENTRY_PROXY_KEY_PASSPHRASE) ||
+                    !strcasecmp(entry.var, INI_ENTRY_PROXY_PASSWORD) ? "********" : entry.mod1?:"", entry.mod2?:"");
 
             /* -- Parse proxy_* entries ----------------------------------------------------------------------------- */
             /* TODO: Remove deprecated: INI_ENTRY_SOCKS_* check */
