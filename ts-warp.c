@@ -172,7 +172,8 @@ All parameters are optional:
     struct ini_section *push_ini = NULL;                                /* variables */
 
     #if (WITH_LIBSSH2)
-        LIBSSH2_CHANNEL *ssh2ch = NULL;                                 /* SSH2 channel - IO stream */
+        LIBSSH2_SESSION *ssh2sess = NULL;                               /* SSH2 Session */
+        LIBSSH2_CHANNEL *ssh2ch = NULL;                                 /* SSH2 channel */
         struct uvaddr p_server;
     #endif
 
@@ -912,8 +913,14 @@ All parameters are optional:
 
                         #if (WITH_LIBSSH2)
                             case PROXY_PROTO_SSH2:
-                                if (ssh2ch) {
+                                if (ssh2sess || ssh2ch) {
                                     printl(LOG_WARN, "Only ONE SSH2 proxy could be used per CHAIN");
+                                    close(csock);
+                                    exit(2);
+                                }
+
+                                if (!(ssh2sess = libssh2_session_init())) {
+                                    printl(LOG_WARN, "Unable to initialize SSH2 session");
                                     close(csock);
                                     exit(2);
                                 }
@@ -925,7 +932,8 @@ All parameters are optional:
                                         inet2str(&sc->next->chain_member->proxy_server, buf));
 
                                     p_server.ip_addr = sc->next->chain_member->proxy_server;
-                                    if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
+                                    memset(p_server.name, 0, sizeof(p_server.name));
+                                    if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
                                         sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
 
@@ -940,7 +948,8 @@ All parameters are optional:
                                         inet2str(&s_ini->proxy_server, buf));
 
                                     p_server.ip_addr = s_ini->proxy_server;
-                                    if (!(ssh2ch = ssh2_client_request(ssock.s, &p_server,
+                                    memset(p_server.name, 0, sizeof(p_server.name));
+                                    if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
                                         sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
 
@@ -1067,11 +1076,23 @@ All parameters are optional:
 
                     #if (WITH_LIBSSH2)
                         case PROXY_PROTO_SSH2:
+                            if (ssh2sess || ssh2ch) {
+                                printl(LOG_WARN, "Only ONE SSH2 proxy could be used per CHAIN/Connection");
+                                close(csock);
+                                exit(2);
+                            }
+
+                            if (!(ssh2sess = libssh2_session_init())) {
+                                printl(LOG_WARN, "Unable to initialize SSH2 session");
+                                close(csock);
+                                exit(2);
+                            }
+
                             printl(LOG_VERB, "Initiate SSH2 protocol: request: [%s] -> [%s]",
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                            if (!(ssh2ch = ssh2_client_request(ssock.s, &daddr, s_ini->proxy_user, s_ini->proxy_password,
-                                    s_ini->proxy_key, s_ini->proxy_key_passphrase))) {
+                            if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &daddr, s_ini->proxy_user,
+                            s_ini->proxy_password, s_ini->proxy_key, s_ini->proxy_key_passphrase))) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);
                                 exit(2);
@@ -1265,6 +1286,10 @@ All parameters are optional:
     freeaddrinfo(sres);
     freeaddrinfo(hres);
     #if (WITH_LIBSSH2)
+        if(ssh2sess) {
+            libssh2_session_disconnect(ssh2sess, "Normal Shutdown");
+            libssh2_session_free(ssh2sess);
+        }
         libssh2_exit();                                                 /* Deinitialize LIBSSH2 */
     #endif
     return 0;

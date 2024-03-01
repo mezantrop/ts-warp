@@ -59,10 +59,9 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-LIBSSH2_CHANNEL *ssh2_client_request(int socket, struct uvaddr *daddr, char *user, char *password, char *priv_key,
-    char *priv_key_passphrase) {
+LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struct uvaddr *daddr,
+    char *user, char *password, char *priv_key, char *priv_key_passphrase) {
 
-    LIBSSH2_SESSION *session = NULL;
     LIBSSH2_CHANNEL *channel = NULL;
     const char *fingerprint;
     char *userauthlist;
@@ -70,11 +69,6 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, struct uvaddr *daddr, char *use
     int auth_pw = 0;
     char buf[61];
 
-
-    if (!(session = libssh2_session_init())) {
-        printl(LOG_WARN, "Unable to initialize SSH2 session");
-        return NULL;
-    }
 
     if (libssh2_session_handshake(session, socket)) {
         printl(LOG_WARN, "Unable to perform SSH2 handshake");
