@@ -14,9 +14,18 @@
   - Transparent firewall-based traffic redirector
   - Internal Socks and HTTPS proxy server
 
-\* Requires [libssh2](https://libssh2.org) library
+  \* Requires [libssh2](https://libssh2.org) library
 
 - Supported platforms:
+
+  | OS           | PF                   | nftables / iptables  |
+  |--------------|----------------------|----------------------|
+  | macOS        | :white_check_mark:   | :white_large_square: |
+  | FreeBSD      | :white_check_mark:   | :white_large_square: |
+  | OpenBSD      | :white_check_mark:   | :white_large_square: |
+  | Linux        | :white_large_square: | :white_check_mark:   |
+  | Windows WSL2 | :white_large_square: | :white_check_mark:   |
+
   - macOS, FreeBSD and OpenBSD with `PF`
   - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
 
@@ -30,7 +39,7 @@
   | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
   | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
 
-\* Only one SSH2 proxy server allowed per chain
+  \* Only one SSH2 proxy server allowed per chain
 
   | Internal proxy                         | Socks5               | HTTPS                |
   |----------------------------------------|----------------------|----------------------|
