@@ -26,9 +26,6 @@
   | Linux        | :white_large_square: | :white_check_mark:   |
   | Windows WSL2 | :white_large_square: | :white_check_mark:   |
 
-  - macOS, FreeBSD and OpenBSD with `PF`
-  - Linux with `nftables` or `iptables`, Windows WSL2 with `iptables`
-
 - Main features
   | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2                  |
   |----------------------------------------|--------------------|----------------------|--------------------|-----------------------|
