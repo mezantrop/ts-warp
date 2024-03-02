@@ -18,7 +18,7 @@
 
 - Supported platforms:
 
-  | OS           | PF                   | ip- / nf- tables     |
+  | OS           | PF                   | ip-/nftables         |
   |--------------|----------------------|----------------------|
   | macOS        | :white_check_mark:   | :white_large_square: |
   | FreeBSD      | :white_check_mark:   | :white_large_square: |
