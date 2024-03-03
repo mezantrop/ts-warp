@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.03.01    Current**
+* **2024.03.03    Current**
+  * `ssh2.c`: SSH-agent support added
   * `ts-warp.c`, `ssh2.c`: Fix SSH2 related memory leaks, proper SSH session closure
   * `inifile.c`: Hide SSH privatekey key passphrase in logs
   * `ssh2.c`: Authentication methods reworked. `proxy_key_passphrase` INI-entry appeared
