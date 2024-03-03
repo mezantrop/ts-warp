@@ -63,11 +63,14 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
     char *user, char *password, char *priv_key, char *priv_key_passphrase) {
 
     LIBSSH2_CHANNEL *channel = NULL;
-    const char *fingerprint;
-    char *userauthlist;
+    LIBSSH2_AGENT *agent = NULL;
+    struct libssh2_agent_publickey *apubkey = NULL, *apubkey_prev = NULL;
+    const char *fingerprint = NULL;
+    char *userauthlist = NULL;
     int port = 0;
     int auth_pw = 0;
     char buf[61];
+    int rc = 0;
 
 
     if (libssh2_session_handshake(session, socket)) {
@@ -89,6 +92,58 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
         if (strstr(userauthlist, "password")) auth_pw |= 2;
         if (strstr(userauthlist, "keyboard-interactive")) auth_pw |= 4;
 
+        /* Try SSH Agent first */
+        agent = libssh2_agent_init(session);
+        if (!agent) {
+            printl(LOG_WARN, "Authentication by SSH-agent is not available!");
+            goto manualauth;
+        }
+
+        if (libssh2_agent_connect(agent)) {
+            printl(LOG_WARN, "Unable to connect with SSH-agent!");
+            goto manualauth;
+        }
+
+        if (libssh2_agent_list_identities(agent)) {
+            printl(LOG_WARN, "Unable to request identities from SSH-agent!");
+            goto manualauth;
+        }
+
+        while (1) {
+            rc = libssh2_agent_get_identity(agent, &apubkey, apubkey_prev);
+
+            if (rc == 1) break;
+
+            if (rc < 0) {
+                printl(LOG_WARN, "Unable to obtain identity from SSH-agent!");
+                goto manualauth;
+            }
+
+            if (libssh2_agent_userauth(agent, user, apubkey))
+                printl(LOG_WARN, "Authentication with username [%s] and public key [%s] failed!",
+                    user, apubkey->comment);
+            else {
+                printl(LOG_VERB, "Authentication with username [%s] and public key [%s] succeeded",
+                    user, apubkey->comment);
+                break;
+            }
+
+            apubkey_prev = apubkey;
+        }
+
+        if (rc) {
+            printl(LOG_WARN, "Giving up agent authentication");
+            goto manualauth;
+        }
+
+        manualauth:
+
+        if (agent) {
+            libssh2_agent_disconnect(agent);
+            libssh2_agent_free(agent);
+        }
+
+        /* Failback to manual authentication */
         if (auth_pw & 1) {
             /*  We could authenticate by public key */
             if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, priv_key_passphrase))
