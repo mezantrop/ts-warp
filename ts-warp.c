@@ -56,6 +56,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include <sys/param.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ipc.h>
@@ -112,9 +114,9 @@ Version:
   TS-Warp-X.Y.Z
 
 All parameters are optional:
-  -T IP:Port      Local IP address and port for incoming Transparent requests
-  -S IP:Port      Local IP address and port for internal Socks server
-  -H IP:Port      Local IP address and port for internal HTTP server
+  -T IP:Port      Local IP address and port for incoming Transparent requests; set -T 0:0 to disables it
+  -S IP:Port      Local IP address and port for internal Socks5 server; set -S 0:0 to disables it
+  -H IP:Port      Local IP address and port for internal HTTP server; set -H 0:0 to disables it
 
   -l file.log     Main log filename
   -v 0..4         Log verbosity level: 0 - off, default: 3
@@ -363,127 +365,178 @@ All parameters are optional:
     show_ini(ini_root, LOG_VERB);
 
     /* -- Create sockets for incoming connections ------------------------------------------------------------------- */
-    if ((Tsock = socket(tres->ai_family, tres->ai_socktype, tres->ai_protocol)) == -1) {
-        printl(LOG_CRIT, "Error creating a socket for Transparent incoming connections");
-        mexit(1, pfile_name, tfile_name);
+    if (ntohs(SIN_PORT(*(tres->ai_addr)))) {
+        if ((Tsock = socket(tres->ai_family, tres->ai_socktype, tres->ai_protocol)) == -1) {
+            printl(LOG_CRIT, "Error creating a socket for Transparent incoming connections");
+            mexit(1, pfile_name, tfile_name);
+        }
+    } else {
+        Tsock = -1;
+        printl(LOG_INFO, "Transparent connections is disabled!");
     }
 
-    if ((Ssock = socket(sres->ai_family, sres->ai_socktype, sres->ai_protocol)) == -1) {
-        printl(LOG_CRIT, "Error creating a socket for Socks incoming connections");
-        mexit(1, pfile_name, tfile_name);
+    if (ntohs(SIN_PORT(*(sres->ai_addr)))) {
+        if ((Ssock = socket(sres->ai_family, sres->ai_socktype, sres->ai_protocol)) == -1) {
+            printl(LOG_CRIT, "Error creating a socket for Socks5 incoming connections");
+            mexit(1, pfile_name, tfile_name);
+        }
+    } else {
+        Ssock = -1;
+        printl(LOG_INFO, "Socks5 incoming connections is disabled!");
     }
 
-    if ((Hsock = socket(hres->ai_family, hres->ai_socktype, hres->ai_protocol)) == -1) {
-        printl(LOG_CRIT, "Error creating a socket for HTTP incoming connections");
-        mexit(1, pfile_name, tfile_name);
+    if (ntohs(SIN_PORT(*(hres->ai_addr)))) {
+        if ((Hsock = socket(hres->ai_family, hres->ai_socktype, hres->ai_protocol)) == -1) {
+            printl(LOG_CRIT, "Error creating a socket for HTTP incoming connections");
+            mexit(1, pfile_name, tfile_name);
+        }
+    } else {
+        Hsock = -1;
+        printl(LOG_INFO, "HTTP incoming connections is disabled!");
+    }
+
+    if (Tsock == -1 && Ssock == -1 && Hsock == -1) {
+        printl(LOG_CRIT, "All incoming connections are disabled! Nothing to do, exitting.");
+        mexit(0, pfile_name, tfile_name);
     }
 
     /* Internal servers to be non-blocking, so we can check which one acceps connection */
-    fcntl(Tsock, F_SETFL, O_NONBLOCK);
-    fcntl(Ssock, F_SETFL, O_NONBLOCK);
-    fcntl(Hsock, F_SETFL, O_NONBLOCK);
-    printl(LOG_VERB, "Sockets for incoming connections created");
+    if (Tsock != -1) fcntl(Tsock, F_SETFL, O_NONBLOCK);
+    if (Ssock != -1) fcntl(Ssock, F_SETFL, O_NONBLOCK);
+    if (Hsock != -1) fcntl(Hsock, F_SETFL, O_NONBLOCK);
+    printl(LOG_VERB, "Socket(s) for incoming connections created");
 
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
-        if (setsockopt(Tsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Transparent connections");
-        else printl(LOG_INFO, "TCP_NODELAY option for Transparent socket enabled");
-        if (setsockopt(Ssock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Socks incoming connections");
-        else printl(LOG_INFO, "TCP_NODELAY option for Socks socket enabled");
-        if (setsockopt(Hsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_NODELAY socket option for HTTP incoming connections");
-        else printl(LOG_INFO, "TCP_NODELAY option for HTTP socket enabled");
-    #endif
+        int keepalive_opt = 1;
 
-    int keepalive_opt = 1;
-    if (setsockopt(Tsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Transparent connections");
-    if (setsockopt(Ssock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Socks incoming connections");
-    if (setsockopt(Hsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for HTTP incoming connections");
+        if (Tsock != -1) {
+            if (setsockopt(Tsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Transparent connections");
+            else printl(LOG_INFO, "TCP_NODELAY option for Transparent socket enabled");
+
+            if (setsockopt(Tsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Transparent connections");
+        }
+
+        if (Ssock != -1) {
+            if (setsockopt(Ssock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_NODELAY socket option for Socks5 incoming connections");
+            else printl(LOG_INFO, "TCP_NODELAY option for Socks socket enabled");
+
+            if (setsockopt(Ssock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for Socks5 incoming connections");
+        }
+
+        if (Hsock != -1) {
+            if (setsockopt(Hsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_NODELAY socket option for HTTP incoming connections");
+            else printl(LOG_INFO, "TCP_NODELAY option for HTTP socket enabled");
+
+            if (setsockopt(Hsock, SOL_SOCKET, SO_KEEPALIVE, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting SO_KEEPALIVE socket option for HTTP incoming connections");
+        }
+    #endif
 
     #if !defined(__OpenBSD__)
         #if !defined(__APPLE__)
             keepalive_opt = TCP_KEEPIDLE_S;
-            if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
-                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Transparent connections");
-            if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
-                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Socks incoming connections");
-            if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
-                printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for HTTP incoming connections");
+            if (Tsock != -1)
+                if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+                    printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Transparent connections");
+            if (Ssock != -1)
+                if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+                    printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for Socks5 incoming connections");
+            if (Hsock != -1)
+                if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPIDLE, &keepalive_opt, sizeof(int)) == -1)
+                    printl(LOG_WARN, "Error setting TCP_KEEPIDLE socket option for HTTP incoming connections");
         #endif
 
         keepalive_opt = TCP_KEEPCNT_N;
-        if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Transparent connections");
-        if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for HTTP incoming connections");
+        if (Tsock != -1)
+            if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Transparent connections");
+        if (Ssock != -1)
+            if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for Socks5 incoming connections");
+        if (Hsock != -1)
+            if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPCNT, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPCNT socket option for HTTP incoming connections");
 
         keepalive_opt = TCP_KEEPINTVL_S;
-        if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Transparent connections");
-        if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Socks incoming connections");
-        if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
-            printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for HTTP incoming connections");
+        if (Tsock != -1)
+            if (setsockopt(Tsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Transparent connections");
+        if (Ssock != -1)
+            if (setsockopt(Ssock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for Socks5 incoming connections");
+        if (Hsock != -1)
+            if (setsockopt(Hsock, IPPROTO_TCP, TCP_KEEPINTVL, &keepalive_opt, sizeof(int)) == -1)
+                printl(LOG_WARN, "Error setting TCP_KEEPINTVL socket option for HTTP incoming connections");
     #endif          /* __OpenBSD__ */
 
     int raddr = 1;
-    if (setsockopt(Tsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting Transparent connections socket to be reusable");
-    if (setsockopt(Ssock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting Socks incomming socket to be reusable");
-    if (setsockopt(Hsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
-        printl(LOG_WARN, "Error setting HTTP incomming socket to be reusable");
+    if (Tsock != -1)
+        if (setsockopt(Tsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting Transparent connections socket to be reusable");
+    if (Ssock != -1)
+        if (setsockopt(Ssock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting Socks incomming socket to be reusable");
+    if (Hsock != -1)
+        if (setsockopt(Hsock, SOL_SOCKET, SO_REUSEADDR, &raddr, sizeof(int)) == -1)
+            printl(LOG_WARN, "Error setting HTTP incomming socket to be reusable");
 
-    /* -- Bind incoming connection sockets -------------------------------------------------------------------------- */
-    if (bind(Tsock, tres->ai_addr, tres->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding socket for Transparent incoming connections");
-        close(Tsock);
-        mexit(1, pfile_name, tfile_name);
+    /* -- Bind incoming connection sockets & start listening for clients -------------------------------------------- */
+    if (Tsock != -1) {
+        if (bind(Tsock, tres->ai_addr, tres->ai_addrlen) < 0) {
+            printl(LOG_CRIT, "Error binding socket for Transparent incoming connections");
+            close(Tsock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_VERB, "The socket for Transparent connections succesfully bound");
+
+        if (listen(Tsock, SOMAXCONN) == -1) {
+            printl(LOG_CRIT, "Error listening the socket for Transparent connections");
+            close(Tsock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_INFO, "Listening for Transparent connections");
     }
-    printl(LOG_VERB, "The socket for Transparent connections succesfully bound");
 
-    if (bind(Ssock, sres->ai_addr, sres->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding socket for Socks incoming connections connections");
-        close(Ssock);
-        mexit(1, pfile_name, tfile_name);
+    if (Ssock != -1) {
+        if (bind(Ssock, sres->ai_addr, sres->ai_addrlen) < 0) {
+            printl(LOG_CRIT, "Error binding socket for Socks incoming connections connections");
+            close(Ssock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_VERB, "The socket for Socks incoming connections succesfully bound");
+
+        if (listen(Ssock, SOMAXCONN) == -1) {
+            printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
+            close(Ssock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_INFO, "Listening for Socks incoming connections");
     }
-    printl(LOG_VERB, "The socket for Socks incoming connections succesfully bound");
 
-    if (bind(Hsock, hres->ai_addr, hres->ai_addrlen) < 0) {
-        printl(LOG_CRIT, "Error binding socket for HTTP incoming connections");
-        close(Hsock);
-        mexit(1, pfile_name, tfile_name);
+    if (Hsock != -1) {
+        if (bind(Hsock, hres->ai_addr, hres->ai_addrlen) < 0) {
+            printl(LOG_CRIT, "Error binding socket for HTTP incoming connections");
+            close(Hsock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
+
+        if (listen(Hsock, SOMAXCONN) == -1) {
+            printl(LOG_CRIT, "Error listening the socket for HTTP incoming connections");
+            close(Hsock);
+            mexit(1, pfile_name, tfile_name);
+        }
+        printl(LOG_INFO, "Listening for HTTP incoming connections");
     }
-    printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
 
-    /* -- Start listening for clients ------------------------------------------------------------------------------- */
-    if (listen(Tsock, SOMAXCONN) == -1) {
-        printl(LOG_CRIT, "Error listening the socket for Transparent connections");
-        close(Tsock);
-        mexit(1, pfile_name, tfile_name);
-    }
-    printl(LOG_INFO, "Listening for Transparent connections");
-
-    if (listen(Ssock, SOMAXCONN) == -1) {
-        printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
-        close(Ssock);
-        mexit(1, pfile_name, tfile_name);
-    }
-    printl(LOG_INFO, "Listening for Socks incoming connections");
-
-    if (listen(Hsock, SOMAXCONN) == -1) {
-        printl(LOG_CRIT, "Error listening the socket for HTTP incoming connections");
-        close(Hsock);
-        mexit(1, pfile_name, tfile_name);
-    }
-    printl(LOG_INFO, "Listening for HTTP incoming connections");
-
+    /* -- Set message queue ----------------------------------------------------------------------------------------- */
     mskey = ftok("TS-WARP", 10800);
     if ((msgid = msgget(mskey, 0600 | IPC_CREAT)) == -1)
         printl(LOG_WARN, "Unable to acquire IPC mesage queue ID. No traffic stats will be collected");
@@ -491,13 +544,15 @@ All parameters are optional:
     /* -- Process clients ------------------------------------------------------------------------------------------- */
     while (1) {
         FD_ZERO(&sfd);
-        FD_SET(Tsock, &sfd);
-        FD_SET(Ssock, &sfd);
-        FD_SET(Hsock, &sfd);
+        if (Tsock != -1) FD_SET(Tsock, &sfd);
+        if (Ssock != -1) FD_SET(Ssock, &sfd);
+        if (Hsock != -1) FD_SET(Hsock, &sfd);
 
         tv.tv_sec = 0;
         tv.tv_usec = 10000;
-        ret = select(Hsock + 1, &sfd, NULL, NULL, &tv);
+/*        ret = select(Hsock + 1, &sfd, NULL, NULL, &tv); */
+        ret = select(MAX(MAX(Hsock, Ssock), Tsock) + 1, &sfd, NULL, NULL, &tv);
+
         if (ret < 0) continue;                                          /* On an error skip to the next iteration */
         if (ret == 0) {                                                 /* Timeout - no new connections */
             if (msgid != -1 && msgrcv(msgid, &tmessage, sizeof(tmessage), 1, IPC_NOWAIT) != -1)
@@ -509,8 +564,8 @@ All parameters are optional:
             pidlist_update_traffic(pids, tmessage.mtext);
 
         /* Check which of the internal servers has a pending connection */
-        if (FD_ISSET(Tsock, &sfd)) isock = Tsock; else
-            if (FD_ISSET(Ssock, &sfd)) isock = Ssock; else
+        if (Tsock != -1 && FD_ISSET(Tsock, &sfd)) isock = Tsock; else
+            if (Tsock != -1 && FD_ISSET(Ssock, &sfd)) isock = Ssock; else
                 isock = Hsock;
 
         caddrlen = sizeof caddr;
@@ -638,9 +693,9 @@ All parameters are optional:
                 /* -- Internal TS-Warp proxy servers ---------------------------------------------------------------- */
                 if (isock == Ssock) {
                     /* -- Internal Socks5 server with AUTH_METHOD_NOAUTH support only ------------------------------- */
-                    close(Tsock);
+                    if (Tsock != -1) close(Tsock);
                     close(Ssock);
-                    close(Hsock);
+                    if (Hsock != -1) close(Hsock);
                     if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) != S4_ADDR(*sres->ai_addr)) ||
                         (daddr.ip_addr.ss_family == AF_INET6 &&
                             memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))))
@@ -703,8 +758,8 @@ All parameters are optional:
                 } else
                     if (isock == Hsock) {
                         /* -- Internal HTTP server  ----------------------------------------------------------------- */
-                        close(Tsock);
-                        close(Ssock);
+                        if (Tsock != -1) close(Tsock);
+                        if (Ssock != -1) close(Ssock);
                         close(Hsock);
                         if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) != S4_ADDR(*hres->ai_addr)) ||
                             (daddr.ip_addr.ss_family == AF_INET6 && memcmp(S6_ADDR(daddr.ip_addr),
@@ -745,8 +800,8 @@ All parameters are optional:
                     } else
                         if (isock == Tsock) {
                             close(Tsock);
-                            close(Ssock);
-                            close(Hsock);
+                            if (Ssock != -1) close(Ssock);
+                            if (Hsock != -1) close(Hsock);
                             if ((daddr.ip_addr.ss_family == AF_INET &&
                                     S4_ADDR(daddr.ip_addr) == S4_ADDR(*tres->ai_addr)) ||
                                 (daddr.ip_addr.ss_family == AF_INET6 &&
@@ -1314,12 +1369,18 @@ void trap_signal(int sig) {
         case SIGQUIT:
         case SIGTERM:
             if (getpid() == mpid) {                                 /* The main daemon */
-                shutdown(Tsock, SHUT_RDWR);
-                close(Tsock);
-                shutdown(Ssock, SHUT_RDWR);
-                close(Ssock);
-                shutdown(Hsock, SHUT_RDWR);
-                close(Hsock);
+                if (Tsock != -1) {
+                    shutdown(Tsock, SHUT_RDWR);
+                    close(Tsock);
+                }
+                if (Ssock != -1) {
+                    shutdown(Ssock, SHUT_RDWR);
+                    close(Ssock);
+                }
+                if (Hsock != -1) {
+                    shutdown(Hsock, SHUT_RDWR);
+                    close(Hsock);
+                }
                 #if !defined(linux)
                     pf_close(pfd);
                 #endif
@@ -1364,9 +1425,9 @@ void usage(int ecode) {
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
-  -T IP:Port\t    Local IP address and port for incoming Transparent requests\n\
-  -S IP:Port\t    Local IP address and port for internal Socks server\n\
-  -H IP:Port\t    Local IP address and port for internal HTTP server\n\
+  -T IP:Port\t    Local IP address and port for incoming Transparent requests; set -T 0:0 to disables it\n\
+  -S IP:Port\t    Local IP address and port for internal Socks5 server; set -S 0:0 to disables it\n\
+  -H IP:Port\t    Local IP address and port for internal HTTP server; set -H 0:0 to disables it\n\
   -c file.ini\t    Configuration file, default: %s\n\
   \n\
   -l file.log\t    Main log filename, default: %s\n\

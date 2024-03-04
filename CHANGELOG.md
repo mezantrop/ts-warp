@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.03.03    Current**
+* **2024.03.04    Current**
+  * `ts-warp.c`: CLI options to disable `TS-Warp` port listeners: `-T 0:0`, `-S 0:0` and `-H 0:0`
   * `ssh2.c`: SSH-agent support added
   * `ts-warp.c`, `ssh2.c`: Fix SSH2 related memory leaks, proper SSH session closure
   * `inifile.c`: Hide SSH privatekey key passphrase in logs
