@@ -96,6 +96,8 @@
     #define S6_ADDR(sa) ((struct sockaddr_in6 *)&sa)->sin6_addr.__u6_addr.__u6_addr8
 #endif
 
+#define SIN_PORT(sa)    SA_FAMILY(sa) == AF_INET ? SIN4_PORT(sa) : SIN6_PORT(sa)
+
 #ifndef HOST_NAME_MAX
     #define HOST_NAME_MAX 255
 #endif
