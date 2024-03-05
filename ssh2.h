@@ -30,14 +30,17 @@
    #define WITH_LIBSSH2 0
 #endif
 
-#define PROXY_PROTO_SSH2                'S'
+#define PROXY_PROTO_SSH2      'S'
 
 #if (WITH_LIBSSH2)
 
 #include <libssh2.h>
 
+
+#define SSH2_USERAUTH_LIST    "publickey,password,keyboard-interactive"
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struct uvaddr *daddr,
-   char *user, char *password, char *priv_key, char *priv_key_passphrase);
+   char *user, char *password, char *priv_key, char *priv_key_passphrase, uint8_t force_auth);
 
 #endif                  /* WITH_LIBSSH2 */

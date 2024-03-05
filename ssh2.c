@@ -60,13 +60,13 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struct uvaddr *daddr,
-    char *user, char *password, char *priv_key, char *priv_key_passphrase) {
+    char *user, char *password, char *priv_key, char *priv_key_passphrase, uint8_t force_auth) {
 
     LIBSSH2_CHANNEL *channel = NULL;
     LIBSSH2_AGENT *agent = NULL;
     struct libssh2_agent_publickey *apubkey = NULL, *apubkey_prev = NULL;
     const char *fingerprint = NULL;
-    char *userauthlist = NULL;
+    char *userauthlist = SSH2_USERAUTH_LIST;
     int port = 0;
     int auth_pw = 0;
     char buf[61];
@@ -81,11 +81,16 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
     for(int i = 0; i < 20; i++)
         sprintf(buf + i * 3, "%02X:", (unsigned char)fingerprint[i]);
-    buf[60] = '\0';
+    buf[59] = '\0';
     printl(LOG_INFO, "SSH2 Fingerprint: [%s]", buf);
 
-    /* check what authentication methods are available */
-    userauthlist = libssh2_userauth_list(session, user, strlen(user));
+    if (force_auth == 'N') {
+        /* Check what authentication methods are available */
+        printl(LOG_VERB, "Negotiating authentication methods");
+        userauthlist = libssh2_userauth_list(session, user, strlen(user));
+    } else
+        printl(LOG_VERB, "Trying to force authentication methods");
+
     printl(LOG_VERB, "Authentication methods: [%s]", userauthlist);
     if (userauthlist) {
         if (strstr(userauthlist, "publickey")) auth_pw |= 1;
@@ -144,7 +149,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
         }
 
         /* Failback to manual authentication */
-        if (auth_pw & 1) {
+        if ((auth_pw & 1) && priv_key) {
             /*  We could authenticate by public key */
             if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, priv_key_passphrase))
                 printl(LOG_WARN, "Authentication by public key failed!");
@@ -154,7 +159,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
             }
         }
 
-        if (auth_pw & 2) {
+        if ((auth_pw & 2) && user) {
             /* Or via password */
             if (libssh2_userauth_password(session, user, password))
                 printl(LOG_WARN, "Authentication by password failed!");
@@ -164,7 +169,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
             }
         }
 
-        if (auth_pw & 4) {
+        if ((auth_pw & 4) && user) {
             /* Or via keyboard-interactive */
             gpassword = password;
             if (libssh2_userauth_keyboard_interactive(session, user, &kbd_callback))

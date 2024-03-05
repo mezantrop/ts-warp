@@ -39,7 +39,8 @@ typedef struct ini_section {
     char *proxy_user;                                                   /* Proxy server username */
     char *proxy_password;                                               /* Proxy server user password */
     char *proxy_key;                                                    /* User's private key filename */
-    char *proxy_key_passphrase;
+    char *proxy_key_passphrase;                                         /* SSH2 private key passphrase */
+    uint8_t proxy_ssh_force_auth;                                       /* Force SSH2 auth: 'Y' or 'N' */
     struct proxy_chain *p_chain;                                        /* Proxy chain */
     struct ini_target *target_entry;                                    /* List of target definitions */
 
@@ -99,6 +100,7 @@ typedef struct chain_list {                                 /* Chains as they de
 #define INI_ENTRY_PROXY_PASSWORD        "proxy_password"
 #define INI_ENTRY_PROXY_KEY             "proxy_key"             /* Currently SSH2 private key filename */
 #define INI_ENTRY_PROXY_KEY_PASSPHRASE  "proxy_key_passphrase"  /* SSH2 private key passphrase */
+#define INI_ENTRY_PROXY_SSH_FORCE_AUTH  "proxy_ssh_force_auth"  /* Force authmethods: 'Y' or 'N' */
 
 /* TODO: Deprecated INI_ENTRY_SOCKS_* variables to be removed */
 #define INI_ENTRY_SOCKS_SERVER      "socks_server"

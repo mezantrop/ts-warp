@@ -990,7 +990,8 @@ All parameters are optional:
                                     memset(p_server.name, 0, sizeof(p_server.name));
                                     if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
-                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
+                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase,
+                                        sc->chain_member->proxy_ssh_force_auth))) {
 
                                         printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
                                         close(csock);
@@ -1006,7 +1007,8 @@ All parameters are optional:
                                     memset(p_server.name, 0, sizeof(p_server.name));
                                     if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &p_server,
                                         sc->chain_member->proxy_user, sc->chain_member->proxy_password,
-                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase))) {
+                                        sc->chain_member->proxy_key, sc->chain_member->proxy_key_passphrase,
+                                        sc->chain_member->proxy_ssh_force_auth))) {
 
                                         printl(LOG_WARN, "CHAIN SSH2 proxy server returned an error");
                                         close(csock);
@@ -1147,7 +1149,8 @@ All parameters are optional:
                                 inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
                             if (!(ssh2ch = ssh2_client_request(ssock.s, ssh2sess, &daddr, s_ini->proxy_user,
-                            s_ini->proxy_password, s_ini->proxy_key, s_ini->proxy_key_passphrase))) {
+                            s_ini->proxy_password, s_ini->proxy_key, s_ini->proxy_key_passphrase,
+                            s_ini->proxy_ssh_force_auth))) {
                                 printl(LOG_WARN, "SSH2 proxy server returned an error");
                                 close(csock);
                                 exit(2);
@@ -1331,6 +1334,13 @@ All parameters are optional:
             printl(LOG_INFO, "The client traffic summary: C: [%s]:[%llu], D: [%s]:[%llu]",
                 inet2str(&caddr, suf), tmessage.mtext.cbytes, inet2str(&daddr.ip_addr, buf), tmessage.mtext.dbytes);
 
+            #if (WITH_LIBSSH2)
+                if(ssh2sess) {
+                    libssh2_session_disconnect(ssh2sess, "Normal Shutdown");
+                    libssh2_session_free(ssh2sess);
+                }
+                libssh2_exit();                                                 /* Deinitialize LIBSSH2 */
+            #endif
             close(csock);
             close(ssock.s);
             exit(0);
@@ -1340,13 +1350,6 @@ All parameters are optional:
     freeaddrinfo(tres);
     freeaddrinfo(sres);
     freeaddrinfo(hres);
-    #if (WITH_LIBSSH2)
-        if(ssh2sess) {
-            libssh2_session_disconnect(ssh2sess, "Normal Shutdown");
-            libssh2_session_free(ssh2sess);
-        }
-        libssh2_exit();                                                 /* Deinitialize LIBSSH2 */
-    #endif
     return 0;
 }
 

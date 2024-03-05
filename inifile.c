@@ -88,6 +88,7 @@ ini_section *read_ini(char *ifile_name) {
             c_sect->proxy_password = NULL;
             c_sect->proxy_key_passphrase = NULL;
             c_sect->proxy_key = NULL;
+            c_sect->proxy_ssh_force_auth = 'N';
             c_sect->p_chain = NULL;
             c_sect->target_entry = NULL;
             c_sect->nit_domain = NULL;
@@ -233,7 +234,14 @@ ini_section *read_ini(char *ifile_name) {
                         }
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY)) {
+                    if (chk_inivar(&c_sect->proxy_key, INI_ENTRY_PROXY_KEY, ln))
+                            free(c_sect->proxy_key);
+
                     c_sect->proxy_key = strdup(entry.val);
+            } else
+                if (!strcasecmp(entry.var, INI_ENTRY_PROXY_SSH_FORCE_AUTH)) {
+                    chk_inivar(&c_sect->proxy_ssh_force_auth, INI_ENTRY_PROXY_SSH_FORCE_AUTH, ln);
+                    c_sect->proxy_ssh_force_auth = toupper(entry.val[0]);
             } else
                 if (!strcasecmp(entry.var, INI_ENTRY_PROXY_KEY_PASSPHRASE)) {
                     if (chk_inivar(&c_sect->proxy_key_passphrase, INI_ENTRY_PROXY_KEY_PASSPHRASE, ln))
@@ -433,9 +441,10 @@ void show_ini(struct ini_section *ini, int loglvl) {
     s = ini;
     while (s) {
         /* Display section */
-        printl(loglvl, "SHOW Section: [%s] Balancing: [%s] Proxy: [%s] Type: [%c] User/Password: [%s/%s], Key: [%s]",
+        printl(loglvl,
+            "SHOW Section: [%s] Balance: [%s] Proxy: [%s] Type: [%c] User/Password: [%s/%s], Key: [%s], Force auth: [%c]",
             s->section_name, ini_balance[s->section_balance], inet2str(&s->proxy_server, ip1), s->proxy_type,
-            s->proxy_user?:"", s->proxy_password ? "********" : "", s->proxy_key);
+            s->proxy_user?:"", s->proxy_password ? "********" : "", s->proxy_key, s->proxy_ssh_force_auth);
 
         /* Display Socks chain */
         if (s->p_chain) {
