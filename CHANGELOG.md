@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.03.04    Current**
+* **2024.03.05    Current**
+  * `ssh2.c`: Variable `proxy_ssh_force_auth` in `ts-warp.ini` to force or negotiate SSH2 authenticaton methods
   * `ts-warp.c`: CLI options to disable `TS-Warp` port listeners: `-T 0:0`, `-S 0:0` and `-H 0:0`
   * `ssh2.c`: SSH-agent support added
   * `ts-warp.c`, `ssh2.c`: Fix SSH2 related memory leaks, proper SSH session closure
