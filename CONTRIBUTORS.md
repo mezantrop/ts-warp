@@ -7,6 +7,7 @@
 * Bart Couvreur <bart.couvreur@kyndryl.com>
 * Gema Robles <gema.robles.rodriguez@kyndryl.com>
 * Gleb Reys <gleb@reys.net>
+* Hanno Rathmann <ts-warp@machmalnen.de>
 * Juha Nurmela
 * Luis Pontes <luis.pontes@kyndryl.com>
 * Matt Reba
