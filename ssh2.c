@@ -130,7 +130,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
             else {
                 printl(LOG_VERB, "Authentication with username [%s] and public key [%s] succeeded",
                     user, apubkey->comment);
-                break;
+                goto getchannel;
             }
 
             apubkey_prev = apubkey;
@@ -142,11 +142,6 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
         }
 
         manualauth:
-
-        if (agent) {
-            libssh2_agent_disconnect(agent);
-            libssh2_agent_free(agent);
-        }
 
         /* Failback to manual authentication */
         if ((auth_pw & 1) && priv_key) {
@@ -210,6 +205,11 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
     channel = libssh2_channel_direct_tcpip(session, daddr->name, port);        /* Return channel or NULL */
     if (channel)
         libssh2_session_set_blocking(session, 0);
+
+    if (agent) {
+        libssh2_agent_disconnect(agent);
+        libssh2_agent_free(agent);
+    }
 
     return channel;
 }
