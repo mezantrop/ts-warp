@@ -47,6 +47,7 @@ class App:
     def __init__(self, width=800, height=560,
                  runcmd='/usr/local/etc/ts-warp.sh',
                  inifile='/usr/local/etc/ts-warp.ini',
+                 daemon_options="",
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
                  pidfile='/usr/local/var/run/ts-warp.pid',
@@ -102,7 +103,7 @@ class App:
 
         ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
         lfrm_top.columnconfigure(5, weight=1)
-        self.tsw_opts = tk.StringVar()
+        self.tsw_opts = tk.StringVar(value=daemon_options)
         self.ent_opt = ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
         # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
@@ -447,8 +448,6 @@ if __name__ == "__main__":
     url_supportus = 'https://www.buymeacoffee.com/mezantrop'
     url_contact = 'mailto:zmey20000@yahoo.com'
 
-    ini = configparser.ConfigParser()
-
     runcmd = './ts-warp.sh'
     prefix = os.path.expanduser("~/ts-warp/")
     inifile = prefix + 'etc/ts-warp.ini'
@@ -456,11 +455,40 @@ if __name__ == "__main__":
     logfile = prefix + 'var/log/ts-warp.log'
     pidfile = prefix + 'var/run/ts-warp.pid'
     actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
+    daemon_options = ''
+
+    # Override defaults by gui-warp.ini
+    try:
+        gui_ini = configparser.ConfigParser()
+        gui_ini.read(prefix + 'etc/gui-warp.ini')
+        if 'GUI-WARP' in gui_ini.sections():
+            if 'prefix' in gui_ini['GUI-WARP'].keys():
+                prefix = gui_ini['GUI-WARP']['prefix']
+            if 'runcmd' in gui_ini['GUI-WARP'].keys():
+                runcmd = prefix + gui_ini['GUI-WARP']['runcmd']
+            if 'inifile' in gui_ini['GUI-WARP'].keys():
+                inifile = prefix + gui_ini['GUI-WARP']['inifile']
+            if 'fwfile' in gui_ini['GUI-WARP'].keys():
+                fwfile = prefix + gui_ini['GUI-WARP']['fwfile']
+            if 'logfile' in gui_ini['GUI-WARP'].keys():
+                logfile = prefix + gui_ini['GUI-WARP']['logfile']
+            if 'pidfile' in gui_ini['GUI-WARP'].keys():
+                pidfile = prefix + gui_ini['GUI-WARP']['pidfile']
+            if 'actfile' in gui_ini['GUI-WARP'].keys():
+                actfile = prefix + gui_ini['GUI-WARP']['actfile']
+            if 'daemon_options' in gui_ini['GUI-WARP'].keys():
+                daemon_options = gui_ini['GUI-WARP']['daemon_options']
+    except:
+        gui_ini = None
 
     if not os.path.exists(prefix):                      # Create ts-warp dir + subdirs in home
         os.makedirs(prefix + 'etc/')
-        shutil.copyfile('./ts-warp.ini', inifile)       # Install sample  INI
+        shutil.copyfile('./ts-warp.ini', inifile)       # Install sample INI
         os.chmod(inifile, 0o600)
+        if gui_ini:
+            # Install sample gui-warp.ini
+            shutil.copyfile('./gui-warp.ini', prefix + 'etc/gui-warp.ini')
+            os.chmod(prefix + 'etc/gui-warp.ini', 0o600)
     if not os.path.exists(prefix + 'etc/'):
         os.makedirs(prefix + 'etc/')
     if not os.path.exists(prefix + 'var/log/'):
@@ -476,6 +504,6 @@ if __name__ == "__main__":
     if not os.path.exists(logfile):
         open(logfile, 'a', encoding='utf8').close()
 
-    app = App(runcmd=runcmd,
+    app = App(runcmd=runcmd, daemon_options=daemon_options,
               inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile,
               url_new_vesrsion=url_new_vesrsion)
