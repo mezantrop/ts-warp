@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.03.06    Current**
+* **2024.03.11    Current**
+  * `ssh2.c`: Deny SSH2-proxy connections with no username
   * `ssh2.c`: Do not try manual authentication is agent-authentication was successful
   * `ssh2.c`: Variable `proxy_ssh_force_auth` in `ts-warp.ini` to force or negotiate SSH2 authenticaton methods
   * `ts-warp.c`: CLI options to disable `TS-Warp` port listeners: `-T 0:0`, `-S 0:0` and `-H 0:0`
