@@ -1,6 +1,8 @@
 # CHANGELOG
 
 * **2024.03.11    Current**
+  * `gui-warp.app`: Symlink to `/Applications` in `DMG`
+  * `gui-warp.py`, `gui-warp.app`: `gui-warp.ini` back to macOS; `daemon_options` var controls `ts-warp` startup options
   * `ssh2.c`: Deny SSH2-proxy connections with no username
   * `ssh2.c`: Do not try manual authentication is agent-authentication was successful
   * `ssh2.c`: Variable `proxy_ssh_force_auth` in `ts-warp.ini` to force or negotiate SSH2 authenticaton methods

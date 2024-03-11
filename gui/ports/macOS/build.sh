@@ -100,6 +100,7 @@ $pv/bin/python3 setup.py py2app &&
 echo "-- Creating DMG -------------------------------------------------------------------------------------------------" &&
 mkdir GUI-Warp
 mv dist/gui-warp.app GUI-Warp
+ln -s /Applications GUI-Warp
 hdiutil create GUI-Warp-tmp.dmg -ov -volname "GUI-Warp" -fs HFS+ -srcfolder "GUI-Warp"
 hdiutil convert GUI-Warp-tmp.dmg -format UDZO -o GUI-Warp.dmg
 
