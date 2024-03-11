@@ -73,6 +73,11 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
     int rc = 0;
 
 
+    if (!user) {
+        printl(LOG_WARN, "No username specified: unable to login into SSH2-proxy!");
+        return NULL;
+    }
+
     if (libssh2_session_handshake(session, socket)) {
         printl(LOG_WARN, "Unable to perform SSH2 handshake");
         return NULL;
