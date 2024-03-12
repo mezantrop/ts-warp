@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.03.12    ts-warp-1.5.0, gui-warp-1.0.23 (gui-warp-v1.0.28-mac), ns-warp-1.0.7**
+  * `gui-warp.app`, `gui-warp.py`: Correcting paths in `gui-warp.ini`
   * `gui-warp.app`: Symlink to `/Applications` in `DMG`
   * `gui-warp.py`, `gui-warp.app`: `gui-warp.ini` back to macOS; `daemon_options` var controls `ts-warp` startup options
   * `ssh2.c`: Deny SSH2-proxy connections with no username
