@@ -55,7 +55,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.27-mac'
+        self.version = 'v1.0.28-mac'
         self.width = width
         self.height = height
 
