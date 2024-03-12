@@ -442,6 +442,16 @@ It is a free and open-source software, but if you want to support it, please do'
             self.root.focus_set()
 
 # -------------------------------------------------------------------------------------------------------------------- #
+def dedupch(s, c='/'):
+    '''
+    Remove duplicated characters: c from the string: s
+    '''
+
+    return c.join([x for x in s.split(c) if x != ''])
+
+# -------------------------------------------------------------------------------------------------------------------- #
+
+
 if __name__ == "__main__":
     url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
     url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/GUI-Warp.dmg'
@@ -449,7 +459,7 @@ if __name__ == "__main__":
     url_contact = 'mailto:zmey20000@yahoo.com'
 
     runcmd = './ts-warp.sh'
-    prefix = os.path.expanduser("~/ts-warp/")
+    prefix = '/' + dedupch(os.path.expanduser("~/ts-warp/")) + '/'
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
@@ -463,19 +473,19 @@ if __name__ == "__main__":
         gui_ini.read(prefix + 'etc/gui-warp.ini')
         if 'GUI-WARP' in gui_ini.sections():
             if 'prefix' in gui_ini['GUI-WARP'].keys():
-                prefix = gui_ini['GUI-WARP']['prefix']
+                prefix = '/' + dedupch(os.path.expanduser(gui_ini['GUI-WARP']['prefix'])) + '/'
             if 'runcmd' in gui_ini['GUI-WARP'].keys():
-                runcmd = prefix + gui_ini['GUI-WARP']['runcmd']
+                runcmd = '/' + dedupch(prefix + gui_ini['GUI-WARP']['runcmd'])
             if 'inifile' in gui_ini['GUI-WARP'].keys():
-                inifile = prefix + gui_ini['GUI-WARP']['inifile']
+                inifile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['inifile'])
             if 'fwfile' in gui_ini['GUI-WARP'].keys():
-                fwfile = prefix + gui_ini['GUI-WARP']['fwfile']
+                fwfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['fwfile'])
             if 'logfile' in gui_ini['GUI-WARP'].keys():
-                logfile = prefix + gui_ini['GUI-WARP']['logfile']
+                logfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['logfile'])
             if 'pidfile' in gui_ini['GUI-WARP'].keys():
-                pidfile = prefix + gui_ini['GUI-WARP']['pidfile']
+                pidfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['pidfile'])
             if 'actfile' in gui_ini['GUI-WARP'].keys():
-                actfile = prefix + gui_ini['GUI-WARP']['actfile']
+                actfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['actfile'])
             if 'daemon_options' in gui_ini['GUI-WARP'].keys():
                 daemon_options = gui_ini['GUI-WARP']['daemon_options']
     except:
