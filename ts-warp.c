@@ -406,10 +406,11 @@ All parameters are optional:
     if (Hsock != -1) fcntl(Hsock, F_SETFL, O_NONBLOCK);
     printl(LOG_VERB, "Socket(s) for incoming connections created");
 
+
     /* -- Apply socket options -------------------------------------------------------------------------------------- */
+    int keepalive_opt = 1;
     #if (WITH_TCP_NODELAY)
         int tpc_ndelay = 1;
-        int keepalive_opt = 1;
 
         if (Tsock != -1) {
             if (setsockopt(Tsock, IPPROTO_TCP, TCP_NODELAY, &tpc_ndelay, sizeof(int)) == -1)

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* **2024.03.27    Current**
+  * `ts-warp.c`: `WITH_TCP_NODELAY` proper processing
+
 * **2024.03.12    ts-warp-1.5.0, gui-warp-1.0.23 (gui-warp-v1.0.28-mac), ns-warp-1.0.7**
   * `gui-warp.app`, `gui-warp.py`: Correcting paths in `gui-warp.ini`
   * `gui-warp.app`: Symlink to `/Applications` in `DMG`
