@@ -75,7 +75,7 @@ class App:
         if os.geteuid() != 0:
             self.ask_password()
 
-        self.root.title(f'GUI-warp {self.version}')
+        self.root.title(f'GUI-Warp {self.version}')
         self.root.geometry(f'{self.width}x{self.height}')
         self.root.resizable(width=True, height=True)
 
