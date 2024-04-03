@@ -487,7 +487,7 @@ DETECT_TARGET() {
     _vendor="unknown"
     _os=`uname -s`
 
-    [ "$_machine" == "amd64" ] && _machine="x86_64"
+    [ "$_machine" = "amd64" ] && _machine="x86_64"
     _triplet="$_machine-$_vendor-$_os"
 
     _DPRINTF "DETECT_TARGET(): [$_triplet]"
