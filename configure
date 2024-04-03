@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# ---------------------------------------------------------------------------- #
+# Minmiconf (https://github.com/mezantrop/minmiconf) based configure script    #
+# Note, it is NOT compatible with autotools one!                               #
+# ---------------------------------------------------------------------------- #
+
+# ---------------------------------------------------------------------------- #
+. ./minmiconf
+# ---------------------------------------------------------------------------- #
+
+_DEBUG=N
+
+# ---------------------------------------------------------------------------- #
+CC_CANDIDATES="cc clang gcc"
+PREFIX_CANDIDATES="$PREFIX /usr/local /opt $HOME"
+
+EHARD; DECIDE CONFIG_START      "STATE"    .configured
+
+EHARD; DECIDE DETECT_COMMAND    "EXPR"      'expr'
+EHARD; DECIDE DETECT_COMMAND    "GREP"      'grep'
+EHARD; DECIDE DETECT_COMMAND    "SED"       'sed'
+EHARD; DECIDE DETECT_COMMAND    "MKTEMP"    'mktemp'
+EHARD; DECIDE DETECT_COMMAND    "RM"        'rm'
+EHARD; DECIDE DETECT_COMMAND    "UNAME"     'uname'
+
+EHARD; DECIDE DETECT_TARGET     "TARGET"
+IN "$TARGET" "Darwin" "Y" && {
+    EHARD; DECIDE DETECT_PREFIX "PREFIX"    '"$PREFIX_CANDIDATES"'
+} ||
+    EHARD; DECIDE DETECT_PATH   "PREFIX"    '"$PREFIX_CANDIDATES" "dr" "one"'
+
+INCLUDE_PATH_CANDIDATES="/usr/include $PREFIX/include"
+LIB_PATH_CANDIDATES="/lib /usr/lib /usr/lib32 $PREFIX/lib"
+WITH_TCP_NODELAY=${WITH_TCP_NODELAY-1}
+
+EHARD; DECIDE DETECT_LPATH      "LPATH"     '"$LIB_PATH_CANDIDATES" "all"'
+EHARD; DECIDE DETECT_IPATH      "IPATH"     '"$INCLUDE_PATH_CANDIDATES" "all"'
+EHARD; DECIDE DETECT_CC         "CC"        '"$CC_CANDIDATES"'
+
+ESOFT; DECIDE IF_NDEF_OR_IVAR WITH_LIBSSH2 1 && {
+    EHARD; DECIDE DETECT_LIBRARY    "LIBSSH2"  'ssh2' &&
+        WITH_LIBSSH2=1 ||
+        WITH_LIBSSH2=0
+}
+
+EHARD; DECIDE DETECT_USER       "USER"
+IN "$USER" "root" && ! IN "$WITH_USER" "root" &&
+    printf "FATAL: Do not use root, unless you know what you are doing!\n"
+
+CPATH="$CPATH $IPATH"
+LDFLAGS="$LDFLAGS $LPATH"
+LDLIBS="$LDLIBS $LIBSSL $LIBSSH2"
+SET_VARS="PREFIX CC WITH_TCP_NODELAY WITH_LIBSSH2 CPATH LDFLAGS LDLIBS USER"
+WRITE_VARS "$SET_VARS" "Makefile" "?" "Y"
+EHARD; DECIDE CONFIG_FINISH     "STATE"     .configured

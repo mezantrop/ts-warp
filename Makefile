@@ -1,41 +1,18 @@
-# -------------------------------------------------------------------------------------------------------------------- #
-# TS-Warp - Transparent proxy server and traffic wrapper                                                               #
-# -------------------------------------------------------------------------------------------------------------------- #
-
-# Copyright (c) 2021-2024, Mikhail Zakharov <zmey20000@yahoo.com>
-#
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
-# following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
-#    disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
-#    disclaimer in the documentation and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
-PREFIX ?= /usr/local
-RUNUSER ?= nobody
-
-CC = cc
-CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=1
+PREFIX?=/usr/local
+WITH_TCP_NODELAY?=1
+WITH_LIBSSH2?=1
+CPATH+=-I/usr/include -I/usr/local/include
+LDLIBS+=-lssh2
+LDFLAGS+=-L/lib -L/usr/lib -L/usr/lib32 -L/usr/local/lib
+USER?=zmey
+CC=cc
+CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=$(WITH_TCP_NODELAY) -DWITH_LIBSSH2=$(WITH_LIBSSH2) $(CPATH)
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
 utility.o xedec.o
-WARP_FILES = base64.c inifile.c logfile.c natlook.c network.c pidfile.c pidlist.c ssh2.c socks.c http.c ts-warp.c \
-utility.c xedec.c
 
 PASS_OBJS = ts-pass.o xedec.o
 
-.PHONY:	all clean examples-general examples-special install install-configs install-examples release ts-warp-ssh2 \
+.PHONY:	all clean examples-general examples-special install install-configs install-examples release \
 deinstall uninstall version
 
 all: ts-warp examples-special ts-pass
@@ -46,10 +23,7 @@ version:
 	sh ./version.sh RELEASE
 
 ts-warp: $(WARP_OBJS)
-	$(CC) -o $@ $(WARP_OBJS)
-
-ts-warp-ssh2: examples-special ts-pass
-	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -I/usr/local/include -L/usr/local/lib -o ts-warp $(WARP_FILES) -lssh2
+	$(CC) $(CFLAGS) $(WARP_OBJS) $(LDFLAGS) $(LDLIBS) -o $@
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
@@ -58,40 +32,18 @@ ts-warp_autofw.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
-	@[ $(USER) = "root" ] && { \
-		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
-		echo $(RUNUSER) > .configured; \
-	} || { \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
-		echo $(USER) > .configured; \
-	}
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_iptables.sh.in > ./examples/ts-warp_iptables.sh
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_nftables.sh.in > ./examples/ts-warp_nftables.sh
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_general_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
 
 examples-special:
-	@[ $(USER) = "root" ] && { \
-		echo "WARNING: Building as root: setting the default user $(RUNUSER) in configuration. Check and correct!"; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
-		sed "s|%USER%|$(RUNUSER)|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
-		echo $(RUNUSER) > .configured; \
-	} || { \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf; \
-		sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf; \
-		echo $(USER) > .configured; \
-	}
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_iptables.sh.in > ./examples/ts-warp_iptables.sh
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_nftables.sh.in > ./examples/ts-warp_nftables.sh
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_freebsd.conf.in > ./examples/ts-warp_pf_freebsd.conf
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_macos.conf.in > ./examples/ts-warp_pf_macos.conf
+	sed "s|%USER%|$(USER)|" ./examples/ts-warp_special_pf_openbsd.conf.in > ./examples/ts-warp_pf_openbsd.conf
 
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
