@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.03.28    Current**
+* **2024.04.03    Current**
+  * `configure`: Configure script introduced
   * GUI-Warp application window title caption update
   * `ts-warp.c`: `WITH_TCP_NODELAY` proper processing
 
