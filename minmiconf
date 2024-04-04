@@ -28,7 +28,7 @@
 # ---------------------------------------------------------------------------- #
 
 # -- Script variables -------------------------------------------------------- #
-version="1.0.0"
+version="1.0.0.1"
 _DEBUG="n"
 _INCLUDE_PATH=""                            # Cache detected INCLUDE dirs
 _LIB_PATH=""                                # Cache detected LIB directories
@@ -571,7 +571,7 @@ CONFIG_START() {
 
     _lock=${2-".configured"}
 
-    [ "$3" == "f" -o  "$3" == "F" ] && rm -r "$_lock"
+    [ "$3" = "f" -o  "$3" = "F" ] && rm -r "$_lock"
     eval $1='$_lock'
 
     [ -f "$_lock" ] && {
