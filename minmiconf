@@ -28,6 +28,7 @@
 # ---------------------------------------------------------------------------- #
 
 # -- Script variables -------------------------------------------------------- #
+version="1.0.0"
 _DEBUG="n"
 _INCLUDE_PATH=""                            # Cache detected INCLUDE dirs
 _LIB_PATH=""                                # Cache detected LIB directories
@@ -359,10 +360,11 @@ DETECT_LPATH() {
 DETECT_PREFIX() {
 
     #
-    # Detect prefix from PREFIX variable, $2 and PREFIX_CANDIDATES
+    # Detect prefix from $2 and PREFIX_CANDIDATES, or sets forcible from PREFIX variable
     #
     # $1 - Results variable
     # $2 - Space separated path specifications
+    # $3 - permissions to check (dfrwx), default: "dr"
     # Return: 0 - on success, 1 on failure or error
     #
 
@@ -372,15 +374,19 @@ DETECT_PREFIX() {
         return 1
     }
 
-    [ -n "$PREFIX" ] &&
-        _ppath="$_ppath $PREFIX" || {
-            _ppath="$2"
-            [ -n "$PREFIX_CANDIDATES" -a "$_ppath" != "$PREFIX_CANDIDATES" ] &&
-                _ppath="$_ppath $PREFIX_CANDIDATES"
-        }
+    [ -n "$PREFIX" ] && {
+        _DPRINTF "DETECT_PREFIX(): [$_dp]"
+        eval $1='$PREFIX'                       # Return value
+        return 0
+    }
+
+    _ppath="$2"
+    _perms=${3-"dr"}
+    [ -n "$PREFIX_CANDIDATES" -a "$_ppath" != "$PREFIX_CANDIDATES" ] &&
+        _ppath="$_ppath $PREFIX_CANDIDATES"
 
     _dp=""
-    DETECT_PATH "_dp" "$_ppath" "drw" "one"
+    DETECT_PATH "_dp" "$_ppath" "$_perms" "one"
     [ $? -gt 0 ] && {
         _DPRINTF "DETECT_PREFIX(): No prefix available"
         eval $1=''                              # Return value
