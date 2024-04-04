@@ -72,12 +72,14 @@ See it [here](CHANGELOG.md)
 ### Quick Installation
 
 ```sh
-git clone https://github.com/mezantrop/ts-warp && cd ts-warp
-make && sudo make install clean
+# If SSH2 proxy support is required, install https://libssh2.org library first, then download ts-warp:
 
-# If SSH2 proxy support is required, install https://libssh2.org library and instead of the above run:
-make ts-warp-ssh2
-sudo make install clean
+git clone https://github.com/mezantrop/ts-warp && cd ts-warp
+
+# `configure` script understands a number of environmental variables. You can force setting custom values to:
+# `PREFIX`, `LIBSSH2` `WITH_TCP_NODELAY`, `WITH_LIBSSH2`, `USER`, otherwise they will be auto-detected.
+
+./configure && make && sudo make install clean
 
 # Copy and edit configuration files
 sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
@@ -102,129 +104,6 @@ Packages required for CLI: gcc, make. For GUI-Warp: python3-tk
 sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
 sudo vi /usr/local/etc/ts-warp_iptables.sh
 ```
-
-### Longer Installation
-
-#### Obtain source codes
-
-- [Download](https://github.com/mezantrop/ts-warp/archive/refs/heads/master.zip) TS-Warp sources and unarchive them
-- Or clone the repository running `git` in a terminal:
-
-  ```sh
-  git clone https://github.com/mezantrop/ts-warp
-  ```
-
-#### Build the appplication from sources
-
-Using terminal, in the directory with TS-Warp source code run as the normal user:
-
-  ```sh
-  make
-  ```
-
-If you aplanning to install into a diferent location, than the default `/usr/local`, you may considering to change the
-built-in default paths as well:
-
-  ```sh
-  make PREFIX=/path/to/install
-  ```
-
-If SSH2 proxy support is required, install https://libssh2.org library first and run:
-
-  ```sh
-  make ts-warp-ssh2 sudo make install clean
-  ```
-
-#### Install the application
-
-Typically, installation requires root privileges. Below we use `sudo` to achieve the goal, but on some operating
-systems you may need to invoke `su` instead:
-
-  ```sh
-  sudo make install clean
-  ```
-
-  This installs all the files under the `/usr/local` tree and after that cleans source codes from object and temporary
-  created files. If a different installation path is required, set `PREFIX`:
-
-  ```sh
-  sudo make install PREFIX=/path/to/install
-  ```
-
-#### Configure TS-Warp
-
-Based on `<PREFIX>/etc/ts-warp.ini.sample` file create `<PREFIX>/etc/ts-warp.ini` to suite your Socks configuration.
-For example:
-
-  ```sh
-  sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini
-  sudo nano /usr/local/etc/ts-warp.ini
-  ```
-
-Note, besides `nano` there could be other editors installed e.g. `pico`, `ee`, `vi`, etc.
-
-*Optional*. Edit `<PREFIX>/etc/ts-warp.sh` to customize PID-, LOG- and INI-files location. For example:
-
-```sh
-sudo nano /usr/local/etc/ts-warp.sh
-```
-
-#### Setup firewall
-
-- **On macOS** and **\*BSD** to configure the packet filter create `<PREFIX>/etc/ts-warp_pf.conf` based on
-  `<PREFIX>/etc/ts-warp_pf.conf.sample`. For example:
-
-  ```sh
-  sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
-  sudo nano /usr/local/etc/ts-warp_pf.conf
-  ```
-
-- **On Linux**. Create `<PREFIX>/etc/ts-warp_nftables.sh` or `<PREFIX>/etc/ts-warp_iptables.sh` using as templates
-  `<PREFIX>/etc/ts-warp_nftables.sh.sample` or respectively `<PREFIX>/etc/ts-warp_iptables.sh.sample`
-  to configure firewall. For example:
-
-  ```sh
-    sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
-    sudo nano /usr/local/etc/ts-warp_nftables.sh
-    ```
-
-  or
-
-    ```sh
-    sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-    sudo nano /usr/local/etc/ts-warp_iptables.sh
-    ```
-
-- The helper script `<PREFIX>/bin/bin/ts-warp_autofw.sh` makes and prints out sample firewall configuration based on
-  `ts-warp.ini` contents. It can be used to populate contents of `ts-warp_pf.conf`,  `ts-warp_iptables.sh` or
-  `ts-warp_nftables.sh`
-
-##### Advanced firewall configuration
-
-There are two predefined sets of example firewall configuration files: **general** and **special**.
-
-Simple **general** rulesets redirect all outgoing TCP traffic through TS-Warp, which in it's turn dispatches it to Socks
-servers or to the destination targets. More complex **special** firewall configuration contains rules to only redirect
-TCP traffic to TS-Warp that requires to be soxified. By default, to minimize system workload, `make` installs
-**special** firewall rulesets, but it is possible to switch between both options using:
-
-```sh
-make examples-special
-```
-
-or
-
-```sh
-make examples-general
-```
-
-Then install the selected configuration examples:
-
-```sh
-sudo make install-examples
-```
-
-Specify custom `PREFIX` if other the default `/usr/local/etc` directory is desired for the configuration files.
 
 ### Usage
 

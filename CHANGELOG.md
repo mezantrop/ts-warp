@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.04.03    Current**
+  * `README.md`: Rewritten for `configure`
   * `configure`: Configure script introduced
   * GUI-Warp application window title caption update
   * `ts-warp.c`: `WITH_TCP_NODELAY` proper processing
