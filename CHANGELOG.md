@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.04.03    Current**
+* **2024.04.04    Current**
+  * `configure`: Better `PREFIX` handling
   * `README.md`: Rewritten for `configure`
   * `configure`: Configure script introduced
   * GUI-Warp application window title caption update
