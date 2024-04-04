@@ -28,7 +28,7 @@
 # ---------------------------------------------------------------------------- #
 
 # -- Script variables -------------------------------------------------------- #
-version="1.0.0.1"
+version="1.0.1.1"
 _DEBUG="n"
 _INCLUDE_PATH=""                            # Cache detected INCLUDE dirs
 _LIB_PATH=""                                # Cache detected LIB directories
@@ -75,6 +75,21 @@ _DPRINTF() {
     #
 
     _IFDEBUG && printf "DEBUG: %s\n" "$*" >&2
+}
+
+# ---------------------------------------------------------------------------- #
+_SELF_CHK() {
+
+    #
+    # Quick mandatory selfcheck
+    #
+
+    EHARD; DECIDE DETECT_COMMAND    "EXPR"      'expr'
+    EHARD; DECIDE DETECT_COMMAND    "GREP"      'grep'
+    EHARD; DECIDE DETECT_COMMAND    "SED"       'sed'
+    EHARD; DECIDE DETECT_COMMAND    "MKTEMP"    'mktemp'
+    EHARD; DECIDE DETECT_COMMAND    "RM"        'rm'
+    EHARD; DECIDE DETECT_COMMAND    "UNAME"     'uname'
 }
 
 # ---------------------------------------------------------------------------- #
@@ -670,3 +685,6 @@ WRITE_VARS() {
         }
     done
 }
+
+# ---------------------------------------------------------------------------- #
+_SELF_CHK
