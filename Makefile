@@ -4,7 +4,7 @@ WITH_LIBSSH2?=1
 CPATH+=-I/usr/include -I/usr/local/include
 LDLIBS+=-lssh2
 LDFLAGS+=-L/lib -L/usr/lib -L/usr/lib32 -L/usr/local/lib
-USER?=zmey
+USER?=
 CC=cc
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=$(WITH_TCP_NODELAY) -DWITH_LIBSSH2=$(WITH_LIBSSH2) $(CPATH)
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
