@@ -76,7 +76,7 @@ See it [here](CHANGELOG.md)
 
 git clone https://github.com/mezantrop/ts-warp && cd ts-warp
 
-# `configure` script understands a number of environmental variables. You can force setting custom values to:
+# `configure` script understands a number of environmental variables. You can force setting values to:
 # `PREFIX`, `LIBSSH2` `WITH_TCP_NODELAY`, `WITH_LIBSSH2`, `USER`, otherwise they will be auto-detected.
 
 ./configure && make && sudo make install clean
@@ -96,10 +96,8 @@ sudo vi /usr/local/etc/ts-warp_nftables.sh
 sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
 sudo vi /usr/local/etc/ts-warp_iptables.sh
 
-# on Windows WSL2 (Ubuntu) with iptables
+# on Windows WSL2 (Ubuntu) with iptables; Required packages for CLI: clang/gcc, make. For GUI-Warp: python3-tk
 wsl --set-default-version 2
-
-Packages required for CLI: gcc, make. For GUI-Warp: python3-tk
 
 sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
 sudo vi /usr/local/etc/ts-warp_iptables.sh
