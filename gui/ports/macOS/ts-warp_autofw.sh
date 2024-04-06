@@ -149,8 +149,25 @@ make_hosts() {
 }
 
 # ---------------------------------------------------------------------------- #
+make_domains() {
+    # Collect domains information
+
+    domains_raw=`printf "%s\n" "$cfg" |
+        grep target_domain |
+        tr -d " \t" | awk -F '[=:]' '{print $2}'`
+
+    domains=""
+    for dom in $domains_raw; do
+        domains="$domains""$dom""$nl"
+    done
+
+    eval $1='$domains'
+    return 0
+}
+
+# ---------------------------------------------------------------------------- #
 make_proxy() {
-    # Collect Socks server information
+    # Collect proxy server information
 
     sservers_raw=`printf "%s\n" "$cfg" |
         grep -E 'socks_server|proxy_server' |
@@ -214,6 +231,11 @@ make_conf_pf() {
         _hsts="$_hsts""$h, "
     done
     rslt="$rslt""$_hsts"'\'"$nl"
+
+    for d in $domains; do
+        _doms="$_doms""$d, "
+    done
+    rslt="$rslt""$_doms"'\'"$nl"
 
     for s in $sservers; do
         _ssrv="$_ssrv"!"$s, "
@@ -303,6 +325,7 @@ cfg=`cat $tsw_ini |
 make_networks networks
 make_ranges ranges
 make_hosts hosts
+make_domains domains
 make_proxy sservers
 
 case `uname -s` in
@@ -319,12 +342,12 @@ pass out on !lo0 inet proto tcp from any to { <$TSW_TNAME> } route-to lo0 keep s
         ;;
 
     Linux)
-        [ `nft -v` ] &&
-            make_conf_nftables || {
-                [ `iptables -V` ] &&
-                    make_conf_iptables ||
-                    printf "FATAL: Unable to find nftables nor iptables"
-                    exit 1
+        iptables -V > /dev/null &&
+            make_conf_iptables || {
+                nft -v > /dev/null &&
+                    make_conf_nftables ||
+                        printf "FATAL: Unable to find iptables nor nftables"
+                        exit 1
             }
         ;;
 

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.04.04    Current**
+* **2024.04.06    Current**
+  * `ts-warp_autofw.sh`: Support for domains in response to the [issue](https://github.com/mezantrop/ts-warp/issues/8)
   * `configure`: Better `PREFIX` handling
   * `README.md`: Rewritten for `configure`
   * `configure`: Configure script introduced
