@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* **2024.04.06    Current**
+* **2024.04.09    ts-warp-1.5.1, gui-warp-1.0.24 (gui-warp-v1.0.29-mac), ns-warp-1.0.7**
   * `ts-warp_autofw.sh`: Support for domains in response to the [issue](https://github.com/mezantrop/ts-warp/issues/8)
   * `configure`: Better `PREFIX` handling
   * `README.md`: Rewritten for `configure`
