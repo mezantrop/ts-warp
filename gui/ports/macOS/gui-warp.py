@@ -39,9 +39,16 @@ import subprocess
 import configparser
 import shutil
 
+import webbrowser
+import urllib
+import urllib.request
 
 # -------------------------------------------------------------------------------------------------------------------- #
 class App:
+    """
+    The GUI-Warp main class
+    """
+
     def __init__(self, width=800, height=560,
                  runcmd='/usr/local/etc/ts-warp.sh',
                  inifile='/usr/local/etc/ts-warp.ini',
@@ -105,18 +112,18 @@ class App:
         ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
         # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
-        tabControl = ttk.Notebook(self.root)
-        tab_about = ttk.Frame(tabControl)
-        tab_ini = ttk.Frame(tabControl)
-        tab_log = ttk.Frame(tabControl)
-        tab_act = ttk.Frame(tabControl)
+        tab_ctrl = ttk.Notebook(self.root)
+        tab_about = ttk.Frame(tab_ctrl)
+        tab_ini = ttk.Frame(tab_ctrl)
+        tab_log = ttk.Frame(tab_ctrl)
+        tab_act = ttk.Frame(tab_ctrl)
 
-        tabControl.add(tab_about, text='About')
-        tabControl.add(tab_log, text='Log')
-        tabControl.add(tab_ini, text='INI')
-        tabControl.add(tab_act, text='ACT')
+        tab_ctrl.add(tab_about, text='About')
+        tab_ctrl.add(tab_log, text='Log')
+        tab_ctrl.add(tab_ini, text='INI')
+        tab_ctrl.add(tab_act, text='ACT')
 
-        tabControl.grid(column=0, row=1, sticky=tk.NSEW)
+        tab_ctrl.grid(column=0, row=1, sticky=tk.NSEW)
 
         # -- Tab LOG ------------------------------------------------------------------------------------------------- #
         tab_log.columnconfigure(0, weight=1)
@@ -194,8 +201,6 @@ class App:
         tree_act.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
 
         # -- Tab About ----------------------------------------------------------------------------------------------- #
-        import webbrowser
-
         tab_about.columnconfigure(0, weight=1)
         tab_about.rowconfigure(0, weight=0)
         tab_about.rowconfigure(1, weight=0)
@@ -250,9 +255,9 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def check_new_version(self, rvurl, t_widget):
-        import os
-        import urllib
-        import urllib.request
+        """
+        Check new version
+        """
 
         if rvurl.lower().startswith('https'):
             try:
@@ -277,6 +282,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
+        """
+        Read contents of a file into a widget
+        """
+
         if not self.pause_act:
             try:
                 with open(pidfile, 'r', encoding='utf-8') as pf:
@@ -300,6 +309,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def readfile_ini(self, t_widget, filename):
+        """
+        Read contents of the INI-file
+        """
+
         t_widget.config(state='normal')
         with open(filename, 'r', encoding='utf-8') as f:
             t_widget.delete(1.0, tk.END)
@@ -308,6 +321,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def readfile_log(self, t_widget, filename, refresh=False):
+        """
+        Read contents of the LOG-file
+        """
+
         t_widget.config(state='normal')
         with open(filename, 'r', encoding='utf-8') as f:
             sz = os.path.getsize(filename)
@@ -324,15 +341,23 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
+        """
+        Save INI-file
+        """
+
         with open(filename, 'w', encoding='utf8') as f:
             f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
 
         # Rebuild ts-warp_pf.conf when saving the INI-file
         with open(fwfile, 'w', encoding='utf8') as outfw:
-            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
+            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def pauselog(self, btn, txt, filename):
+        """
+        Pause LOG
+        """
+
         if self.pause_log:
             self.pause_log = False
             btn['text'] = '■'                                           # Pause log auto-refresh
@@ -343,6 +368,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def pauseact(self, btn, tree, filename):
+        """
+        Pause ACT
+        """
+
         if self.pause_act:
             self.pause_act = False
             btn['text'] = '■'                                           # Pause act auto-refresh
@@ -354,6 +383,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def status(self, lbl, btn, pidfile):
+        """
+        Statusbar message
+        """
+
         pf = None
 
         try:
@@ -377,6 +410,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def run_script(self, command):
+        """
+        Run a script as root
+        """
+
         if os.geteuid() != 0:
             gwp = subprocess.Popen(
                 ['sudo', '-S', '-b', runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
@@ -387,6 +424,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def ask_password(self):
+        """
+        Password dialog
+        """
+
         padx = 10
         pady = 10
 
@@ -428,6 +469,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def get_password(self):
+        """
+        Check password via sudo
+        """
+
         gwp = subprocess.Popen(['sudo', '-S', '-v'], stdin=subprocess.PIPE)
         gwp.communicate(self.pwd.get().encode())
 
@@ -444,9 +489,9 @@ It is a free and open-source software, but if you want to support it, please do'
 
 # -------------------------------------------------------------------------------------------------------------------- #
 def dedupch(s, c='/'):
-    '''
+    """
     Remove duplicated characters: c from the string: s
-    '''
+    """
 
     return c.join([x for x in s.split(c) if x != ''])
 
@@ -511,7 +556,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(fwfile):
         with open(fwfile, 'w', encoding='utf8') as outfw:
-            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw)
+            subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
     if not os.path.exists(logfile):
         open(logfile, 'a', encoding='utf8').close()
 
