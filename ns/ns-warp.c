@@ -191,7 +191,7 @@ int main (int argc, char* argv[]) {
         printl(LOG_CRIT, "Error resolving ns-warp address [%s]: %s", iaddr, gai_strerror(ret));
         exit(1);
     }
-    printl(LOG_INFO, "ns-warp address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ns-warp address [%s] successfully resolved to [%s]",
         iaddr, inet2str((struct sockaddr_storage *)ires->ai_addr, str_buf));
 
     /* -- Create a socket for incoming requests --------------------------------------------------------------------- */
@@ -206,7 +206,7 @@ int main (int argc, char* argv[]) {
         close(isock);
         exit(1);
     }
-    printl(LOG_VERB, "The socket for incoming requests succesfully bound");
+    printl(LOG_VERB, "The socket for incoming requests successfully bound");
 
     /* -- Create a socket for outgoing requests --------------------------------------------------------------------- */
     if ((ssock = socket(ires->ai_family, SOCK_DGRAM, 0)) == -1) {
@@ -221,7 +221,7 @@ int main (int argc, char* argv[]) {
 		printl(LOG_CRIT, "Error binding socket for outgoing DNS-requests: [%s]", strerror(errno));
         exit(1);
     }
-    printl(LOG_VERB, "Socket for outgoing DNS-requests succesfully bound");
+    printl(LOG_VERB, "Socket for outgoing DNS-requests successfully bound");
 
     /* -- Try validating DNS address to forward requests to --------------------------------------------------------- */
     memset(&shints, 0, sizeof shints);
@@ -232,7 +232,7 @@ int main (int argc, char* argv[]) {
         exit(1);
     }
 
-    printl(LOG_INFO, "DNS-server address [%s] succesfully resolved to [%s]", saddr,
+    printl(LOG_INFO, "DNS-server address [%s] successfully resolved to [%s]", saddr,
         inet2str((struct sockaddr_storage *)sres->ai_addr, str_buf));
 
     /* -- Process requests ------------------------------------------------------------------------------------------ */

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.04.23    Current**
+* **2024.05.16    Current**
+  * Typos fixed again
   * `gui-warp.py`: Minor cosmetic changes
   * `minmiconf`: `v1.1.0.2` - OpenBSD support; `ts-warp_auto.sh` modernization; `gui-warp.py`: Save INI button fix
   * `gui-warp.py`: `v1.0.30-mac`, `gui-warp.py.in`: `v1.0.25`, `minmiconf`: `v1.1.0.1`

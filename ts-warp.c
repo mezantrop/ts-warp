@@ -344,21 +344,21 @@ All parameters are optional:
         printl(LOG_CRIT, "Error resolving ts-warp Transparent address [%s]: %s", taddr, gai_strerror(ret));
         mexit(1, pfile_name, tfile_name);
     }
-    printl(LOG_INFO, "ts-warp Transparent address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ts-warp Transparent address [%s] successfully resolved to [%s]",
         taddr, inet2str((struct sockaddr_storage *)(tres->ai_addr), buf));
 
     if ((ret = getaddrinfo(saddr, sport, &thints, &sres)) > 0) {
         printl(LOG_CRIT, "Error resolving ts-warp Socks address [%s]: %s", saddr, gai_strerror(ret));
         mexit(1, pfile_name, tfile_name);
     }
-    printl(LOG_INFO, "ts-warp Socks address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ts-warp Socks address [%s] successfully resolved to [%s]",
         saddr, inet2str((struct sockaddr_storage *)(sres->ai_addr), buf));
 
     if ((ret = getaddrinfo(haddr, hport, &thints, &hres)) > 0) {
         printl(LOG_CRIT, "Error resolving ts-warp HTTP address [%s]: %s", haddr, gai_strerror(ret));
         mexit(1, pfile_name, tfile_name);
     }
-    printl(LOG_INFO, "ts-warp HTTP address [%s] succesfully resolved to [%s]",
+    printl(LOG_INFO, "ts-warp HTTP address [%s] successfully resolved to [%s]",
         haddr, inet2str((struct sockaddr_storage *)(hres->ai_addr), buf));
 
     ini_root = read_ini(ifile_name);
@@ -495,7 +495,7 @@ All parameters are optional:
             close(Tsock);
             mexit(1, pfile_name, tfile_name);
         }
-        printl(LOG_VERB, "The socket for Transparent connections succesfully bound");
+        printl(LOG_VERB, "The socket for Transparent connections successfully bound");
 
         if (listen(Tsock, SOMAXCONN) == -1) {
             printl(LOG_CRIT, "Error listening the socket for Transparent connections");
@@ -511,7 +511,7 @@ All parameters are optional:
             close(Ssock);
             mexit(1, pfile_name, tfile_name);
         }
-        printl(LOG_VERB, "The socket for Socks incoming connections succesfully bound");
+        printl(LOG_VERB, "The socket for Socks incoming connections successfully bound");
 
         if (listen(Ssock, SOMAXCONN) == -1) {
             printl(LOG_CRIT, "Error listening the socket for Socks incoming connections");
@@ -527,7 +527,7 @@ All parameters are optional:
             close(Hsock);
             mexit(1, pfile_name, tfile_name);
         }
-        printl(LOG_VERB, "The socket for HTTP incoming connections succesfully bound");
+        printl(LOG_VERB, "The socket for HTTP incoming connections successfully bound");
 
         if (listen(Hsock, SOMAXCONN) == -1) {
             printl(LOG_CRIT, "Error listening the socket for HTTP incoming connections");
@@ -686,7 +686,7 @@ All parameters are optional:
                     exit(1);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with desination address: [%s]", inet2str(&daddr.ip_addr, buf));
+                printl(LOG_INFO, "Successfully connected with desination address: [%s]", inet2str(&daddr.ip_addr, buf));
 
                 goto cfloop;
 
@@ -1045,7 +1045,7 @@ All parameters are optional:
                     exit(2);
                 }
 
-                printl(LOG_INFO, "Succesfully connected with the proxy server: [%s] type [%c]",
+                printl(LOG_INFO, "Successfully connected with the proxy server: [%s] type [%c]",
                     inet2str(&s_ini->proxy_server, buf), s_ini->proxy_type);
 
                 single_server:
