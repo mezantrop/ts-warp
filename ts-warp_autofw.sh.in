@@ -158,7 +158,9 @@ make_domains() {
 
     domains=""
     for dom in $domains_raw; do
-        domains="$domains""$dom""$nl"
+        domains="$domains"$(host "$dom" |
+            grep 'has address' |
+            cut -f 4 -d ' ')"$nl"
     done
 
     eval $1='$domains'

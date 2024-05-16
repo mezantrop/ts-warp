@@ -1,6 +1,7 @@
 # CHANGELOG
 
 * **2024.05.16    Current**
+  * `ts-warp_autofw.sh` Ignore domain names if they are not resolveable to IP-addresses
   * Typos fixed again
   * `gui-warp.py`: Minor cosmetic changes
   * `minmiconf`: `v1.1.0.2` - OpenBSD support; `ts-warp_auto.sh` modernization; `gui-warp.py`: Save INI button fix
