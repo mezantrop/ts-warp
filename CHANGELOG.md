@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.05.16    Current**
+* **2024.06.19    Current**
+  * `Makefile`: `WITH_LIBSSH2?=0` to disable `LIBSSH2` by default
   * `ts-warp_autofw.sh` Ignore domain names if they are not resolveable to IP-addresses
   * Typos fixed again
   * `gui-warp.py`: Minor cosmetic changes
