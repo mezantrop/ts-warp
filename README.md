@@ -74,7 +74,7 @@ See it [here](CHANGELOG.md)
 ```sh
 # If SSH2 proxy support is required, install https://libssh2.org library first, then download ts-warp:
 
-git clone https://github.com/mezantrop/ts-warp && cd ts-warp
+git clone https://github.com/mezantrop/ts-warp ts-warp.src && cd ts-warp.src
 
 # `configure` script understands a number of environmental variables. You can force setting values to:
 # `PREFIX`, `WITH_TCP_NODELAY`, `WITH_LIBSSH2`, `USER`, otherwise they will be auto-detected.
