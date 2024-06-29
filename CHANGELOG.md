@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.06.19    Current**
+* **2024.06.29    Current**
+  * `GUI-Warp.app`: `build.sh` uses current `openssl` and `libssh2` versions
   * `Makefile`: `WITH_LIBSSH2?=0` to disable `LIBSSH2` by default
   * `ts-warp_autofw.sh` Ignore domain names if they are not resolveable to IP-addresses
   * Typos fixed again
