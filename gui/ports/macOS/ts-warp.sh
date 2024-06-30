@@ -33,9 +33,15 @@
 # Requires root priveleges to run
 # ---------------------------------------------------------------------------- #
 
+# Typically, the script is started by GUI-Warp application, but it can be run
+# directly from CLI to control ts-warp daemon:
+#
+# sudo /Applications/gui-warp.app/Contents/Resources/ts-warp.sh start /Users/$USER/ts-warp
+#
 
 # -- CONFIGURATION VARIABLES ------------------------------------------------- #
 tswarp_prefix=$2				# Crack for gui-warp.app
+SCRIPTPATH=$(dirname $(readlink -f "$0"))
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
@@ -81,7 +87,7 @@ _start() {
         }
     ' /etc/pf.conf | /sbin/pfctl -f -
 
-    echo $tswarp_options $* | xargs ./ts-warp > /dev/null
+    echo $tswarp_options $* | xargs $SCRIPTPATH/ts-warp > /dev/null
 }
 
 # ---------------------------------------------------------------------------- #
@@ -95,11 +101,11 @@ _status() {
     pgrep -F "$tswarp_pidfile" > /dev/null 2>&1
     case $? in
         0)
-           [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
+           [ "$1" ] && printf "ts-warp is running PID: %s: " $(cat "$tswarp_pidfile")
            return 0
            ;;
         1)
-           [ "$1" ] && printf "ts-warp is NOT running PID: %s: " `cat "$tswarp_pidfile"`
+           [ "$1" ] && printf "ts-warp is NOT running PID: %s: " $(cat "$tswarp_pidfile")
            return 2
            ;;
         *)
@@ -146,7 +152,7 @@ _restart() {
 
 # ---------------------------------------------------------------------------- #
 _check_root() {
-    [ `id -u` -ne 0 ] && {
+    [ $(id -u) -ne 0 ] && {
         printf "Fatal: You must be root to proceed\n"
         exit 1
     }

@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.06.29    Current**
+* **2024.06.30    Current**
+  * `GUI-Warp.app`: `ts-warp.sh` can be run from `CLI` to control `ts-warp` daemon e.g.:
+      `sudo /Applications/gui-warp.app/Contents/Resources/ts-warp.sh start /Users/$USER/ts-warp`
   * `GUI-Warp.app`: `build.sh` uses current `openssl` and `libssh2` versions
   * `Makefile`: `WITH_LIBSSH2?=0` to disable `LIBSSH2` by default
   * `ts-warp_autofw.sh` Ignore domain names if they are not resolveable to IP-addresses
