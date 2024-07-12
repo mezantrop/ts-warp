@@ -130,6 +130,12 @@ install: ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
 	install -m 755 man/ts-warp.sh.1 $(PREFIX)/man/man1
 	install -m 755 man/ts-warp.5 $(PREFIX)/man/man5
 	install -m 755 man/ts-warp.8 $(PREFIX)/man/man8
+	install -d $(PREFIX)/share/
+	install -d $(PREFIX)/share/ts-warp/
+	install -m 644 CHANGELOG.md $(PREFIX)/share/ts-warp
+	install -m 644 CONTRIBUTORS.md $(PREFIX)/share/ts-warp
+	install -m 644 LICENSE $(PREFIX)/share/ts-warp
+	install -m 644 README.md $(PREFIX)/share/ts-warp
 
 deinstall: uninstall
 uninstall:
@@ -149,6 +155,11 @@ uninstall:
 	rm -f $(PREFIX)/man/man1/ts-warp.sh.1
 	rm -f $(PREFIX)/man/man5/ts-warp.5
 	rm -f $(PREFIX)/man/man8/ts-warp.8
+	rm -f $(PREFIX)/share/ts-warp/CHANGELOG.md
+	rm -f $(PREFIX)/share/ts-warp/CONTRIBUTORS.md
+	rm -f $(PREFIX)/share/ts-warp/LICENSE
+	rm -f $(PREFIX)/share/ts-warp/README.md
+	rmdir $(PREFIX)/share/ts-warp/
 
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured

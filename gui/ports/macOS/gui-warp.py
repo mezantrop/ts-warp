@@ -207,6 +207,7 @@ class App:
         tab_about.rowconfigure(2, weight=0)
         tab_about.rowconfigure(3, weight=0)
         tab_about.rowconfigure(4, weight=1)
+        tab_about.rowconfigure(5, weight=0)
 
         style_url = ttk.Style()
         style_url.configure("URL.TLabel", foreground="orange")
@@ -236,10 +237,21 @@ It is a free and open-source software, but if you want to support it, please do'
 
         ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=3, sticky=tk.EW, columnspan=2, pady=self._pady)
 
+        release_txt = tk.Text(tab_about, highlightthickness=0, state='disabled')
+        release_txt.grid(column=0, row=4, columnspan=2, sticky=tk.NSEW, pady=self._pady)
+        tab_about.bind("<Visibility>", self.readfile_ini(release_txt, 'CHANGELOG.md'))
+        release_txt.config(state='disabled')
+        release_txt.see('1.0')
+
+        scroll_release = ttk.Scrollbar(tab_about, orient=tk.VERTICAL)
+        scroll_release.grid(column=2, row=4, sticky=tk.NSEW, pady=self._pady)
+        scroll_release.config(command=release_txt.yview)
+        release_txt.config(yscrollcommand=scroll_release.set)
+
         lbl_contact_txt = ttk.Label(tab_about, text='Mikhail Zakharov, 2021-2024, BSD-2-Clause license')
-        lbl_contact_txt.grid(column=0, row=4, sticky=tk.SW, padx=self._padx, pady=self._pady)
+        lbl_contact_txt.grid(column=0, row=5, sticky=tk.SW, padx=self._padx, pady=self._pady)
         lbl_contact_url = ttk.Label(tab_about, text='zmey20000@yahoo.com', style='URL.TLabel')
-        lbl_contact_url.grid(column=1, row=4, sticky=tk.SE, padx=self._padx, pady=self._pady)
+        lbl_contact_url.grid(column=1, row=5, sticky=tk.SE, padx=self._padx, pady=self._pady)
         lbl_contact_url.bind("<Button-1>", lambda e: webbrowser.open_new(url_contact))
 
         # -- Status bar ---------------------------------------------------------------------------------------------- #
