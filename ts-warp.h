@@ -37,9 +37,9 @@
 #define ACT_FILE_NAME   PREFIX"/var/spool/ts-warp/ts-warp.act"
 #define PID_FILE_NAME   PREFIX"/var/run/ts-warp.pid"
 
-#if !defined(__APPLE__)
-   #define RUNAS_USER      "nobody"
-#endif
+/* #if !defined(__APPLE__) */
+#define RUNAS_USER      "nobody"
+/* #endif */
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 void trap_signal(int sig);

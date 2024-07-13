@@ -142,10 +142,7 @@ All parameters are optional:
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
 
-    #if !defined(__APPLE__)
-        /* This doesn't work in MacOS, it won't allow reading /dev/pf under non-root */
-        char *runas_user = RUNAS_USER;                                  /* A user to run ts-warp */
-    #endif
+    char *runas_user = RUNAS_USER;                                      /* A user to run ts-warp */
 
     struct addrinfo thints, *tres = NULL, *sres = NULL, *hres = NULL;   /* TS-Warp incoming addresses info structures */
     ini_section *s_ini = NULL;                                          /* Current section of the INI-file */
@@ -230,11 +227,7 @@ All parameters are optional:
             break;
 
             case 'u':
-                #if defined(__APPLE__)
-                    fprintf(stderr, "Warning: -u option under macOS is not available\n");
-                #else
-                    runas_user = optarg;
-                #endif
+                runas_user = optarg;
             break;
 
             case 'h':                                                   /* Help */
@@ -279,11 +272,9 @@ All parameters are optional:
         pfd = pf_open();                                                /* Open PF device-file on *BSD */
     #endif
 
-    #if !defined(__APPLE__)
-        struct passwd *pwd = getpwnam(runas_user);
-    #endif
+    struct passwd *pwd = getpwnam(runas_user);
 
-    #if (WITH_LIBSSH2)                                                   /* Init LIBSSH2 */
+    #if (WITH_LIBSSH2)                                                  /* Init LIBSSH2 */
         if ((ret = libssh2_init(0))) {
             fprintf (stderr, "libssh2 initialization failed (%d)\n", ret);
             return 1;
@@ -319,15 +310,12 @@ All parameters are optional:
         if (pid > 0) exit(0);
 
         printl(LOG_CRIT, "%s-%s daemon started", PROG_NAME, PROG_VERSION);
-        #if defined(__APPLE__)
-            pid = mk_pidfile(pfile_name, f_flg, 0, 0);
-        #else
-            pid = mk_pidfile(pfile_name, f_flg, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
-        #endif
+        pid = mk_pidfile(pfile_name, f_flg, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
     }
     mpid = pid;
 
     #if !defined(__APPLE__)
+        /* MacOS won't allow reading /dev/pf under non-root user. So, let's try user switching later */
         if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
             printl(LOG_CRIT, "Failed to set privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
             exit(1);
@@ -551,7 +539,6 @@ All parameters are optional:
 
         tv.tv_sec = 0;
         tv.tv_usec = 10000;
-/*        ret = select(Hsock + 1, &sfd, NULL, NULL, &tv); */
         ret = select(MAX(MAX(Hsock, Ssock), Tsock) + 1, &sfd, NULL, NULL, &tv);
 
         if (ret < 0) continue;                                          /* On an error skip to the next iteration */
@@ -647,6 +634,14 @@ All parameters are optional:
 
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
+
+            #if defined(__APPLE__)
+                /* Switch to a non-privileged user on macOS */
+                if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
+                    printl(LOG_CRIT, "Failed to set privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
+                    exit(1);
+                }
+            #endif
 
             ssock.t = CHS_SOCKET;                                       /* Type socket */
             #if (WITH_LIBSSH2)
@@ -1423,7 +1418,6 @@ void trap_signal(int sig) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 void usage(int ecode) {
-#if !defined(__APPLE__)
     printf("Usage:\n\
   ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h\n\n\
 Version:\n\
@@ -1446,27 +1440,5 @@ All parameters are optional:\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
-#else
-    printf("Usage:\n\
-  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -h\n\n\
-Version:\n\
-  %s-%s\n\n\
-All parameters are optional:\n\
-  -T IP:Port\t    Local IP address and port for incoming Transparent requests\n\
-  -S IP:Port\t    Local IP address and port for internal Socks server\n\
-  -H IP:Port\t    Local IP address and port for internal HTTP server\n\
-  -c file.ini\t    Configuration file, default: %s\n\
-  \n\
-  -l file.log\t    Main log filename, default: %s\n\
-  -v 0..4\t    Log verbosity level: 0 - off, default %d\n\
-  -t file.act\t    Active connections and traffic log\n\
-  \n\
-  -d\t\t    Daemon mode\n\
-  -p file.pid\t    PID filename, default: %s\n\
-  -f\t\t    Force start\n\
-  \n\
-  -h\t\t    This message\n\n",
-    PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME);
-#endif
     exit(ecode);
 }
