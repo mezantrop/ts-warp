@@ -159,7 +159,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
             }
         }
 
-        if ((auth_pw & 2) && user) {
+        if ((auth_pw & 2) && user && password) {
             /* Or via password */
             if (libssh2_userauth_password(session, user, password))
                 printl(LOG_WARN, "Authentication by password failed!");
@@ -169,7 +169,7 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
             }
         }
 
-        if ((auth_pw & 4) && user) {
+        if ((auth_pw & 4) && user && password) {
             /* Or via keyboard-interactive */
             gpassword = password;
             if (libssh2_userauth_keyboard_interactive(session, user, &kbd_callback))
