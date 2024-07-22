@@ -151,8 +151,8 @@ LIBSSH2_CHANNEL *ssh2_client_request(int socket, LIBSSH2_SESSION *session, struc
         /* Failback to manual authentication */
         if ((auth_pw & 1) && priv_key) {
             /*  We could authenticate by public key */
-            if (libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, priv_key_passphrase))
-                printl(LOG_WARN, "Authentication by public key failed!");
+            if ((rc = libssh2_userauth_publickey_fromfile(session, user, NULL, priv_key, priv_key_passphrase)))
+                printl(LOG_WARN, "Authentication by public key failed! LIB_SSH2 error code: [%d]", rc);
             else {
                 printl(LOG_VERB, "Authentication by public key succeeded.");
                 goto getchannel;
