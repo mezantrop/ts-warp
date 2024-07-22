@@ -1127,8 +1127,8 @@ All parameters are optional:
                         }
                     break;
 
-                    #if (WITH_LIBSSH2)
-                        case PROXY_PROTO_SSH2:
+                    case PROXY_PROTO_SSH2:
+                        #if (WITH_LIBSSH2)
                             if (ssh2sess || ssh2ch) {
                                 printl(LOG_WARN, "Only ONE SSH2 proxy could be used per CHAIN/Connection");
                                 close(csock);
@@ -1151,8 +1151,12 @@ All parameters are optional:
                                 close(csock);
                                 exit(2);
                             }
-                        break;
-                    #endif
+                        #else
+                            printl(LOG_WARN, "SSH2 protocol was not compiled. Rebuild TS-Warp with LIBSSH2 support");
+                            close(csock);
+                            exit(2);
+                        #endif
+                    break;
 
                     default:
                         /* Unreachable. Should be cleared already by read_ini() */

@@ -1,7 +1,8 @@
 # CHANGELOG
 
-* **2024.07.13    Current**
+* **2024.07.22    ts-warp-1.5.3, gui-warp-1.0.25 (gui-warp-v1.0.30-mac), ns-warp-1.0.7**
   * `ts-warp.c`: Enable on `macOS` delayed `setuid()`/`setgid()` to run as non-privileged user
+  * `ts-warp.c`: SSH2 proxy connection fixed, thanks Stefan Hildebrandt for the bug-hunting
 
 * **2024.07.12    ts-warp-1.5.2, gui-warp-1.0.25 (gui-warp-v1.0.30-mac), ns-warp-1.0.7**
   * `GUI-Warp`: `About`-tab displays `CHANGELOG.md`-file
