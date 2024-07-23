@@ -228,6 +228,9 @@ All parameters are optional:
 
             case 'u':
                 runas_user = optarg;
+                #if defined(__APPLE__)
+                    fprintf(stderr, "Note, -u option has no effect on macOS\n");
+                #endif
             break;
 
             case 'h':                                                   /* Help */
@@ -260,19 +263,21 @@ All parameters are optional:
     printl(LOG_INFO, "ts-warp Internal Socks address: [%s:%s]", saddr, sport);
     printl(LOG_INFO, "ts-warp Internal HTTP address: [%s:%s]", haddr, hport);
 
+    struct passwd *pwd = getpwnam(runas_user);
+
     if (mkfifo(tfile_name, S_IFIFO|S_IRWXU|S_IRGRP|S_IROTH) == -1 && errno != EEXIST)
         printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
-    else
+    else {
+        chown(tfile_name, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
         if ((tfd = open(tfile_name, O_RDWR) ) == -1)
             printl(LOG_WARN, "Unable to open active connections and traffic log pipe: [%s]", tfile_name);
         else
             printl(LOG_INFO, "Active connections and traffic log pipe available: [%s]", tfile_name);
+    }
 
     #if !defined(linux)
         pfd = pf_open();                                                /* Open PF device-file on *BSD */
     #endif
-
-    struct passwd *pwd = getpwnam(runas_user);
 
     #if (WITH_LIBSSH2)                                                  /* Init LIBSSH2 */
         if ((ret = libssh2_init(0))) {
@@ -315,7 +320,7 @@ All parameters are optional:
     mpid = pid;
 
     #if !defined(__APPLE__)
-        /* MacOS won't allow reading /dev/pf under non-root user. So, let's try user switching later */
+        /* unfortunately, macOS won't allow reading /dev/pf under non-root user */
         if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
             printl(LOG_CRIT, "Failed to set privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
             exit(1);
@@ -634,14 +639,6 @@ All parameters are optional:
 
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
-
-            #if defined(__APPLE__)
-                /* Switch to a non-privileged user on macOS */
-                if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
-                    printl(LOG_CRIT, "Failed to set privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
-                    exit(1);
-                }
-            #endif
 
             ssock.t = CHS_SOCKET;                                       /* Type socket */
             #if (WITH_LIBSSH2)
@@ -1174,7 +1171,7 @@ All parameters are optional:
             tmessage.mtype = 1;
             memset(&tmessage.mtext, 0, sizeof(struct traffic_data));
             tmessage.mtext.pid = pid;
-            tmessage.mtext.timestamp = 0;
+            tmessage.mtext.timestamp = time(NULL);
             tmessage.mtext.caddr = caddr;
             tmessage.mtext.cbytes = 0;
             tmessage.mtext.daddr = daddr.ip_addr;
@@ -1440,7 +1437,7 @@ All parameters are optional:\n\
   -p file.pid\t    PID filename, default: %s\n\
   -f\t\t    Force start\n\
   \n\
-  -u user\t    A user to run ts-warp, default: %s\n\
+  -u user\t    A user to run ts-warp, default: %s. Note, this option has no effect on macOS\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
