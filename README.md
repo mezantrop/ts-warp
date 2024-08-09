@@ -36,7 +36,7 @@
   | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:     |
   | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:     |
 
-  \* HTTP Connect method is implemented
+  \* HTTP Connect method is implemented <br>
   \** Only one SSH2 proxy server allowed per chain
 
   | Internal proxy                         | Socks5               | HTTP*                |
