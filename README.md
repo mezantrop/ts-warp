@@ -10,9 +10,9 @@
 
 ### Features
 
-- Proxy services with TCP-traffic redirection to external Socks4/5, HTTPS and SSH2* proxy servers
+- Proxy services with TCP-traffic redirection to external Socks4/5, HTTP (CONNECT) and SSH2* proxy servers
   - Transparent firewall-based traffic redirector
-  - Internal Socks and HTTPS proxy server
+  - Internal Socks and HTTP proxy server
 
   \* Requires [libssh2](https://libssh2.org) library
 
@@ -27,18 +27,19 @@
   | Windows WSL2 | :white_large_square: | :white_check_mark:   |
 
 - Main features
-  | Transparent proxy                      | Socks5             | Socks4               | HTTPS              | SSH2                  |
-  |----------------------------------------|--------------------|----------------------|--------------------|-----------------------|
-  | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:    |
-  | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square:* |
-  | Proxy workload balancer                | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:    |
-  | Authentication                         | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
-  | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
-  | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:    |
+  | Transparent proxy                      | Socks5             | Socks4               | HTTP*              | SSH2                   |
+  |----------------------------------------|--------------------|----------------------|--------------------|------------------------|
+  | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:     |
+  | Proxy chains                           | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_large_square:** |
+  | Proxy workload balancer                | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:     |
+  | Authentication                         | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:     |
+  | IPv6 stack support                     | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:     |
+  | Remote names resolution: [NS-Warp](ns) | :white_check_mark: | :white_large_square: | :white_check_mark: | :white_check_mark:     |
 
-  \* Only one SSH2 proxy server allowed per chain
+  \* HTTP Connect method is implemented
+  \** Only one SSH2 proxy server allowed per chain
 
-  | Internal proxy                         | Socks5               | HTTPS                |
+  | Internal proxy                         | Socks5               | HTTP*                |
   |----------------------------------------|----------------------|----------------------|
   | Proxy protocol                         | :white_check_mark:   | :white_check_mark:   |
   | Proxy chains                           | :white_check_mark:   | :white_check_mark:   |
@@ -46,6 +47,8 @@
   | Authentication                         | :white_large_square: | :white_large_square: |
   | IPv6 stack support                     | :white_check_mark:   | :white_check_mark:   |
   | Remote names resolution                | :white_check_mark:   | :white_check_mark:   |
+
+  \* HTTP Connect method is implemented
 
 - Miscellaneous features
   - [x] Simple configuration structure as INI-like file
