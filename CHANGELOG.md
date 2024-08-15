@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* **2024.08.15    ts-warp-1.5.5, gui-warp-1.0.25 (gui-warp-v1.0.30-mac), ns-warp-1.0.7****
+  * `ts-warp.c`, `http.c`: Deep Packet Inspections bypass. Option `-D` to disable it.
+  * `ts-warp.c`: Internal proxy servers allowed making direct connection to destinations
+
 * **2024.07.23    ts-warp-1.5.4, gui-warp-1.0.25 (gui-warp-v1.0.30-mac), ns-warp-1.0.7**
   * `ts-warp.c`: `ACT`-file created as `RUNAS_USER` user owner
   * `ts-warp.c`: On `macOS` delayed `setuid()`/`setgid()` disabled as almost useless

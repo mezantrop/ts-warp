@@ -108,7 +108,7 @@ int tfd = -1;                                       /* Traffic log file descript
 int main(int argc, char* argv[]) {
 /* Usage:
 Usage:
-  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -D -h
 
 Version:
   TS-Warp-X.Y.Z
@@ -127,6 +127,7 @@ All parameters are optional:
   -f              Force start
 
   -u user         A user to run ts-warp, default: nobody
+  -D              Do not try spoofing Deep Packet Inspections
 
   -h              This message */
 
@@ -141,6 +142,9 @@ All parameters are optional:
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
+    int sdpi = 1;                                                       /* Try bypassing DPI */
+    /* According to https://github.com/xvzc/SpoofDPI?tab=readme-ov-file#https sending the first 1 byte of a request
+    to the server, and then sending the rest of the data can help to bypass Deep Packet Inspections of HTTPS */
 
     char *runas_user = RUNAS_USER;                                      /* A user to run ts-warp */
 
@@ -177,7 +181,7 @@ All parameters are optional:
     #endif
 
 
-    while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:h")) != -1)
+    while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:Dh")) != -1)
         switch(flg) {
             case 'T':                                                   /* Internal Transparent server IP/name */
                 taddr = strsep(&optarg, ":");                           /* IP:PORT */
@@ -233,6 +237,10 @@ All parameters are optional:
                 #endif
             break;
 
+            case 'D':
+                sdpi = 0;
+            break;
+
             case 'h':                                                   /* Help */
             default:
                 (void)usage(0);
@@ -268,7 +276,9 @@ All parameters are optional:
     if (mkfifo(tfile_name, S_IFIFO|S_IRWXU|S_IRGRP|S_IROTH) == -1 && errno != EEXIST)
         printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
     else {
-        chown(tfile_name, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0);
+        if (chown(tfile_name, pwd ? pwd->pw_uid : 0, pwd ? pwd->pw_gid : 0) == -1)
+            printl(LOG_WARN, "Unable change owner of the ACT log pipe[%s]", tfile_name);
+
         if ((tfd = open(tfile_name, O_RDWR) ) == -1)
             printl(LOG_WARN, "Unable to open active connections and traffic log pipe: [%s]", tfile_name);
         else
@@ -577,21 +587,23 @@ All parameters are optional:
         memset(&daddr.ip_addr, 0, daddr_len);
         memset(&daddr.name, 0, sizeof(daddr.name) - 1);
 
-        #if defined(linux)
-            /* On Linux && nftabeles/iptables */
-            memset(&daddr.ip_addr, 0, daddr_len);
-            daddr.ip_addr.ss_family = caddr.ss_family;
-            ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr_len);
-        #else
-            /* On *BSD with PF */
-            ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)tres->ai_addr, &daddr.ip_addr);
-        #endif
-        if (ret) {
-            printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
-            getpeername(csock, (struct sockaddr *)&daddr.ip_addr, &daddr_len);
-        }
+        if (isock == Tsock) {
+            #if defined(linux)
+                /* On Linux && nftabeles/iptables */
+                memset(&daddr.ip_addr, 0, daddr_len);
+                daddr.ip_addr.ss_family = caddr.ss_family;
+                ret = getsockopt(csock, SOL_IP, SO_ORIGINAL_DST, &daddr.ip_addr, &daddr_len);
+            #else
+                /* On *BSD with PF */
+                ret = nat_lookup(pfd, &caddr, (struct sockaddr_storage *)tres->ai_addr, &daddr.ip_addr);
+            #endif
+            if (ret) {
+                printl(LOG_WARN, "Failed to find the real destination IP, trying to get it from the socket");
+                getpeername(csock, (struct sockaddr *)&daddr.ip_addr, &daddr_len);
+            }
 
-        printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr.ip_addr, buf));
+            printl(LOG_INFO, "The client destination address is: [%s]", inet2str(&daddr.ip_addr, buf));
+        }
 
         /* -- Process the PIDs list: remove exitted clients and execute workload balance functions ------------------ */
         c = pids;
@@ -648,19 +660,28 @@ All parameters are optional:
             pid = getpid();
             printl(LOG_VERB, "A new client process started");
 
-            if (!s_ini) {
+            if (!s_ini && isock == Tsock) {
                 /* -- No proxy server found for the destination IP -------------------------------------------------- */
                 printl(LOG_INFO, "No proxy server is defined for the destination: [%s]", inet2str(&daddr.ip_addr, buf));
 
-                if ((daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*tres->ai_addr)) ||
+                if ((daddr.ip_addr.ss_family == AF_INET &&
+                        S4_ADDR(daddr.ip_addr) == S4_ADDR(*tres->ai_addr) &&
+                        SIN4_PORT(daddr.ip_addr) == SIN4_PORT(*tres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
-                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*tres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
-                    (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*sres->ai_addr)) ||
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*tres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))) &&
+                        SIN6_PORT(daddr.ip_addr) == SIN6_PORT(*tres->ai_addr)) ||
+                    (daddr.ip_addr.ss_family == AF_INET &&
+                        S4_ADDR(daddr.ip_addr) == S4_ADDR(*sres->ai_addr) &&
+                        SIN4_PORT(daddr.ip_addr) == SIN4_PORT(*sres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
-                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr)))) ||
-                    (daddr.ip_addr.ss_family == AF_INET && S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr)) ||
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*sres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))) &&
+                        SIN6_PORT(daddr.ip_addr) == SIN6_PORT(*sres->ai_addr)) ||
+                    (daddr.ip_addr.ss_family == AF_INET &&
+                        S4_ADDR(daddr.ip_addr) == S4_ADDR(*hres->ai_addr) &&
+                        SIN4_PORT(daddr.ip_addr) == SIN4_PORT(*hres->ai_addr)) ||
                     (daddr.ip_addr.ss_family == AF_INET6 &&
-                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))))) {
+                        !memcmp(S6_ADDR(daddr.ip_addr), S6_ADDR(*hres->ai_addr), sizeof(S6_ADDR(daddr.ip_addr))) &&
+                        SIN6_PORT(daddr.ip_addr) == SIN6_PORT(*hres->ai_addr))) {
                     /* Desination address:port is the same as ts-warp incominig (Taransparent, Socks or HTTP) ip:port,
                     i.e., a client contacted ts-warp dirctly: no NAT/redirection and TS-Warp is not defined as
                     proxy server */
@@ -935,7 +956,8 @@ All parameters are optional:
                                     inet2str(&sc->next->chain_member->proxy_server, buf));
 
                                 if (http_client_request(ssock, &sc->next->chain_member->proxy_server,
-                                        sc->next->chain_member->proxy_user, sc->next->chain_member->proxy_password)) {
+                                        sc->next->chain_member->proxy_user,
+                                        sc->next->chain_member->proxy_password, sdpi)) {
 
                                     printl(LOG_WARN, "CHAIN HTTP server returned an error");
                                     close(csock);
@@ -948,7 +970,7 @@ All parameters are optional:
                                     inet2str(&s_ini->proxy_server, buf));
 
                                 if (http_client_request(ssock,
-                                        &s_ini->proxy_server, s_ini->proxy_user, s_ini->proxy_password)) {
+                                        &s_ini->proxy_server, s_ini->proxy_user, s_ini->proxy_password, sdpi)) {
 
                                     printl(LOG_WARN, "CHAIN HTTP server returned an error");
                                     close(csock);
@@ -1117,7 +1139,7 @@ All parameters are optional:
                         printl(LOG_VERB, "Initiate HTTP protocol: request: [%s] -> [%s]",
                             inet2str(&s_ini->proxy_server, suf), inet2str(&daddr.ip_addr, buf));
 
-                        if (http_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password)) {
+                        if (http_client_request(ssock, &daddr.ip_addr, s_ini->proxy_user, s_ini->proxy_password, sdpi)) {
                             printl(LOG_WARN, "HTTP proxy server returned an error");
                             close(csock);
                             exit(2);
@@ -1276,11 +1298,27 @@ All parameters are optional:
                                 printl(LOG_CRIT, "Error receving data from the client");
                                 break;
                             }
-                            while ((snd = send(ssock.s, buf, rec, 0)) == 0) {
-                                printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
-                                usleep(100);                                /* 0.1 ms */
-                                break;
-                            }
+
+                            if (sdpi && rec > 1) {
+                                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections");
+
+                                if ((snd = send(ssock.s, buf, 1, 0)) == -1) {
+                                    printl(LOG_CRIT, "Error sending data to proxy server");
+                                    break;
+                                }
+                                int _snd = send(ssock.s, buf + 1, rec - 1, 0);
+                                if (_snd == -1) {
+                                    printl(LOG_CRIT, "Error sending data to proxy server");
+                                    break;
+                                }
+                                snd += _snd;
+                                sdpi = 0;                                           /* No need to split more packets */
+                            } else
+                                while ((snd = send(ssock.s, buf, rec, 0)) == 0) {
+                                    printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
+                                    usleep(100);                                /* 0.1 ms */
+                                    break;
+                                }
                             if (snd == -1) {
                                 printl(LOG_CRIT, "Error sending data to proxy server");
                                 break;
@@ -1420,7 +1458,7 @@ void trap_signal(int sig) {
 /* ------------------------------------------------------------------------------------------------------------------ */
 void usage(int ecode) {
     printf("Usage:\n\
-  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -h\n\n\
+  ts-warp -T IP:Port -S IP:Port -H IP:Port -c file.ini -l file.log -v 0-4 -t file.act -d -p file.pid -f -u user -D -h\n\n\
 Version:\n\
   %s-%s\n\n\
 All parameters are optional:\n\
@@ -1438,6 +1476,7 @@ All parameters are optional:\n\
   -f\t\t    Force start\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s. Note, this option has no effect on macOS\n\
+  -D\t\t    Do not try bypass Deep Packet Inspections\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);

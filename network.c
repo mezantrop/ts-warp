@@ -115,7 +115,7 @@ char *inet2str(struct sockaddr_storage *ai_addr, char *str_addr) {
         break;
 
         case AF_UNSPEC:
-            printl(LOG_WARN, "Address is not set");
+            printl(LOG_VERB, "Address is not set");
             return NULL;
         break;
 

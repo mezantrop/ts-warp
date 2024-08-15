@@ -38,4 +38,4 @@
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int http_server_request(int socket, struct uvaddr *daddr);
-int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char *password);
+int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char *password, int sdpi);

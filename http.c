@@ -95,7 +95,7 @@ int http_server_request(int socket, struct uvaddr *daddr) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char *password) {
+int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char *password, int sdpi) {
     char r[BUF_SIZE_1KB] = {0};
     char b[HOST_NAME_MAX] = {0};
     char usr_pwd_plain[BUF_SIZE_1KB] = {0};
@@ -103,7 +103,6 @@ int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char
     char *proto = NULL, *status = NULL, *reason = NULL;
     int rcount = 0;
     int l = 0;
-
 
     /* Request startline: CONNECT address:port PROTOCOL */
     if (user && password) {
@@ -120,10 +119,18 @@ int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char
 
     switch (cs.t) {
         case CHS_SOCKET:
-            if (send(cs.s, r, l, 0) == -1) {
-                printl(LOG_CRIT, "Unable to send a request to the HTTP server via socket");
-                return 1;
-            }
+            if (sdpi) {
+                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections");
+
+                if (send(cs.s, r, 1, 0) == -1 || send(cs.s, r + 1, l - 1, 0) == -1) {
+                    printl(LOG_CRIT, "SDPI: Unable to send a request to the HTTP server via socket");
+                    return 1;
+                }
+            } else
+                if (send(cs.s, r, l, 0) == -1) {
+                    printl(LOG_CRIT, "Unable to send a request to the HTTP server via socket");
+                    return 1;
+                }
 
             printl(LOG_VERB, "Expecting HTTP reply");
 
