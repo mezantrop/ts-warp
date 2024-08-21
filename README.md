@@ -60,8 +60,7 @@
 
 - TODO
   - [ ] UDP support
-  - [ ] Internal Socks4 proxy support
-  - [ ] Socks4a protocol support
+  - [ ] Socks4a protocol support (?)
   - [ ] OS specific `select` alternatives: `epol` / `kqueue`
   - [ ] Faster NS-Warp
   - [ ] Documentation
