@@ -201,13 +201,17 @@ Note, Python 3 interpreter with `tkinter` support is required to run the GUI fro
 Check [releases](https://github.com/mezantrop/ts-warp/releases) and download macOS standalone precompiled application.
 Read related [README.md](gui/ports/macOS/README.md) for information and instructions.
 
-### Experimental Deep Packet Inspections bypass
+### Experimental Deep Packet Inspections bypass (обход замедления/блокировки, например, YouTube)
 
 According to [SpoofDPI](https://github.com/xvzc/SpoofDPI?tab=readme-ov-file#https) project, sending the first 1 byte
 of a request to the server, and then sending the rest of the data can help to bypass Deep Packet Inspections of HTTPS.
 
-`TS-Warp` has the feature enabled by default. Just use TS-Warp in `Transparent` mode, or point your browser to `TS-Warp`
-Internal `HTTP(S)` proxy at default `127.0.0.1:8080` or `SOCKS5` proxy at `127.0.0.1:7080`.
+To bypass DPI, start TS-Warp with `-D 0..512` flag, e.g., `-D 2` to enable packet fragmentation, then use TS-Warp
+normally in `Transparent` mode, or point your browser to `TS-Warp` Internal `HTTP(S)` proxy at `127.0.0.1:8080` or
+`SOCKS5` proxy at `127.0.0.1:7080`.
+
+If you use macOS, download from [releases](https://github.com/mezantrop/ts-warp/releases) a precompiled `GUI-Warp`
+macOS application with DPI bypass option already enabled!
 
 ### Contacts
 

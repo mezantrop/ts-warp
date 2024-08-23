@@ -120,9 +120,9 @@ int http_client_request(chs cs, struct sockaddr_storage *daddr, char *user, char
     switch (cs.t) {
         case CHS_SOCKET:
             if (sdpi) {
-                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections");
+                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections for HTTP proxy. Fragment size: [%d]", sdpi);
 
-                if (send(cs.s, r, 1, 0) == -1 || send(cs.s, r + 1, l - 1, 0) == -1) {
+                if (send(cs.s, r, sdpi, 0) == -1 || send(cs.s, r + sdpi, l - sdpi, 0) == -1) {
                     printl(LOG_CRIT, "SDPI: Unable to send a request to the HTTP server via socket");
                     return 1;
                 }

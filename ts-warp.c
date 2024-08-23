@@ -127,7 +127,7 @@ All parameters are optional:
   -f              Force start
 
   -u user         A user to run ts-warp, default: nobody
-  -D              Do not try spoofing Deep Packet Inspections
+  -D 0..512       Deep Packet Inspections bypass fragment size. Default: 0 - disabled. Set any value, e.g., 2 to enable
 
   -h              This message */
 
@@ -142,7 +142,9 @@ All parameters are optional:
     int l_flg = 0;                                                      /* User didn't set the log file */
     int d_flg = 0;                                                      /* Daemon mode */
     int f_flg = 0;                                                      /* Force start */
-    int sdpi = 1;                                                       /* Try bypassing DPI */
+
+    int sdpi = 0;                                                       /* Packet fragment size: default 0. Set any
+                                                                        positive value to try tricking DPI */
     /* According to https://github.com/xvzc/SpoofDPI?tab=readme-ov-file#https sending the first 1 byte of a request
     to the server, and then sending the rest of the data can help to bypass Deep Packet Inspections of HTTPS */
 
@@ -181,7 +183,7 @@ All parameters are optional:
     #endif
 
 
-    while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:Dh")) != -1)
+    while ((flg = getopt(argc, argv, "T:S:H:c:l:v:t:dp:fu:D:h")) != -1)
         switch(flg) {
             case 'T':                                                   /* Internal Transparent server IP/name */
                 taddr = strsep(&optarg, ":");                           /* IP:PORT */
@@ -238,12 +240,16 @@ All parameters are optional:
             break;
 
             case 'D':
-                sdpi = 0;
+                sdpi = toint(optarg);
+                if (sdpi < 0 || sdpi > SDPI_FRAGMENTSZ_MAX) {
+                    fprintf(stderr, "Fatal: wrong -D value:[%s]\n", optarg);
+                    usage(1);
+                }
             break;
 
             case 'h':                                                   /* Help */
             default:
-                (void)usage(0);
+                usage(0);
         }
 
     if (!taddr[0]) taddr = LISTEN_DEFAULT;
@@ -662,6 +668,9 @@ All parameters are optional:
 
             if (!s_ini && isock == Tsock) {
                 /* -- No proxy server found for the destination IP -------------------------------------------------- */
+                close(Tsock);
+                if (Ssock != -1) close(Ssock);
+                if (Hsock != -1) close(Hsock);
                 printl(LOG_INFO, "No proxy server is defined for the destination: [%s]", inet2str(&daddr.ip_addr, buf));
 
                 if ((daddr.ip_addr.ss_family == AF_INET &&
@@ -1300,19 +1309,18 @@ All parameters are optional:
                             }
 
                             if (sdpi && rec > 1) {
-                                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections");
+                                printl(LOG_VERB, "Trying to bypass Deep Packet Inspections. Fragment size: [%d]", sdpi);
 
-                                if ((snd = send(ssock.s, buf, 1, 0)) == -1) {
+                                if ((snd = send(ssock.s, buf, sdpi < rec ? sdpi : rec, 0)) == -1) {
                                     printl(LOG_CRIT, "Error sending data to proxy server");
                                     break;
                                 }
-                                int _snd = send(ssock.s, buf + 1, rec - 1, 0);
+                                int _snd = send(ssock.s, buf + snd, rec - snd, 0);
                                 if (_snd == -1) {
                                     printl(LOG_CRIT, "Error sending data to proxy server");
                                     break;
                                 }
                                 snd += _snd;
-                                sdpi = 0;                                           /* No need to split more packets */
                             } else
                                 while ((snd = send(ssock.s, buf, rec, 0)) == 0) {
                                     printl(LOG_CRIT, "C:[0] -> S:[0] bytes");
@@ -1476,7 +1484,7 @@ All parameters are optional:\n\
   -f\t\t    Force start\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s. Note, this option has no effect on macOS\n\
-  -D\t\t    Do not try bypass Deep Packet Inspections\n\
+  -D 0..512\t  Deep Packet Inspections bypass fragment size. Default: 0 - disabled. Set any value, e.g., 2 to enable\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);

@@ -71,6 +71,9 @@
 
 #define INET_ADDRPORTSTRLEN INET6_ADDRSTRLEN + 6    /* MAX: ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff + ':' + '65535' */
 
+#define SDPI_FRAGMENTSZ_MAX 512                     /* Maximum fragment size to bypass DPI */
+
+
 /* -- Socket conversion macros -------------------------------------------------------------------------------------- */
 #define SA_FAMILY(sa)  ((struct sockaddr *)&sa)->sa_family
 
