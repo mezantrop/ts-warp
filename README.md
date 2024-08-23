@@ -51,7 +51,7 @@
   \* HTTP Connect method is implemented
 
 - Miscellaneous features
-  - [X] Deep Packet Inspections bypass (обход замедления YouTube)
+  - [X] Deep Packet Inspections bypass (обход замедления/блокировки, например, YouTube)
   - [x] Simple configuration structure as INI-like file
   - [x] Password encoding (obfuscation) in configuration files
   - [x] Daemon mode
