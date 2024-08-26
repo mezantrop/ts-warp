@@ -206,12 +206,13 @@ Read related [README.md](gui/ports/macOS/README.md) for information and instruct
 According to [SpoofDPI](https://github.com/xvzc/SpoofDPI?tab=readme-ov-file#https) project, sending the first 1 byte
 of a request to the server, and then sending the rest of the data can help to bypass Deep Packet Inspections of HTTPS.
 
-To bypass DPI, start TS-Warp with `-D 0..512` flag, e.g., `-D 2` to enable packet fragmentation, then use TS-Warp
-normally in `Transparent` mode, or point your browser to `TS-Warp` Internal `HTTP(S)` proxy at `127.0.0.1:8080` or
-`SOCKS5` proxy at `127.0.0.1:7080`.
+To bypass DPI, start TS-Warp with `-D 0..512` flag, e.g., `sudo /usr/local/etc/ts-warp.sh start -D 2` to enable packet
+fragmentation.
 
-If you use macOS, download from [releases](https://github.com/mezantrop/ts-warp/releases) a precompiled `GUI-Warp`
-macOS application with DPI bypass option already enabled!
+For the `GUI-warp`, edit `~/ts-warp/etc/gui-warp.ini` to add `-D` to `daemon_options` variable, e.g: `daemon_options = -D 2`
+
+Then use `TS-Warp` normally in `Transparent` mode, or point your browser to `TS-Warp` Internal `HTTP(S)` proxy at
+`127.0.0.1:8080` or `SOCKS5` proxy at `127.0.0.1:7080`.
 
 ### Contacts
 

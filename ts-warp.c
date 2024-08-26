@@ -1484,7 +1484,7 @@ All parameters are optional:\n\
   -f\t\t    Force start\n\
   \n\
   -u user\t    A user to run ts-warp, default: %s. Note, this option has no effect on macOS\n\
-  -D 0..512\t  Deep Packet Inspections bypass fragment size. Default: 0 - disabled. Set any value, e.g., 2 to enable\n\
+  -D 0..512\t    Deep Packet Inspections bypass fragment size. Default: 0 - disabled. Set any value, e.g., 2 to enable\n\
   \n\
   -h\t\t    This message\n\n",
     PROG_NAME, PROG_VERSION, INI_FILE_NAME, LOG_FILE_NAME, LOG_LEVEL_DEFAULT, PID_FILE_NAME, RUNAS_USER);
