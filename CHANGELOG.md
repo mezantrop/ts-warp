@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.08.23    Current**
+* **2024.08.26    Current**
+  * `pidlist.c`: `ACT` shows destination IP-address, when internal proxy servers are used
   * `ts-warp.c`: `-D 0..512` DPI bypass fragment size by default 0 - disabled; To enable use a positive value, e.g., 2
 
 * **2024.08.15    ts-warp-1.5.5, gui-warp-1.0.25 (gui-warp-v1.0.30-mac), ns-warp-1.0.7**

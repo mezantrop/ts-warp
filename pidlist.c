@@ -92,6 +92,7 @@ int pidlist_update_traffic(struct pid_list *root, struct traffic_data traffic) {
         if (c && c->pid == traffic.pid) {
             c->traffic.timestamp = traffic.timestamp;
             c->traffic.cbytes = traffic.cbytes;
+            c->traffic.daddr = traffic.daddr;
             c->traffic.dbytes = traffic.dbytes;
             return 0;
         }
