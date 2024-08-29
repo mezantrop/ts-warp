@@ -85,6 +85,7 @@ _start() {
             ;;
 
         Darwin|FreeBSD|OpenBSD)
+            /sbin/pfctl -eq
             awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
                     /ts-warp/       {next}
                     /ns-warp/       {next}
@@ -102,7 +103,7 @@ _start() {
                     print("anchor \"ns-warp\"")
                     printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
                 }
-            ' /etc/pf.conf | /sbin/pfctl -f -
+            ' /etc/pf.conf | /sbin/pfctl -q -f -
             ;;
 
         *)

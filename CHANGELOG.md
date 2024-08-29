@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.08.26    Current**
+* **2024.08.29    Current**
+  * `GUI-Warp.app`: Added an internal launcher - `starter.c`
+  * `ts-warp.sh`: Enable `PF`-firewall in `ts-warp.sh` `start`; Minor fixes for `PF` on `macOS` in `GUI-Warp` on `stop`
   * `pidlist.c`: `ACT` shows destination IP-address, when internal proxy servers are used
   * `ts-warp.c`: `-D 0..512` DPI bypass fragment size by default 0 - disabled; To enable use a positive value, e.g., 2
 

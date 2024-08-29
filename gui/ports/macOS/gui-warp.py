@@ -60,7 +60,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.30-mac'
+        self.version = 'v1.0.31-mac'
         self.width = width
         self.height = height
 

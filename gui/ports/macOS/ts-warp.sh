@@ -68,6 +68,7 @@ _start() {
     _check_root
     printf "Starting ts-warp: "
 
+    /sbin/pfctl -eq
     awk -v pf_conf="$tswarp_prefix"/etc/ts-warp_pf.conf '
             /ts-warp/       {next}
             /ns-warp/       {next}
@@ -85,7 +86,7 @@ _start() {
             print("anchor \"ns-warp\"")
             printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
         }
-    ' /etc/pf.conf | /sbin/pfctl -f -
+    ' /etc/pf.conf | /sbin/pfctl -q -f -
 
     echo $tswarp_options $* | xargs $SCRIPTPATH/ts-warp > /dev/null
 }
@@ -126,7 +127,8 @@ _stop() {
     [ -f "$tswarp_pidfile" ] && rm -f "$tswarp_pidfile"
     pkill -x ts-warp
 
-    /sbin/pfctl -f /etc/pf.conf
+        /sbin/pfctl -q -a ts-warp -F all
+        /sbin/pfctl -q -a ns-warp -F all
 }
 
 # ---------------------------------------------------------------------------- #
