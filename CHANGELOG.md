@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.08.29    Current**
+* **2024.08.30    Current**
+  * `minmiconf`: Updated to version `1.1.1.0`
+  * `configure`: Added lost paths check for macOS SDK directories
   * `GUI-Warp.app`: Added an internal launcher - `starter.c`
   * `ts-warp.sh`: Enable `PF`-firewall in `ts-warp.sh` `start`; Minor fixes for `PF` on `macOS` in `GUI-Warp` on `stop`
   * `pidlist.c`: `ACT` shows destination IP-address, when internal proxy servers are used
