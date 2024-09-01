@@ -9,6 +9,12 @@
   this stuff is worth it, you can buy me a beer in return Mikhail Zakharov
 */
 
+/*
+  2024.08.29	v1.0	Initial release
+  2024.09.01	v1.1	Handle environment variables
+
+*/
+
 
 /* -------------------------------------------------------------------------- */
 #include <stdio.h>
@@ -23,6 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
+    extern char** environ;
     char buf[DIRBUFSZ]; 
 
     if (argc > 2 || (argc == 2 && !strncmp(argv[1], "-h", 2))) {
@@ -40,6 +47,6 @@ int main(int argc, char *argv[]) {
         getcwd(buf, DIRBUFSZ);
     sprintf(buf + strnlen(buf, DIRBUFSZ), "/%s", APP_NAME);
 
-    return execl(buf, APP_NAME, NULL);
+    return execle(buf, APP_NAME, 0, environ);
 }
 

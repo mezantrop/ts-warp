@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.08.30    Current**
+* **2024.09.01    Current**
+  * `GUI-Warp.app`: `starter.c` to handle environment variables
   * `minmiconf`: Updated to version `1.1.1.0`
   * `configure`: Added lost paths check for macOS SDK directories
   * `GUI-Warp.app`: Added an internal launcher - `starter.c`
