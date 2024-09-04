@@ -130,7 +130,7 @@ ini_section *read_ini(char *ifile_name) {
             entry.val2 = strsep(&s, "/");                           /* val2 */
             /* val1 token round two parsing */
             s = entry.val1;
-            entry.val1 = strsep(&s, ":-");                          /* val1 clean */
+            entry.val1 = strsep(&s, ":");                           /* val1 clean */
             entry.mod1 = strsep(&s, ":-");                          /* mod1 optional */
             entry.mod2 = strsep(&s, ":-");                          /* mod2 optional */
 
