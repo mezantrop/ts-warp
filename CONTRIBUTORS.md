@@ -8,7 +8,7 @@
 * Gema Robles <gema.robles.rodriguez@kyndryl.com>
 * Gleb Reys <gleb@reys.net>
 * Hanno Rathmann <ts-warp@machmalnen.de>
-* Jesus Sanchez <jesus.sanchez.valle@gmail.com>
+* Jesus Sanchez <jesussanchezvalle@gmail.com>
 * Juha Nurmela
 * Luis Pontes <luis.pontes@kyndryl.com>
 * Matt Reba

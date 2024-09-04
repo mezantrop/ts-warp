@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * **2024.09.01    Current**
-  * `inifile.c`: `proxy_server` variable parsing. Thanks <jesus.sanchez.valle@gmail.com> for the bug-hunting and testing
+  * `inifile.c`: `proxy_server` variable parsing. Thanks <jesussanchezvalle@gmail.com> for the bug-hunting and testing
   * `GUI-Warp.app`: `starter.c` to handle environment variables
   * `minmiconf`: Updated to version `1.1.1.0`
   * `configure`: Added lost paths check for macOS SDK directories
