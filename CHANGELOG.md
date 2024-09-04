@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.09.01    Current**
+* **2024.09.04    Current**
+  * `GUI-Warp.app`: `starter.c` updated to v1.2
   * `inifile.c`: `proxy_server` variable parsing. Thanks <jesussanchezvalle@gmail.com> for the bug-hunting and testing
   * `GUI-Warp.app`: `starter.c` to handle environment variables
   * `minmiconf`: Updated to version `1.1.1.0`

@@ -10,43 +10,41 @@
 */
 
 /*
-  2024.08.29	v1.0	Initial release
-  2024.09.01	v1.1	Handle environment variables
-
+  2024.08.29    v1.0    Initial release
+  2024.09.01    v1.1    Handle environment variables
+  2024.09.04    v1.2    Preserve original starter name for the started app
 */
 
 
 /* -------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <libgen.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 /* -------------------------------------------------------------------------- */
-#define APP_NAME	"app"
-#define DIRBUFSZ	256
+#define APP_NAME        "/app"
+#define DIRBUFSZ        256
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
     extern char** environ;
-    char buf[DIRBUFSZ]; 
+    char buf[DIRBUFSZ];
 
     if (argc > 2 || (argc == 2 && !strncmp(argv[1], "-h", 2))) {
         fprintf(stdout,
-	        "Run a program (default name: app) in the same directory\n\n"
+                "Run a program (default name: app) in the same directory\n\n"
                 "Usage: %s [program]\n", basename(argv[0]));
-	return 0;
+        return 0;
     }
 
     setuid(geteuid());
 
     if (argv[0][0] == '/')
         strncpy(buf, dirname(argv[0]), DIRBUFSZ);
-    else 
+    else
         getcwd(buf, DIRBUFSZ);
-    sprintf(buf + strnlen(buf, DIRBUFSZ), "/%s", APP_NAME);
+    strncat(buf, APP_NAME, DIRBUFSZ);
 
-    return execle(buf, APP_NAME, 0, environ);
+    return execle(buf, basename(argv[0]), 0, environ);
 }
-
