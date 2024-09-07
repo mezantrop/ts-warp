@@ -60,7 +60,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.31-mac'
+        self.version = 'v1.0.32-mac'
         self.width = width
         self.height = height
 
@@ -357,12 +357,16 @@ It is a free and open-source software, but if you want to support it, please do'
         Save INI-file
         """
 
+        uid = os.getuid()
+        gid = os.getgid()
         with open(filename, 'w', encoding='utf8') as f:
             f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
+            os.chown(filename, uid, gid)
 
         # Rebuild ts-warp_pf.conf when saving the INI-file
         with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
+            os.chown(fwfile, uid, gid)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def pauselog(self, btn, txt, filename):
@@ -432,7 +436,10 @@ It is a free and open-source software, but if you want to support it, please do'
                 stdin=subprocess.PIPE)
             gwp.communicate(self.password)
         else:
+            uid = os.getuid()
+            os.setuid(0)
             subprocess.Popen([runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
+            os.setreuid(uid, 0)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def ask_password(self):
@@ -561,14 +568,27 @@ if __name__ == "__main__":
         os.makedirs(prefix + 'etc/')
     if not os.path.exists(prefix + 'var/log/'):
         os.makedirs(prefix + 'var/log/')
+        if not os.path.exists(logfile):
+            open(logfile, 'a').close()
     if not os.path.exists(prefix + 'var/run/'):
         os.makedirs(prefix + 'var/run/')
+        if not os.path.exists(pidfile):
+            open(pidfile, 'a').close()
     if not os.path.exists(prefix + 'var/spool/ts-warp/'):
         os.makedirs(prefix + 'var/spool/ts-warp/')
+
+    for f in (prefix, prefix + '/etc', prefix + '/var', prefix + 'var/log', prefix + 'var/run',
+              prefix + 'var/spool', prefix + 'var/spool/ts-warp', prefix + 'etc/gui-warp.ini',
+              runcmd, inifile, fwfile, logfile, pidfile, actfile):
+        try:
+            os.chown(f, os.getuid(), os.getgid())
+        except:
+            pass
 
     if not os.path.exists(fwfile):
         with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
+            os.chown(fwfile, os.getuid(), os.getgid())
     if not os.path.exists(logfile):
         open(logfile, 'a', encoding='utf8').close()
 

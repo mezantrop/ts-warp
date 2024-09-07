@@ -9,10 +9,13 @@
   this stuff is worth it, you can buy me a beer in return Mikhail Zakharov
 */
 
+/* -------------------------------------------------------------------------- */
+
 /*
   2024.08.29    v1.0    Initial release
   2024.09.01    v1.1    Handle environment variables
-  2024.09.04    v1.2    Preserve original starter name for the started app
+  2024.09.04    v1.2    Pass original starter name as the started app name
+  2024.09.06    v1.3    Pass app args; allow app handling UID/EUID; Drop environ
 */
 
 
@@ -28,23 +31,19 @@
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
-    extern char** environ;
     char buf[DIRBUFSZ];
 
-    if (argc > 2 || (argc == 2 && !strncmp(argv[1], "-h", 2))) {
-        fprintf(stdout,
-                "Run a program (default name: app) in the same directory\n\n"
-                "Usage: %s [program]\n", basename(argv[0]));
+   if (argc == 2 && !strncmp(argv[1], "-h", 2)) {
+        fprintf(stdout, "Run a program named app from the same directory\n");
         return 0;
     }
-
-    setuid(geteuid());
 
     if (argv[0][0] == '/')
         strncpy(buf, dirname(argv[0]), DIRBUFSZ);
     else
         getcwd(buf, DIRBUFSZ);
     strncat(buf, APP_NAME, DIRBUFSZ);
+    argv[0] = basename(argv[0]);
 
-    return execle(buf, basename(argv[0]), 0, environ);
+    return execv(buf, argv);
 }
