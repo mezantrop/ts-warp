@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* **2024.09.07    ts-warp-1.5.6, gui-warp-1.0.25 (gui-warp-v1.0.32-mac), ns-warp-1.0.7****
+* **2024.09.07    ts-warp-1.5.6, gui-warp-1.0.25 (gui-warp-v1.0.32-mac), ns-warp-1.0.7**
   * `GUI-Warp.app`: Better handling of `starter`, `starter.c` updated to v1.3
   * `GUI-Warp.app`: `starter.c` updated to v1.2
   * `inifile.c`: `proxy_server` variable parsing. Thanks <jesussanchezvalle@gmail.com> for the bug-hunting and testing
