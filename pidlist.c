@@ -43,6 +43,7 @@ struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pi
 
     /* Create a new pidlist record structure */
     n = (struct pid_list *)malloc(sizeof(struct pid_list));
+    memset(n, 0, sizeof(struct pid_list));
     n->pid = pid;
     n->status = -1;
     n->section_name = strdup(section_name);
