@@ -50,7 +50,7 @@ ini_section *read_ini(char *ifile_name) {
     /* Read and parse INI-file */
 
     FILE *fini;
-    char buffer[BUF_SIZE], section[STR_SIZE];
+    char buffer[BUF_SIZE], section[BUF_SIZE];
     char *s = NULL, *d = NULL, *x = NULL;                               /* String manipulation pointers */
     ini_entry entry;                                                    /* tmp place for the parsed line */
     ini_section *ini_root = NULL, *c_sect = NULL, *l_sect = NULL;
@@ -73,6 +73,17 @@ ini_section *read_ini(char *ifile_name) {
         /* Chop remarks and newlines */
         s = buffer;
         strsep(&s, "#;\n\r");
+
+        s = d = buffer;
+        do {
+            while(isspace(*s)) s++;                             /* Remove whitespaces */
+            if ((!isascii(*s) || iscntrl(*s)) && *s != '\0') {  /* Ignore lines with non-ASCII or Control chars */
+                printl(LOG_WARN, "LN: %d IGNORED: Contains non-ASCII or Control character: [%#x]!",
+                    ln, (unsigned char)*s);
+                *buffer = '\0';
+                break;
+            }
+        } while((*d++ = *s++));
 
         /* Get section */
         if (sscanf(buffer, "[%[a-zA-Z0-9_\t +()-]]", section) == 1) {
@@ -106,17 +117,6 @@ ini_section *read_ini(char *ifile_name) {
                 free(proxy_port); proxy_port = NULL; fproxy_port = 0;
                 }
         } else {                                                    /* Entries within sections */
-            s = d = buffer;
-            do {
-                while(isspace(*s)) s++;                             /* Remove whitespaces */
-                if ((!isascii(*s) || iscntrl(*s)) && *s != '\0') {  /* Ignore lines with non-ASCII or Control chars */
-                    printl(LOG_WARN, "LN: %d IGNORED: Contains non-ASCII or Control character: [%#x]!",
-                        ln, (unsigned char)*s);
-                    *buffer = '\0';
-                    break;
-                }
-            } while((*d++ = *s++));
-
             if (!*buffer) continue;                                 /* Skip an empty line */
             if (strchr(buffer, '=') == NULL) {                      /* Skip variables without vals */
                 printl(LOG_WARN, "LN: %d IGNORED: The variable must be assigned a value", ln);
@@ -380,7 +380,8 @@ int create_chains(struct ini_section *ini, struct chain_list *chain) {
                         st = (struct proxy_chain *)malloc(sizeof(struct proxy_chain));
                         st->chain_member = sts;
                         st->next = NULL;
-                        if (sc) sc->next = st; else s->p_chain = st;
+                        if (!sc) s->p_chain = st; else sc->next = st;
+                        sc = st;
                         printl(LOG_VERB, "Linking chain section: [%s]", st->chain_member->section_name);
                     } else
                         printl(LOG_VERB, "Chain section: [%s] linked from: [%s] does not really exist",

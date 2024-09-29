@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.09.27    Current**
+* **2024.09.28    Current**
+  * `inifile.c`: Correct usage of multiple links of a proxy-chain
+  * `inifile.c`: Potential buffer-overflow fixed in parsing `[SECTIONS]`
   * `ts-warp.c`: Proxy server selection optimization
   * `pidlist.c`: `Uninitialised value was created by a heap allocation` fixed
 
