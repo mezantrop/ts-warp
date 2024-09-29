@@ -596,11 +596,25 @@ All parameters are optional:
 
         /* -- Process the PIDs list: remove exitted clients and execute workload balance functions ------------------ */
         c = pids;
+
+        struct uvaddr tmp_daddr;
+        unsigned int tmp_daddr_len = sizeof(tmp_daddr.ip_addr);
+        memset(&tmp_daddr.ip_addr, 0, tmp_daddr_len);
+        memset(&tmp_daddr.name, 0, sizeof(tmp_daddr.name) - 1);
+        tmp_daddr.ip_addr.ss_family = caddr.ss_family;
+
         while (c) {
+            push_ini = NULL;
+            if (!c->section_name || strlen(c->section_name) == 0) {
+                tmp_daddr.ip_addr = c->traffic.daddr;
+                push_ini = ini_look_server(ini_root, tmp_daddr);
+                free(c->section_name); c->section_name = strdup(push_ini->section_name);
+            }
+
             if (c == pids && c->status >= 0) {                              /* Remove pidlist root entry */
                 pids = c->next;
-                if (c->status && (push_ini = getsection(ini_root, c->section_name)))
-                    if (push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
+                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
+                if (c->status && push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
                         pushback_ini(&ini_root, push_ini);
                 free(c->section_name);
                 free(c);
@@ -608,13 +622,13 @@ All parameters are optional:
             } else if (c && c->next && c->next->status >= 0) {              /* Remove a pidlist entry */
                 d = c->next;
                 c->next = d->next;
-                if (d->status && (push_ini = getsection(ini_root, d->section_name)))
-                    if (push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
+                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
+                if (d->status && push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
                         pushback_ini(&ini_root, push_ini);
                 free(d->section_name);
                 free(d);
             } else {
-                push_ini = getsection(ini_root, c->section_name);
+                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
                 if (push_ini && push_ini->section_balance == SECTION_BALANCE_ROUNDROBIN)
                     pushback_ini(&ini_root, push_ini);
             }

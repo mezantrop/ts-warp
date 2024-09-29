@@ -50,7 +50,7 @@ ini_section *read_ini(char *ifile_name) {
     /* Read and parse INI-file */
 
     FILE *fini;
-    char buffer[BUF_SIZE], section[BUF_SIZE];
+    char buffer[STR_SIZE], section[STR_SIZE];
     char *s = NULL, *d = NULL, *x = NULL;                               /* String manipulation pointers */
     ini_entry entry;                                                    /* tmp place for the parsed line */
     ini_section *ini_root = NULL, *c_sect = NULL, *l_sect = NULL;
