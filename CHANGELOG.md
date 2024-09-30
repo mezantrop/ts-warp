@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.09.28    Current**
+* **2024.09.30    Current**
+  * `ts-warp.c`: Null-pointer dereference in `PIDS` table processing fixed
   * `ts-warp.c`: `ACT` reporting `[SECTIONS]`
   * `inifile.c`: Correct usage of multiple links of a proxy-chain
   * `inifile.c`: Potential buffer-overflow fixed in parsing `[SECTIONS]`

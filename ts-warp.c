@@ -607,8 +607,10 @@ All parameters are optional:
             push_ini = NULL;
             if (!c->section_name || strlen(c->section_name) == 0) {
                 tmp_daddr.ip_addr = c->traffic.daddr;
-                push_ini = ini_look_server(ini_root, tmp_daddr);
-                free(c->section_name); c->section_name = strdup(push_ini->section_name);
+                if ((push_ini = ini_look_server(ini_root, tmp_daddr))) {
+                    free(c->section_name);
+                    c->section_name = strdup(push_ini->section_name);
+                }
             }
 
             if (c == pids && c->status >= 0) {                              /* Remove pidlist root entry */
