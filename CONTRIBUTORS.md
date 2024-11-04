@@ -14,6 +14,7 @@
 * Matt Reba
 * Mohammad Ali Talaghat <ali@talaghat.ir>, [@alitalaghat](https://github.com/alitalaghat)
 * Philip Smith @ Kyndryl
+* Radek Sipka <radek@radeksipka.cz>
 * Sandor Forbauer <sandor@forbauer.com>
 * Sławomir Koper <slawomir.koper@gmail.com>
 * Stefan Hildebrandt
