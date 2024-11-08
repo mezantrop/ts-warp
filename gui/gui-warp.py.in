@@ -62,7 +62,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.25'
+        self.version = 'v1.0.26'
         self.width = width
         self.height = height
 
@@ -147,7 +147,8 @@ class App:
             'tsw01:' + subprocess.Popen([prefix + '/bin/ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
-        ttk.Label(frm_tab_ini_top, text='Save changes:').grid(column=2, row=0, sticky=tk.E)
+        sch = ttk.Label(frm_tab_ini_top, text='Save configuration:')
+        sch.grid(column=2, row=0, sticky=tk.E)
         btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
         btn_save_ini.grid(column=3, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.savefile(ini_txt, inifile)
@@ -358,11 +359,11 @@ It is a free and open-source software, but if you want to support it, please do'
         """
 
         t_widget.config(state='normal')
-        with open(filename, 'r', encoding='utf-8') as f:
-            sz = os.path.getsize(filename)
-            if sz > self.log_size:
+        sz = os.path.getsize(filename)
+        if sz > self.log_size:
+            with open(filename, 'r', encoding='utf-8') as f:
+                f.seek(self.log_size)
                 self.log_size = sz
-                t_widget.delete(1.0, tk.END)
                 t_widget.insert(tk.END, ''.join(f.readlines()))
                 t_widget.see(tk.END)
 
@@ -536,7 +537,7 @@ if __name__ == "__main__":
 
     runcmd = prefix + '/etc/ts-warp.sh'
     inifile = prefix + '/etc/ts-warp.ini'
-    fwfile = prefix + ('/etc/ts-warp_pf.conf' if platform.system() != 'Linux' else '/etc/ts-warp_nftables.sh')
+    fwfile = prefix + ('/etc/ts-warp_pf.conf' if platform.system() != 'Linux' else '/etc/ts-warp_nftables.sh' if os.path.isfile('/etc/ts-warp_nftables.sh') else '/etc/ts-warp_iptables.sh')
     logfile = prefix + '/var/log/ts-warp.log'
     pidfile = prefix + '/var/run/ts-warp.pid'
     actfile = prefix + '/var/spool/ts-warp/ts-warp.act'

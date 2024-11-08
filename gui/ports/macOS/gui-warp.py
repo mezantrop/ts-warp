@@ -55,12 +55,13 @@ class App:
                  daemon_options="",
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
+                 logfile_size=3145728,
                  pidfile='/usr/local/var/run/ts-warp.pid',
                  url_new_vesrsion=''):
 
         self.password = ''
 
-        self.version = 'v1.0.32-mac'
+        self.version = 'v1.0.33-mac'
         self.width = width
         self.height = height
 
@@ -134,11 +135,11 @@ class App:
         btn_pause = ttk.Button(tab_log, width=self._btnw, text='■')
         btn_pause.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.pause_log = False
-        btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile)
+        btn_pause['command'] = lambda: self.pauselog(btn_pause, log_txt, logfile, logfile_size)
 
         log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_log.bind("<Visibility>", self.readfile_log(log_txt, logfile, refresh=True))
+        tab_log.bind("<Visibility>", self.readfile_log(log_txt, logfile, logfile_size, refresh=True))
 
         scroll_log = ttk.Scrollbar(tab_log, orient=tk.VERTICAL)
         scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
@@ -166,7 +167,8 @@ class App:
             'tsw01:' + subprocess.Popen(['./ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
-        ttk.Label(frm_tab_ini_top, text='Save changes:').grid(column=2, row=0, sticky=tk.E)
+        sch = ttk.Label(frm_tab_ini_top, text='Save configuration:', foreground='green')
+        sch.grid(column=2, row=0, sticky=tk.E)
         btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
         btn_save_ini.grid(column=3, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
@@ -174,6 +176,7 @@ class App:
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
         ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
+#        ini_txt.bind('<<Modified>>', lambda: sch.config(foreground='red') if ini_txt.edit_modified() == 1 else sch.config(foreground='green'))
 
         scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
         scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
@@ -331,25 +334,31 @@ It is a free and open-source software, but if you want to support it, please do'
             t_widget.insert(tk.END, ''.join(f.readlines()))
             t_widget.see(tk.END)
 
+        # t_widget.edit_modified(False)
+
     # ---------------------------------------------------------------------------------------------------------------- #
-    def readfile_log(self, t_widget, filename, refresh=False):
+    def readfile_log(self, t_widget, filename, logfile_size, refresh=False):
         """
         Read contents of the LOG-file
         """
 
         t_widget.config(state='normal')
-        with open(filename, 'r', encoding='utf-8') as f:
-            sz = os.path.getsize(filename)
-            if sz > self.log_size:
-                self.log_size = sz
-                t_widget.delete(1.0, tk.END)
-                t_widget.insert(tk.END, ''.join(f.readlines()))
-                t_widget.see(tk.END)
+        sz = os.path.getsize(filename)
+        if sz > self.log_size:
+            with open(filename, 'r', encoding='utf-8') as f:
+                if sz > logfile_size:
+                    f.truncate(0)
+                    t_widget.delete(1.0, tk.END)
+                else:
+                    f.seek(self.log_size)
+                    self.log_size = sz
+                    t_widget.insert(tk.END, ''.join(f.readlines()))
+                    t_widget.see(tk.END)
 
         if refresh:
             t_widget.config(state='disabled')
             if not self.pause_log:
-                self.root.after(500, self.readfile_log, t_widget, filename, refresh)
+                self.root.after(500, self.readfile_log, t_widget, filename, logfile_size, refresh)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
@@ -363,13 +372,15 @@ It is a free and open-source software, but if you want to support it, please do'
             f.write(t_widget.get('1.0', tk.END)[:-1])                   # Strip extra newline
             os.chown(filename, uid, gid)
 
+        # t_widget.edit_modified(False)
+
         # Rebuild ts-warp_pf.conf when saving the INI-file
         with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
             os.chown(fwfile, uid, gid)
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def pauselog(self, btn, txt, filename):
+    def pauselog(self, btn, txt, filename, logfile_size):
         """
         Pause LOG
         """
@@ -377,7 +388,7 @@ It is a free and open-source software, but if you want to support it, please do'
         if self.pause_log:
             self.pause_log = False
             btn['text'] = '■'                                           # Pause log auto-refresh
-            self.readfile_log(txt, filename, refresh=True)
+            self.readfile_log(txt, filename, logfile_size, refresh=True)
         else:
             self.pause_log = True
             btn['text'] = '↭'                                           # Enable auto-refresh
@@ -528,6 +539,7 @@ if __name__ == "__main__":
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
+    logfile_size = 3145728
     pidfile = prefix + 'var/run/ts-warp.pid'
     actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
     daemon_options = ''
@@ -547,6 +559,8 @@ if __name__ == "__main__":
                 fwfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['fwfile'])
             if 'logfile' in gui_ini['GUI-WARP'].keys():
                 logfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['logfile'])
+            if 'logfile_size' in gui_ini['GUI-WARP'].keys():
+                logfile_size = int(gui_ini['GUI-WARP']['logfile_size'])
             if 'pidfile' in gui_ini['GUI-WARP'].keys():
                 pidfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['pidfile'])
             if 'actfile' in gui_ini['GUI-WARP'].keys():

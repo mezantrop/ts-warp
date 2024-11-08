@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2024.09.30    Current**
+* **2024.11.08    Current**
+  * `gui-warp.py`: Minor changes about log-file size and FW-file selection under `Linux`
   * `ts-warp.c`: Null-pointer dereference in `PIDS` table processing fixed
   * `ts-warp.c`: `ACT` reporting `[SECTIONS]`
   * `inifile.c`: Correct usage of multiple links of a proxy-chain
