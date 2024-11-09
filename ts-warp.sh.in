@@ -41,6 +41,7 @@ tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_actfile="$tswarp_prefix/var/spool/ts-warp/ts-warp.act"
 tswarp_loglevel="2"
+tswarp_logfile_maxsize=3145728
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
 
 # ---------------------------------------------------------------------------- #
@@ -62,7 +63,8 @@ _start() {
     _check_root
     printf "Starting ts-warp: "
 
-    case `uname -s` in
+    log_size=0
+    case $(uname -s) in
         Linux)
             if iptables -V ; then
                     printf "Using IPTABLES Firewall "
@@ -82,6 +84,7 @@ _start() {
                         printf "FATAL: Unable to find any Linux firewall\n"
                         exit 1
             fi
+            log_size=$(stat -c "%s" "$tswarp_logfile")
             ;;
 
         Darwin|FreeBSD|OpenBSD)
@@ -104,11 +107,15 @@ _start() {
                     printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
                 }
             ' /etc/pf.conf | /sbin/pfctl -q -f -
+            log_size=$(stat -f "%z" "$tswarp_logfile")
             ;;
 
         *)
             printf "FATAL: Unsupported OS "
     esac
+
+    # Truncate logfile if it's too big
+    [ $tswarp_logfile_maxsize -lt $log_size ] && : > $tswarp_logfile
 
     echo $tswarp_options $* | xargs "$tswarp_prefix"/bin/ts-warp > /dev/null
 }
@@ -124,11 +131,11 @@ _status() {
     pgrep -F "$tswarp_pidfile" > /dev/null 2>&1
     case $? in
         0)
-           [ "$1" ] && printf "ts-warp is running PID: %s: " `cat "$tswarp_pidfile"`
+           [ "$1" ] && printf "ts-warp is running PID: %s: " $(cat "$tswarp_pidfile")
            return 0
            ;;
         1)
-           [ "$1" ] && printf "ts-warp is NOT running PID: %s: " `cat "$tswarp_pidfile"`
+           [ "$1" ] && printf "ts-warp is NOT running PID: %s: " $(cat "$tswarp_pidfile")
            return 2
            ;;
         *)
@@ -178,7 +185,7 @@ _restart() {
 
 # ---------------------------------------------------------------------------- #
 _check_root() {
-    [ `id -u` -ne 0 ] && {
+    [ $(id -u) -ne 0 ] && {
         printf "Fatal: You must be root to proceed\n"
         exit 1
     }

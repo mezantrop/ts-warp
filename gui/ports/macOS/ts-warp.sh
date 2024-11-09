@@ -47,6 +47,7 @@ tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
 tswarp_logfile="$tswarp_prefix/var/log/ts-warp.log"
 tswarp_actfile="$tswarp_prefix/var/spool/ts-warp/ts-warp.act"
 tswarp_loglevel="2"
+tswarp_logfile_maxsize=3145728
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
 
 # ---------------------------------------------------------------------------- #
@@ -87,6 +88,11 @@ _start() {
             printf("load anchor \"ts-warp\" from \"%s\"\n", pf_conf)
         }
     ' /etc/pf.conf | /sbin/pfctl -q -f -
+
+    log_size=$(stat -f "%z" "$tswarp_logfile")
+
+    # Truncate logfile if it's too big
+    [ $tswarp_logfile_maxsize -lt $log_size ] && : > $tswarp_logfile
 
     echo $tswarp_options $* | xargs $SCRIPTPATH/ts-warp > /dev/null
 }
