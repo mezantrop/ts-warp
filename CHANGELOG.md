@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* **2024.11.08    Current**
+* **2024.11.08    ts-warp-1.5.7, gui-warp-1.0.26 (gui-warp-v1.0.33-mac), ns-warp-1.0.7**
   * `ts-warp.sh`: Log-file truncating moved here
   * `gui-warp.py`: Minor changes about log-file size and FW-file selection under `Linux`
   * `ts-warp.c`: Null-pointer dereference in `PIDS` table processing fixed
