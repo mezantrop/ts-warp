@@ -166,8 +166,8 @@ class App:
             'tsw01:' + subprocess.Popen(['./ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
-        sch = ttk.Label(frm_tab_ini_top, text='Save configuration:', foreground='green')
-        sch.grid(column=2, row=0, sticky=tk.E)
+        lbl_sch = ttk.Label(frm_tab_ini_top, text='Save INI file:')
+        lbl_sch.grid(column=2, row=0, sticky=tk.E)
         btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
         btn_save_ini.grid(column=3, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
@@ -175,6 +175,11 @@ class App:
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
         ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
+
+        def ini_modified(event=None):
+            lbl_sch['foreground'] = 'red' if ini_txt.edit_modified() else 'black'
+        ini_txt.edit_modified(False)
+        ini_txt.bind("<<Modified>>", ini_modified)
 
         scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
         scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
@@ -368,6 +373,8 @@ It is a free and open-source software, but if you want to support it, please do'
         with open(fwfile, 'w', encoding='utf8') as outfw:
             subprocess.run(['./ts-warp_autofw.sh', prefix], stdout=outfw, check=False)
             os.chown(fwfile, uid, gid)
+
+        t_widget.edit_modified(False)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def pauselog(self, btn, txt, filename):

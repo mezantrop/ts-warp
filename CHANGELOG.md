@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* **2024.11.10    Current**
+  * `gui-warp.py`: Highlight "Save" button for INI/FW if config has been edited. Thanks Radek Sipka for the request
+
 * **2024.11.08    ts-warp-1.5.7, gui-warp-1.0.26 (gui-warp-v1.0.33-mac), ns-warp-1.0.7**
   * `ts-warp.sh`: Log-file truncating moved here
   * `gui-warp.py`: Minor changes about log-file size and FW-file selection under `Linux`
