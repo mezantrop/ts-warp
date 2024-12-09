@@ -24,7 +24,7 @@ echo "-- Making binaries -------------------------------------------------------
 	echo "-- Compiling SSL for ARM64 processors ---------------------------------------------------------------------------" &&
 	cd openssl-master &&
 
-	./Configure darwin64-arm64-cc no-shared -mmacosx-version-min=11 -fembed-bitcode &&
+	./Configure darwin64-arm64-cc no-shared -mmacosx-version-min=11 -no-tests &&
 	make depend &&
 	make -j 4 build_libs &&
 	cp libcrypto.a ../arm64_libcrypto.a &&
@@ -33,7 +33,7 @@ echo "-- Making binaries -------------------------------------------------------
 
 	echo "-- Compiling SSL for x86_64 processors --------------------------------------------------------------------------" &&
 	make clean &&
-	./Configure darwin64-x86_64-cc no-shared -mmacosx-version-min=11 -fembed-bitcode &&
+	./Configure darwin64-x86_64-cc no-shared -mmacosx-version-min=11 -no-tests &&
 	make depend &&
 	make -j 4 build_libs &&
 	cp libcrypto.a ../x86_64_libcrypto.a &&
@@ -41,7 +41,7 @@ echo "-- Making binaries -------------------------------------------------------
 
 	echo "-- Compiling SSH2 for ARM64 processors --------------------------------------------------------------------------" &&
 	cd ../libssh2-master &&
-	export CFLAGS="-arch arm64 -pipe -no-cpp-precomp  -mmacosx-version-min=11 -fembed-bitcode" &&
+	export CFLAGS="-arch arm64 -pipe -no-cpp-precomp  -mmacosx-version-min=11" &&
 	export CPPFLAGS="-arch arm64 -pipe -no-cpp-precomp -mmacosx-version-min=11" &&
 	autoreconf -fi &&
 	./configure --host=aarch64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --disable-shared --enable-static &&
@@ -49,7 +49,7 @@ echo "-- Making binaries -------------------------------------------------------
 	cp src/.libs/libssh2.a ../arm64_libssh2.a &&
 
 	make clean &&
-	export CFLAGS="-arch x86_64 -pipe -no-cpp-precomp -mmacosx-version-min=11 -fembed-bitcode" &&
+	export CFLAGS="-arch x86_64 -pipe -no-cpp-precomp -mmacosx-version-min=11" &&
 	export CPPFLAGS="-arch x86_64 -pipe -no-cpp-precomp -mmacosx-version-min=11" &&
 	autoreconf -fi &&
 	./configure --host=x86_64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --disable-shared --enable-static &&
