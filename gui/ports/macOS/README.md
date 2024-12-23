@@ -7,5 +7,11 @@ run [build.sh](build.sh) script to build your own copy.
 
 ## Important notes
 
-- Building requires Python3 for macOS with support of **TCL/Tk** and **universal** architecture i.e. downloaded from Python.org
+- Build requirements:
+    - Xcode Command Line Tools
+    - Python 3.11.x for macOS with support of **TCL/Tk** and **universal** architecture i.e. downloaded from Python.org
+    - autoconf
+    - automake
+    - libtool
+
 - Source code of the macOS app differs from the "scriped" version of gui-warp.py
