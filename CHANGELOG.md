@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2024.12.09    Current**
+* **2025.02.05    Current**
+  * `gui-warp.py`/`gui-warp.py.in`: 'Password hash' caption
+  * `CONTRIBUTORS.md`: New contributor Marcin Nowicki <marcin.nowicki@kyndryl.com>. Thanks for your ideas and testing!
   * `build.sh`: `-no-tests` added for OpenSSL `Configure`; `-fembed-bitcode` removed for both OpenSSL and libssh2
   * `gui-warp.py`: Highlight "Save" button for INI/FW if config has been edited. Thanks Radek Sipka for the request
 

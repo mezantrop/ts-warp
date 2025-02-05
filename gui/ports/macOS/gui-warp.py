@@ -60,7 +60,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.33-mac'
+        self.version = 'v1.0.34-mac'
         self.width = width
         self.height = height
 
@@ -157,23 +157,25 @@ class App:
         frm_tab_ini_top.columnconfigure(3, weight=0)
         frm_tab_ini_top.rowconfigure(1, weight=1)
 
+        ttk.Label(frm_tab_ini_top, text='Enter plaintext password below to generate encoded hash:').grid(column=0,
+            row=0, columnspan=2, sticky=tk.W)
         btn_tswhash = ttk.Button(frm_tab_ini_top, text='Password hash')
-        btn_tswhash.grid(column=0, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        btn_tswhash.grid(column=0, row=1, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.tswhash = tk.StringVar()
         self.ent_tswhash = ttk.Entry(frm_tab_ini_top, textvariable=self.tswhash)
-        self.ent_tswhash.grid(column=1, row=0, padx=3, sticky=tk.EW)
+        self.ent_tswhash.grid(column=1, row=1, padx=3, sticky=tk.EW)
         btn_tswhash['command'] = lambda: self.tswhash.set(
             'tsw01:' + subprocess.Popen(['./ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
         lbl_sch = ttk.Label(frm_tab_ini_top, text='Save INI file:')
-        lbl_sch.grid(column=2, row=0, sticky=tk.E)
+        lbl_sch.grid(column=2, row=1, sticky=tk.E)
         btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
-        btn_save_ini.grid(column=3, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
+        btn_save_ini.grid(column=3, row=1, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
 
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
-        ini_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
+        ini_txt.grid(column=0, row=2, columnspan=2, sticky=tk.NSEW)
         tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
 
         def ini_modified(event=None):
@@ -182,7 +184,7 @@ class App:
         ini_txt.bind("<<Modified>>", ini_modified)
 
         scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
-        scroll_ini.grid(column=2, row=1, sticky=tk.NSEW)
+        scroll_ini.grid(column=2, row=2, sticky=tk.NSEW)
         scroll_ini.config(command=ini_txt.yview)
         ini_txt.config(yscrollcommand=scroll_ini.set)
 

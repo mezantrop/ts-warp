@@ -1,6 +1,6 @@
 # List of Contributors
 
-## Testing, bug-hunting
+## Testing, bug-hunting, ideas
 
 * Alicja Michalska <alka96@protonmail.com>
 * András Dániel Árk <info@deniel.dev>, [@Deniel00](https://github.com/deniel00)
@@ -11,6 +11,7 @@
 * Jesus Sanchez <jesussanchezvalle@gmail.com>
 * Juha Nurmela
 * Luis Pontes <luis.pontes@kyndryl.com>
+* Marcin Nowicki <marcin.nowicki@kyndryl.com>
 * Matt Reba
 * Mohammad Ali Talaghat <ali@talaghat.ir>, [@alitalaghat](https://github.com/alitalaghat)
 * Philip Smith @ Kyndryl
