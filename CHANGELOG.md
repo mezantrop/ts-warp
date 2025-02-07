@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2025.02.05    Current**
+* **2025.02.07    Current**
+  * `inifile.c`: correct `/32` netmask for `target_network`
   * `gui-warp.py`/`gui-warp.py.in`: 'Password hash' caption
   * `CONTRIBUTORS.md`: New contributor Marcin Nowicki <marcin.nowicki@kyndryl.com>. Thanks for your ideas and testing!
   * `build.sh`: `-no-tests` added for OpenSSL `Configure`; `-fembed-bitcode` removed for both OpenSSL and libssh2
