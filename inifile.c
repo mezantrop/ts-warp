@@ -319,7 +319,7 @@ ini_section *read_ini(char *ifile_name) {
                                 }
 
                         default:
-                            /* Both INI_TARGET_NETWORK / INI_TARGET_HOST */
+                            /* INI_TARGET_NETWORK / INI_TARGET_HOST / INI_TARGET_RANGE */
                             c_targ->ip1 = str2inet(entry.val1, entry.mod1);
 
                             if (target_type == INI_TARGET_NETWORK) {
@@ -342,10 +342,11 @@ ini_section *read_ini(char *ifile_name) {
                                         ln, entry.var, entry.val);
                                     mexit(1, pfile_name, tfile_name);
                                 }
-
-                                /* vvv Do we need this? vvv */
-                                c_targ->ip2 = str2inet(entry.val2, entry.mod2);
                             }
+
+                            /* INI_TARGET_RANGE */
+                            if (entry.val2)
+                                c_targ->ip2 = str2inet(entry.val2, entry.mod2);
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
