@@ -319,17 +319,33 @@ ini_section *read_ini(char *ifile_name) {
                                 }
 
                         default:
+                            /* Both INI_TARGET_NETWORK / INI_TARGET_HOST */
                             c_targ->ip1 = str2inet(entry.val1, entry.mod1);
-                            if (entry.val2) {
+
+                            if (target_type == INI_TARGET_NETWORK) {
+                                if (!entry.val2) {
+                                    printl(LOG_CRIT,
+                                        "LN: [%d] Netmask is mandatory: [%s] = [%s]",
+                                        ln, entry.var, entry.val);
+                                    mexit(1, pfile_name, tfile_name);
+                                }
+
                                 int m = strtol(entry.val2, NULL, 10);
                                 /* Build IPv4 address netmask based on CIDR */
-                                if (m < 33 && m >= 0 && target_type == INI_TARGET_NETWORK) {
+                                if (m < 33 && m >= 0) {
                                     SIN4_FAMILY(c_targ->ip2) = AF_INET;
                                     S4_ADDR(c_targ->ip2) = m == 32 ? 0xFFFFFFFF : htonl(~(0xFFFFFFFF >> m));
-                                } else
-                                    c_targ->ip2 = str2inet(entry.val2, entry.mod2);
+                                    break;
+                                } else {
+                                    printl(LOG_CRIT,
+                                        "LN: [%d] 0 < Netmask <= 32: [%s] = [%s]",
+                                        ln, entry.var, entry.val);
+                                    mexit(1, pfile_name, tfile_name);
+                                }
+
+                                /* vvv Do we need this? vvv */
+                                c_targ->ip2 = str2inet(entry.val2, entry.mod2);
                             }
-                        break;
                     }
 
                     /* Set defined ports range or default one: 0-65535 */
