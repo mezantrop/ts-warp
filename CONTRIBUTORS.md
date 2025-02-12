@@ -19,3 +19,4 @@
 * Sandor Forbauer <sandor@forbauer.com>
 * Sławomir Koper <slawomir.koper@gmail.com>
 * Stefan Hildebrandt
+* Tomasz Głowacki <tomasz.glowacki@kyndryl.com>
