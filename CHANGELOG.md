@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2025.02.12    Current**
+* **2025.03.25    Current**
+  * `inifile.c`: "Long" dotted-decimal netmasks style returned, so `255.255.0.0` and `/16` both working
   * `inifile.c`: ignore netmasks for `target_host`
   * `inifile.c`: correct `/32` netmask for `target_network`
   * `gui-warp.py`/`gui-warp.py.in`: 'Password hash' caption

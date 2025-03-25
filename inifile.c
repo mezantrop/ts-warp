@@ -330,6 +330,12 @@ ini_section *read_ini(char *ifile_name) {
                                     mexit(1, pfile_name, tfile_name);
                                 }
 
+                                if (strchr(entry.val2, '.')) {
+                                    /* Long netmask format, e.g.: 255.0.0.0 */
+                                    c_targ->ip2 = str2inet(entry.val2, entry.mod2);
+                                    break;
+                                }
+
                                 int m = strtol(entry.val2, NULL, 10);
                                 /* Build IPv4 address netmask based on CIDR */
                                 if (m < 33 && m >= 0) {
