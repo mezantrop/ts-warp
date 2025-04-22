@@ -52,7 +52,7 @@ install-examples:
 # -------------------------------------------------------------------------------------------------------------------- #
 # Examples (special version) are installed by default                                                                  #
 # -------------------------------------------------------------------------------------------------------------------- #
-	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
 
 	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
@@ -85,7 +85,7 @@ install-configs:
 # -------------------------------------------------------------------------------------------------------------------- #
 # Danger zone! The targer is not run by default, it overwrites INSTALLED configuration files                           #
 # -------------------------------------------------------------------------------------------------------------------- #
-	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
 
 	install -d $(PREFIX)/etc/
 	install -b -m 640 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini
@@ -109,7 +109,7 @@ install-configs:
 	esac
 
 install: ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
-	@[ -f .configured ] || { echo "FATAL: run \"make all\" command first!"; exit 1; }
+	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
 
 	chown "`cat .configured`" $(PREFIX)/etc/ts-warp*
 

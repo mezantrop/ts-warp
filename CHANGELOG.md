@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2025.03.25    Current**
+* **2025.04.24    Current**
+  * `Makefile`: updated to fail `make install` if `./configure` and `make all` were not run
+  * `configure`: Do not fail on macOS SDK absence, if `gcc` is detected on `macOS`
   * `inifile.c`: "Long" dotted-decimal netmasks style returned, so `255.255.0.0` and `/16` both working
   * `inifile.c`: ignore netmasks for `target_host`
   * `inifile.c`: correct `/32` netmask for `target_network`

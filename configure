@@ -12,7 +12,7 @@
 _DEBUG=N
 
 # ---------------------------------------------------------------------------- #
-CC_CANDIDATES="cc clang gcc"
+CC_CANDIDATES="clang gcc cc"
 PREFIX_CANDIDATES="$PREFIX /usr/local /opt $HOME"
 
 EHARD;  DECIDE CONFIG_START     "STATE"    .configured
@@ -20,7 +20,8 @@ EHARD;  DECIDE CONFIG_START     "STATE"    .configured
 EHARD;  DECIDE DETECT_TARGET    "TARGET"
 EHARD;  DECIDE DETECT_PREFIX 	"PREFIX"    '"$PREFIX_CANDIDATES"'
 
-IN_VAR "TARGET" "Darwin" "Y" && {
+EHARD;  DECIDE DETECT_CC         "CC"        '"$CC_CANDIDATES"'
+IN_VAR "TARGET" "Darwin" "Y" && ! IN_VAR "CC" "gcc" && {
     EHARD;  DECIDE DETECT_PATH  "MACOS_SDK_PATH"            "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
     	    DECIDE DEFINE_VAR   "MACOS_SDK_INCLUDE_PATH"    "$MACOS_SDK_PATH/usr/include"
             DECIDE DEFINE_VAR   "MACOS_SDK_LIB_PATH"        "$MACOS_SDK_PATH/usr/lib"
@@ -28,10 +29,8 @@ IN_VAR "TARGET" "Darwin" "Y" && {
 INCLUDE_PATH_CANDIDATES="/usr/include $PREFIX/include $MACOS_SDK_INCLUDE_PATH"
 LIB_PATH_CANDIDATES="/lib /usr/lib /usr/lib32 $PREFIX/lib $MACOS_SDK_LIB_PATH"
 WITH_TCP_NODELAY=${WITH_TCP_NODELAY-1}
-
 ESOFT;  DECIDE DETECT_LPATH      "LPATH"     '"$LIB_PATH_CANDIDATES" "all"'
 ESOFT;  DECIDE DETECT_IPATH      "IPATH"     '"$INCLUDE_PATH_CANDIDATES" "all"'
-EHARD;  DECIDE DETECT_CC         "CC"        '"$CC_CANDIDATES"'
 
 ESOFT; DECIDE IF_NDEF_OR_IVAR WITH_LIBSSH2 1 && {
     ESOFT;  DECIDE DETECT_LIBRARY    "LIBSSH2"  'ssh2' && {
