@@ -28,7 +28,7 @@
 # ---------------------------------------------------------------------------- #
 
 # -- Script variables -------------------------------------------------------- #
-version="1.1.1.0"
+version="1.1.1.1"
 _DEBUG="n"
 _INCLUDE_PATH=""                            # Cache detected INCLUDE dirs
 _LIB_PATH=""                                # Cache detected LIB directories
@@ -441,6 +441,7 @@ DETECT_LIBRARY() {
         return 1
     }
 
+    _lpath=''
     [ -n "$3" ] && _lpath="$3"
     [ -n "$LIB_PATH" -a "$_lpath" != "$LIB_PATH" ] &&
         _lpath="$_lpath $LIB_PATH"
