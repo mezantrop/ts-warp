@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2025.04.24    Current**
+* **2025.05.20    Current**
+  * `ts-warp.c`: trap signals for the `console` mode as well
+  * `minmiconf:` Updated to version `1.1.1.1`
   * `Makefile`: updated to fail `make install` if `./configure` and `make all` were not run
   * `configure`: Do not fail on macOS SDK absence, if `gcc` is detected on `macOS`
   * `inifile.c`: "Long" dotted-decimal netmasks style returned, so `255.255.0.0` and `/16` both working
