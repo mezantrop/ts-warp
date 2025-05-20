@@ -302,19 +302,19 @@ All parameters are optional:
         }
     #endif
 
+    /* Trap signals */
+    signal(SIGHUP, trap_signal);
+    signal(SIGINT, trap_signal);
+    signal(SIGQUIT, trap_signal);
+    signal(SIGTERM, trap_signal);
+    signal(SIGCHLD, trap_signal);
+    signal(SIGUSR1, trap_signal);
+    signal(SIGUSR2, trap_signal);
+
+    signal(SIGPIPE, SIG_IGN);                       /* Ignore the signal if nobody reads the traffig log pipe! */
+
     if (d_flg) {
         /* -- Daemonizing ------------------------------------------------------------------------------------------- */
-        signal(SIGHUP, trap_signal);
-        signal(SIGINT, trap_signal);
-        signal(SIGQUIT, trap_signal);
-        signal(SIGTERM, trap_signal);
-        signal(SIGCHLD, trap_signal);
-        signal(SIGUSR1, trap_signal);
-        signal(SIGUSR2, trap_signal);
-
-        signal(SIGPIPE, SIG_IGN);                       /* Ignore the signal if nobody reads the traffig log pipe! */
-
-
         if ((pid = fork()) == -1) {
             printl(LOG_CRIT, "Daemonizing failed. The 1-st fork() failed");
             exit(1);
