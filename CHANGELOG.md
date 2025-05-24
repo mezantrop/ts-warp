@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2025.05.20    Current**
+* **2025.05.24    Current**
+  * `ts-warp.c`: `SIGHUP` hooked to recreate/reopen the log-file
   * `ts-warp.c`: trap signals for the `console` mode as well
   * `minmiconf:` Updated to version `1.1.1.1`
   * `Makefile`: updated to fail `make install` if `./configure` and `make all` were not run

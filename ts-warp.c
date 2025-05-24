@@ -89,6 +89,8 @@ char *lfile_name = LOG_FILE_NAME;
 char *tfile_name = ACT_FILE_NAME;
 char *pfile_name = PID_FILE_NAME;
 
+struct passwd *pwd = NULL;
+
 int cn = 1;                                         /* Active clients number */
 pid_t pid, mpid;                                    /* Current and main daemon PID */
 struct pid_list *pids = NULL;                       /* List of active clients with PIDs and Sections */
@@ -277,7 +279,7 @@ All parameters are optional:
     printl(LOG_INFO, "ts-warp Internal Socks address: [%s:%s]", saddr, sport);
     printl(LOG_INFO, "ts-warp Internal HTTP address: [%s:%s]", haddr, hport);
 
-    struct passwd *pwd = getpwnam(runas_user);
+    pwd = getpwnam(runas_user);
 
     if (mkfifo(tfile_name, S_IFIFO|S_IRWXU|S_IRGRP|S_IROTH) == -1 && errno != EEXIST)
         printl(LOG_WARN, "Unable to create active connections and traffic log pipe: [%s]", tfile_name);
@@ -336,8 +338,10 @@ All parameters are optional:
     mpid = pid;
 
     #if !defined(__APPLE__)
-        /* unfortunately, macOS won't allow reading /dev/pf under non-root user */
-        if (setuid(pwd->pw_uid) && setgid(pwd->pw_gid)) {
+        /* unfortunately:
+        * macOS won't allow nor reading /dev/pf under non-root user
+        * nor doing seteuid(0) the usual way */
+        if (seteuid(pwd->pw_uid) && setegid(pwd->pw_gid)) {
             printl(LOG_CRIT, "Failed to set privilege level to UID:GID [%d:%d]", pwd->pw_uid, pwd->pw_gid);
             exit(1);
         }
@@ -1383,7 +1387,22 @@ void trap_signal(int sig) {
 
 
     switch (sig) {
-        case SIGHUP:                                                /* Reload configuration from the INI-file */
+        case SIGHUP:                                                /* Reload the config, don't drop connections */
+            /* Reopen LOG-file or fail to stderr */
+            if (lfile != stdout && lfile != stderr) {
+                #if !defined(__APPLE__)
+                    if (!seteuid(0) && !freopen(lfile_name, "a", lfile))
+                        lfile = stderr;
+
+                    seteuid(pwd->pw_uid);
+                #elif
+                    /* On macOS we are always root */
+                    if (!freopen(lfile_name, "a", lfile))
+                        lfile = stderr;
+                #endif
+            }
+
+            /* Reload configuration from the INI-file */
             ini_root = delete_ini(ini_root);
             ini_root = read_ini(ifile_name);
             show_ini(ini_root, LOG_CRIT);
