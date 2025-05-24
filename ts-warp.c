@@ -1395,7 +1395,7 @@ void trap_signal(int sig) {
                         lfile = stderr;
 
                     seteuid(pwd->pw_uid);
-                #elif
+                #else
                     /* On macOS we are always root */
                     if (!freopen(lfile_name, "a", lfile))
                         lfile = stderr;
