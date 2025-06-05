@@ -590,14 +590,6 @@ All parameters are optional:
         fcntl(csock, F_SETFL, ~O_NONBLOCK);                         /* Don't block client connections */
         printl(LOG_INFO, "Client: [%d], IP: [%s] accepted", cn++, inet2str(&caddr, buf));
 
-        /* -- Get the client original destination from NAT ---------------------------------------------------------- */
-
-        /* Initialize  daddr */
-        daddr_len = sizeof(daddr.ip_addr);
-        memset(&daddr.ip_addr, 0, daddr_len);
-        memset(&daddr.name, 0, sizeof(daddr.name) - 1);
-        daddr.ip_addr.ss_family = caddr.ss_family;
-
         /* -- Process the PIDs list: remove exitted clients and execute workload balance functions ------------------ */
         c = pids;
 
@@ -609,7 +601,7 @@ All parameters are optional:
 
         while (c) {
             push_ini = NULL;
-            if (!c->section_name || strlen(c->section_name) == 0) {
+            if (c->traffic.daddr.ss_family && (!c->section_name || strlen(c->section_name) == 0)) {
                 tmp_daddr.ip_addr = c->traffic.daddr;
                 if ((push_ini = ini_look_server(ini_root, tmp_daddr))) {
                     free(c->section_name);
@@ -619,7 +611,8 @@ All parameters are optional:
 
             if (c == pids && c->status >= 0) {                              /* Remove pidlist root entry */
                 pids = c->next;
-                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
+                if (!push_ini && c->section_name && c->section_name[0])
+                    push_ini = getsection(ini_root, c->section_name);
                 if (c->status && push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
                         pushback_ini(&ini_root, push_ini);
                 free(c->section_name);
@@ -628,13 +621,15 @@ All parameters are optional:
             } else if (c && c->next && c->next->status >= 0) {              /* Remove a pidlist entry */
                 d = c->next;
                 c->next = d->next;
-                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
+                if (!push_ini && c->section_name && c->section_name[0])
+                    push_ini = getsection(ini_root, c->section_name);
                 if (d->status && push_ini && push_ini->section_balance != SECTION_BALANCE_NONE)
                         pushback_ini(&ini_root, push_ini);
                 free(d->section_name);
                 free(d);
             } else {
-                if (!push_ini) push_ini = getsection(ini_root, c->section_name);
+                if (!push_ini && c->section_name && c->section_name[0])
+                    push_ini = getsection(ini_root, c->section_name);
                 if (push_ini && push_ini->section_balance == SECTION_BALANCE_ROUNDROBIN)
                     pushback_ini(&ini_root, push_ini);
             }
@@ -653,11 +648,17 @@ All parameters are optional:
             close(csock);
 
             /* Save the client into the list */
-            pids = pidlist_add(pids, s_ini ? s_ini->section_name : "", cpid, caddr, daddr.ip_addr);
+            pids = pidlist_add(pids, "", cpid, caddr, tmp_daddr.ip_addr);
         }
 
         if (cpid == 0) {
             /* -- Client processing (child) ------------------------------------------------------------------------- */
+
+            /* Initialize  daddr */
+            daddr_len = sizeof(daddr.ip_addr);
+            memset(&daddr.ip_addr, 0, daddr_len);
+            memset(&daddr.name, 0, sizeof(daddr.name) - 1);
+            daddr.ip_addr.ss_family = caddr.ss_family;
 
             ssock.t = CHS_SOCKET;                                       /* Type socket */
             #if (WITH_LIBSSH2)

@@ -429,6 +429,11 @@ struct ini_section *getsection(struct ini_section *ini, char *name) {
 
     struct ini_section *s;
 
+    if (!name || !name[0]) {
+        printl(LOG_VERB, "getsection(): Empty section name queried!");
+        return NULL;
+    }
+
     s = ini;
     while (s) {
         if (!strcmp(s->section_name, name)) {
@@ -595,16 +600,14 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
         while (t) {
             if ((t->target_type == INI_TARGET_HOST || t->target_type == INI_TARGET_DOMAIN)) {
                 /* Perform namelookup only if section has target_host or target_domain */
-                if (!addr_u.name[0] && getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr), host,
-                        sizeof host, 0, 0, NI_NAMEREQD))
-                            printl(LOG_VERB, "Unspecified / irresolvable hostname: [%s]",
-                                inet2str(&addr_u.ip_addr, buf1));
-                else
-                    if (!domain && (domain = strchr(host, '.'))) {
+                if (!addr_u.name[0] &&
+                    getnameinfo((struct sockaddr *)&addr_u.ip_addr, sizeof(addr_u.ip_addr),
+                        host, sizeof host, 0, 0, NI_NAMEREQD) == 0 &&
+                    !domain && (domain = strchr(host, '.'))) {
                         domainlen = strnlen(++domain, HOST_NAME_MAX - 1);
                         printl(LOG_VERB, "IP: [%s] resolves to: [%s] domain: [%s]",
-                            inet2str(&addr_u.ip_addr, buf1), host, domain?:"");
-                    }
+                            inet2str(&addr_u.ip_addr, buf1), host, domain ? : "");
+                }
             }
 
             switch(t->target_type) {

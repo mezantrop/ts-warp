@@ -62,7 +62,7 @@ struct pid_list *pidlist_add(struct pid_list *root, char *section_name, pid_t pi
         c->next = n;
     }
 
-    printl(LOG_INFO, "Clients list. Added PID: [%d], Section: [%s]", n->pid, n->section_name);
+    printl(LOG_INFO, "Clients list. Added PID: [%d]", n->pid);
     return root;
 }
 
