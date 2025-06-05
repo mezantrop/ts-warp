@@ -128,7 +128,7 @@ class App:
 
         # -- Tab INI ------------------------------------------------------------------------------------------------- #
         tab_ini.columnconfigure(0, weight=1)
-        tab_ini.rowconfigure(1, weight=1)
+        tab_ini.rowconfigure(2, weight=1)
 
         frm_tab_ini_top = ttk.Frame(tab_ini)
         frm_tab_ini_top.grid(column=0, row=0, sticky=tk.EW)

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* **2025.06.05    Current - ts-warp-1.5.8, gui-warp-1.0.27 (gui-warp-v1.0.34-mac), ns-warp-1.0.7**
+  * `gui-warp.py`: INI-tab Text-field resizing corrected
+
 * **2025.06.04    ts-warp-1.5.8, gui-warp-1.0.27 (gui-warp-v1.0.34-mac), ns-warp-1.0.7**
   * `build.sh`: `libssl/libssh` section tweaks
   * `ts-warp.c`: `SIGHUP` hooked to recreate/reopen the log-file
