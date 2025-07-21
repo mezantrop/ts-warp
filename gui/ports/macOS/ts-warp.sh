@@ -40,7 +40,9 @@
 #
 
 # -- CONFIGURATION VARIABLES ------------------------------------------------- #
-tswarp_prefix=$2				# Crack for gui-warp.app
+[ -z "$2" -a "$USER" = "root" ] && _usage       # The USERNAME and prefix...
+tswarp_prefix=${2-"/Users/$USER/ts-warp"}       # ...workaround for gui-warp.app
+
 SCRIPTPATH=$(dirname $(readlink -f "$0"))
 tswarp_inifile="$tswarp_prefix/etc/ts-warp.ini"
 tswarp_pidfile="$tswarp_prefix/var/run/ts-warp.pid"
@@ -168,7 +170,7 @@ _check_root() {
 
 # ---------------------------------------------------------------------------- #
 _usage() {
-    printf "Usage:\n\tts-warp.sh start|stop|reload|restart "/home/user/ts-warp" [options]\n"
+    printf "Usage:\n\tts-warp.sh start|stop|reload|restart "/Users/USERNAME/ts-warp" [options]\n"
     printf "\tts-warp.sh status\n"
     exit 1
 }

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2025.06.05    Current - ts-warp-1.5.8, gui-warp-1.0.27 (gui-warp-v1.0.34-mac), ns-warp-1.0.7**
+* **2025.07.18    Current**
+  * `gui-warp.app`: More friendly `ts-warp.sh` for CLI execution on `MacOS`
   * `ts-warp.c, pidlist.c`: better `PID`-list management
   * `inifile.c`: suppress negative name lookup messages
   * `gui-warp.py`: INI-tab Text-field resizing corrected
