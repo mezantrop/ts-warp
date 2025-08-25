@@ -6,6 +6,9 @@
 
 ## Transparent proxy server and traffic wrapper
 
+TS-Warp is a transparent SOCKS5/4, HTTP, and SSH proxy server and client for macOS, Linux, FreeBSD/OpenBSD, and Windows with WSL2.
+It supports both standard and transparent proxy modes, allowing seamless TCP traffic redirection without modifying applications.
+
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 ### Features
