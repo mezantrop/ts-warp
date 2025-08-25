@@ -201,7 +201,7 @@ Note, Python 3 interpreter with `tkinter` support is required to run the GUI fro
 
 ### macOS All-in-one TS-Warp + GUI-Warp App
 
-Check [releases](https://github.com/mezantrop/ts-warp/releases) and download macOS standalone precompiled application.
+Check [releases](https://github.com/mezantrop/ts-warp/releases) and download macOS standalone precompiled GUI application.
 Read related [README.md](gui/ports/macOS/README.md) for information and instructions.
 
 ### Experimental Deep Packet Inspections bypass (обход замедления/блокировки, например, YouTube)
