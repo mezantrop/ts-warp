@@ -18,12 +18,13 @@ PREFIX_CANDIDATES="$PREFIX /usr/local /opt $HOME"
 EHARD;  DECIDE CONFIG_START     "STATE"    .configured
 
 EHARD;  DECIDE DETECT_TARGET    "TARGET"
-EHARD;  DECIDE DETECT_PREFIX 	"PREFIX"    '"$PREFIX_CANDIDATES"'
+EHARD;  DECIDE DETECT_PREFIX    "PREFIX"    '"$PREFIX_CANDIDATES"'
 
 EHARD;  DECIDE DETECT_CC         "CC"        '"$CC_CANDIDATES"'
 IN_VAR "TARGET" "Darwin" "Y" && ! IN_VAR "CC" "gcc" && {
-    EHARD;  DECIDE DETECT_PATH  "MACOS_SDK_PATH"            "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-    	    DECIDE DEFINE_VAR   "MACOS_SDK_INCLUDE_PATH"    "$MACOS_SDK_PATH/usr/include"
+    EHARD;  DECIDE DETECT_COMMAND   "XCRUN" "xcrun"
+    EHARD;  DECIDE DETECT_PATH  "MACOS_SDK_PATH"            "$(xcrun --show-sdk-path 2>/dev/null)"
+            DECIDE DEFINE_VAR   "MACOS_SDK_INCLUDE_PATH"    "$MACOS_SDK_PATH/usr/include"
             DECIDE DEFINE_VAR   "MACOS_SDK_LIB_PATH"        "$MACOS_SDK_PATH/usr/lib"
 }
 INCLUDE_PATH_CANDIDATES="/usr/include $PREFIX/include $MACOS_SDK_INCLUDE_PATH"
