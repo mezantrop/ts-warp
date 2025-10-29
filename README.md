@@ -6,7 +6,6 @@
 It supports **standard and transparent modes**, with **policy-based routing** for per-destination proxy selection.
 
 [![GitHub release](https://img.shields.io/github/v/release/mezantrop/ts-warp?include_prereleases)](https://github.com/mezantrop/ts-warp/releases)
-[![Downloads](https://img.shields.io/github/downloads/mezantrop/ts-warp/latest/total)](https://github.com/mezantrop/ts-warp/releases)
 [![License](https://img.shields.io/github/license/mezantrop/ts-warp)](https://github.com/mezantrop/ts-warp/blob/master/LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20|%20Linux%20|%20BSD%20|%20WSL2-blue)](#)
 
