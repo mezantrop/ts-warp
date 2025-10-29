@@ -1,13 +1,19 @@
 # TS-Warp
 
+## Transparent proxy server and traffic wrapper
+
+**TS-Warp** is a cross-platform **SOCKS5/4, HTTP, and SSH proxy server and client** for **macOS, Linux, FreeBSD/OpenBSD, and Windows (via WSL2)**.
+It supports **standard and transparent modes**, with **policy-based routing** for per-destination proxy selection.
+
+[![GitHub release](https://img.shields.io/github/v/release/mezantrop/ts-warp?include_prereleases)](https://github.com/mezantrop/ts-warp/releases)
+[![Downloads](https://img.shields.io/github/downloads/mezantrop/ts-warp/latest/total)](https://github.com/mezantrop/ts-warp/releases)
+[![License](https://img.shields.io/github/license/mezantrop/ts-warp)](https://github.com/mezantrop/ts-warp/blob/master/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20|%20Linux%20|%20BSD%20|%20WSL2-blue)](#)
 [![CodeQL](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/codeql.yml)
 [![C/C++ CI - macOS](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml)
 [![C/C++ CI - Ubuntu](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml)
 
-## Transparent proxy server and traffic wrapper
-
-TS-Warp is a transparent SOCKS5/4, HTTP, and SSH proxy server and client for macOS, Linux, FreeBSD/OpenBSD, and Windows with WSL2.
-It supports both standard and transparent proxy modes, allowing seamless TCP traffic redirection without modifying applications.
+---
 
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
