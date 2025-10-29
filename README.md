@@ -13,9 +13,9 @@ It supports **standard and transparent modes**, with **policy-based routing** fo
 [![C/C++ CI - macOS](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-macos.yml)
 [![C/C++ CI - Ubuntu](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml/badge.svg)](https://github.com/mezantrop/ts-warp/actions/workflows/c-cpp-ubuntu.yml)
 
----
-
 <a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
+---
 
 ### Features
 
