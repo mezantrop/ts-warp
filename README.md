@@ -1,9 +1,13 @@
 # TS-Warp
 
-## Transparent proxy server and traffic wrapper
+## Cross-platform SOCKS5/4, HTTP, and SSH Proxy Client and Server
 
-**TS-Warp** is a cross-platform **SOCKS5/4, HTTP, and SSH proxy server and client** for **macOS, Linux, FreeBSD/OpenBSD, and Windows (via WSL2)**.
-It supports **standard and transparent modes**, with **policy-based routing** for per-destination proxy selection.
+### with Transparent Mode, Policy-based Routing, and Multi-Proxy Support
+
+**TS-Warp** is an advanced, cross-platform **SOCKS5/4, HTTP, and SSH proxy client and server** for
+**macOS, Linux, FreeBSD/OpenBSD, and Windows (via WSL2)**. It supports **both standard and transparent proxy modes**,
+**policy-based routing** and **multi-proxy rules**, allowing flexible redirection of TCP traffic through different
+proxies based on destination, domain, or rule sets.
 
 [![GitHub release](https://img.shields.io/github/v/release/mezantrop/ts-warp?include_prereleases)](https://github.com/mezantrop/ts-warp/releases)
 [![License](https://img.shields.io/github/license/mezantrop/ts-warp)](https://github.com/mezantrop/ts-warp/blob/master/LICENSE)
