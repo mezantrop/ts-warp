@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2025.11.02    Current**
+* **2025.11.14    Current**
+  * `ts-warp.c`: Typo errors fixed
   * `git`: Performed `git-filter-repo` to clean garbage.
   * `configure`: Use `xcrun` to detect MacOS SDK path. Fixes the [Issue](https://github.com/mezantrop/ts-warp/issues/14)
   * `gui-warp.app`: More friendly `ts-warp.sh` for CLI execution on `MacOS`

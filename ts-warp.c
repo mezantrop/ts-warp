@@ -1215,7 +1215,7 @@ All parameters are optional:
                                     break;
                                 }
                                 if (rec == -1) {
-                                    printl(LOG_CRIT, "Error receving data from the client");
+                                    printl(LOG_CRIT, "Error receiving data from the client");
                                     break;
                                 }
 
@@ -1287,7 +1287,7 @@ All parameters are optional:
                                 break;
                             }
                             if (rec == -1) {
-                                printl(LOG_CRIT, "Error receving data from the client");
+                                printl(LOG_CRIT, "Error receiving data from the client");
                                 break;
                             }
 
@@ -1325,7 +1325,7 @@ All parameters are optional:
                                 break;
                             }
                             if (rec == -1) {
-                                printl(LOG_CRIT, "Error receving data from proxy server");
+                                printl(LOG_CRIT, "Error receiving data from proxy server");
                                 break;
                             }
                             while ((snd = send(csock, buf, rec, 0)) == 0) {
