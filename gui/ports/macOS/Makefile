@@ -53,12 +53,12 @@ ts-warp: ts-warp_x64 ts-warp_arm
 	lipo -create -output starter starter_x64 starter_arm
 
 ts-warp_x64-ssh2:
-	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_x64 -lcrypto -lssl -lssh2 -lz -L./ -target x86_64-apple-macos11 $(WARP_FILES)
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_x64 -lcrypto -lssl -lssh2 -lz -I./ -L./ -target x86_64-apple-macos11 $(WARP_FILES)
 	$(CC) $(CFLAGS) -o ts-pass_x64 -target x86_64-apple-macos11 $(PASS_FILES)
 	$(CC) $(CFLAGS) -o starter_x64 -target x86_64-apple-macos11 starter.c
 
 ts-warp_arm-ssh2:
-	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_arm -lcrypto -lssl -lssh2 -lz -L./ -target arm64-apple-macos11 $(WARP_FILES)
+	$(CC) $(CFLAGS) -DWITH_LIBSSH2=1 -o ts-warp_arm -lcrypto -lssl -lssh2 -lz -I./ -L./ -target arm64-apple-macos11 $(WARP_FILES)
 	$(CC) $(CFLAGS) -o ts-pass_arm -target arm64-apple-macos11 $(PASS_FILES)
 	$(CC) $(CFLAGS) -o starter_arm -target arm64-apple-macos11 starter.c
 

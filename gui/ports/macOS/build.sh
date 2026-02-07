@@ -4,71 +4,51 @@
 # Build gui-warp.app macOS application                                                                                 #
 # -------------------------------------------------------------------------------------------------------------------- #
 
+# Python3 to build virtual environmen
 pv='/Library/Frameworks/Python.framework/Versions/Current'
+pv_major=3
+pv_minor=11
+
+# iSSH2-head to build in current versions of OpenSSL/libssh2 libraries statically
+issh2_home='./iSSH2'
+issh2_platform_name='macosx'
+issh2_platform_version=11
+issh2_architectures="arm64 x86_64"
+
+l_libssh2="$issh2_home/libssh2_macosx/lib/libssh2.a"
+h_libssh2="$issh2_home/libssh2_macosx/include/libssh2.h"
+l_libssl="$issh2_home/openssl_macosx/lib/libssl.a"
+l_libcrypto="$issh2_home/openssl_macosx/lib/libcrypto.a"
+
+which $pv/bin/python3 > /dev/null || { echo "No Python interpreter detected"; exit 1; }
+$pv/bin/python3 -V |
+	awk -v maj=$pv_major -v min=$pv_minor -F '[ .]' '
+								{ print($0, "detected") }
+		$2 != maj || $3 > min	{ exit 1 }
+	' || {
+		echo "Unsupported Python version. Use Python <= $pv_major.$pv_minor.x"
+		exit 1
+	}
 
 echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
 rm -rf build dist venv tmp GUI-Warp *.dmg
 
 echo "-- Making binaries ----------------------------------------------------------------------------------------------" &&
-# NB! Static libraries must be located in the current directory! If changing, adjust Makefile as well!
+# NB! Static libraries and header files must be located in the current directory! If changing, adjust Makefile as well!
 [ -n "$WITH_LIBSSH2" ] && {
-	echo "-- Downloading/unpacking SSL and SSH2 libraries -----------------------------------------------------------------"
-	mkdir tmp
-	wget -O tmp/head-openssl.tgz https://github.com/openssl/openssl/archive/refs/heads/master.tar.gz
-	wget -O tmp/head-libssh2.tgz https://github.com/libssh2/libssh2/archive/refs/heads/master.tar.gz
-	cd tmp
-	tar zxvf head-openssl.tgz
-	tar zxvf head-libssh2.tgz
+	sh $issh2_home/iSSH2-head.sh \
+		--platform="$issh2_platform_name" \
+		--min-version="$issh2_platform_version" \
+		--archs="$issh2_architectures"
 
-	echo "-- Compiling SSL for ARM64 processors ---------------------------------------------------------------------------"
-	cd openssl-master
-
-	./Configure darwin64-arm64-cc no-shared -mmacosx-version-min=11 -no-tests
-	make depend
-	make -j 4 build_libs
-	cp libcrypto.a ../arm64_libcrypto.a
-	cp libssl.a  ../arm64_libssl.a
-
-	echo "-- Compiling SSL for x86_64 processors --------------------------------------------------------------------------"
-	make clean
-	./Configure darwin64-x86_64-cc no-shared -mmacosx-version-min=11 -no-tests
-	make depend
-	make -j 4 build_libs
-	cp libcrypto.a ../x86_64_libcrypto.a
-	cp libssl.a  ../x86_64_libssl.a
-
-	echo "-- Compiling SSH2 for ARM64 processors --------------------------------------------------------------------------"
-	cd ../libssh2-master
-	export CFLAGS="-arch arm64 -pipe -no-cpp-precomp  -mmacosx-version-min=11"
-	export CPPFLAGS="-arch arm64 -pipe -no-cpp-precomp -mmacosx-version-min=11"
-	autoreconf -fi
-	./configure --host=aarch64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --disable-shared --enable-static
-	make -j
-	cp src/.libs/libssh2.a ../arm64_libssh2.a
-
-	make clean
-	export CFLAGS="-arch x86_64 -pipe -no-cpp-precomp -mmacosx-version-min=11"
-	export CPPFLAGS="-arch x86_64 -pipe -no-cpp-precomp -mmacosx-version-min=11"
-	autoreconf -fi
-	./configure --host=x86_64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --disable-shared --enable-static
-	make -j 4
-	cp src/.libs/libssh2.a ../x86_64_libssh2.a
-
-	unset CFLAGS
-	unset CPPFLAGS
-
-	echo "-- Making universal libraries -----------------------------------------------------------------------------------"
-	cd ..
-	lipo -create arm64_libssl.a x86_64_libssl.a -output ../libssl.a
-	lipo -create arm64_libcrypto.a x86_64_libcrypto.a -output ../libcrypto.a
-	lipo -create arm64_libssh2.a x86_64_libssh2.a -output ../libssh2.a
-	cd ..
-
-	[ ! -f ./libssh2.a -o ! -f ./libcrypto.a -o ! -f libssl.a ] && {
-		echo "Unable to find static SSH2 library, skipping it"
+	[ ! -f "$l_libssh2" -o ! -f "$h_libssh2" -o ! -f "$l_libssl" -o ! -f "$l_libcrypto" ] && {
+		echo "WARNING: Unable to find static OpenSSL/libssh2 libraries or header files -> Building with NO SSH2 support!"
 		make
-	} || make ts-warp-ssh2
+	} || {
+		cp $l_libssh2 $h_libssh2 $l_libssl $l_libcrypto .
+		make ts-warp-ssh2
+	}
 } || make
 
 echo "-- Making environment -------------------------------------------------------------------------------------------" &&
