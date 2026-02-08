@@ -287,11 +287,11 @@ echo
 set -e
 
 if [[ $BUILD_SSL == true ]]; then
-  "$BASEPATH/iSSH2-openssl.sh" || cleanupFail $CLEAN_BUILD
+  sh "$BASEPATH/iSSH2-openssl.sh" || cleanupFail $CLEAN_BUILD
 fi
 
 if [[ $BUILD_SSH == true ]]; then
-  "$BASEPATH/iSSH2-libssh2.sh" || cleanupFail $CLEAN_BUILD
+  sh "$BASEPATH/iSSH2-libssh2.sh" || cleanupFail $CLEAN_BUILD
 fi
 
 if [[ $BUILD_SSL == true ]] || [[ $BUILD_SSH == true ]]; then
