@@ -31,93 +31,78 @@
 #                                                                              #
 ################################################################################
 
-XCODE_VERSION=`xcodebuild -version | grep Xcode | cut -d' ' -f2`
-
-version () {
-  printf "%02d%02d%02d" ${1//./ }
-}
-
 source "$BASEPATH/iSSH2-commons"
 
 set -e
 
-mkdir -p "$LIBSSLDIR"
+mkdir -p "$LIBSSHDIR"
 
-LIBSSL_TAR="head-openssl.tgz"
+LIBSSH_TAR="head-libssh2.tgz"
 
-downloadFile "https://github.com/openssl/openssl/archive/refs/heads/master.tar.gz" "$LIBSSLDIR/$LIBSSL_TAR"
+downloadFile "https://github.com/libssh2/libssh2/archive/refs/heads/master.tar.gz" "$LIBSSHDIR/$LIBSSH_TAR"
 
-LIBSSLSRC="$LIBSSLDIR/src/"
-mkdir -p "$LIBSSLSRC"
+LIBSSHSRC="$LIBSSHDIR/src/"
+mkdir -p "$LIBSSHSRC"
 
 set +e
-echo "Extracting $LIBSSL_TAR"
-tar -zxkf "$LIBSSLDIR/$LIBSSL_TAR" -C "$LIBSSLSRC" --strip-components 1 2>&-
+echo "Extracting $LIBSSH_TAR"
+tar -zxkf "$LIBSSHDIR/$LIBSSH_TAR" -C "$LIBSSHDIR/src" --strip-components 1 2>&-
 set -e
 
-echo "Building OpenSSL $LIBSSL_VERSION, please wait..."
+LIBSSH_VERSION=$(awk '$1 == "#define" && $2 == "LIBSSH2_VERSION" {split($3, _, "\""); print(_[2])}' $LIBSSHDIR/src/include/libssh2.h)
+echo "Building Libssh2 $LIBSSH_VERSION:"
 
 for ARCH in $ARCHS
 do
-  if [[ "$SDK_PLATFORM" == "macosx" ]]; then
-    CONF="no-shared"
-  else
-    CONF="no-asm no-hw no-shared no-async"
-  fi
-
   PLATFORM="$(platformName "$SDK_PLATFORM" "$ARCH")"
-  OPENSSLDIR="$LIBSSLDIR/${PLATFORM}_$SDK_VERSION-$ARCH"
-  LIPO_LIBSSL="$LIPO_LIBSSL $OPENSSLDIR/libssl.a"
-  LIPO_LIBCRYPTO="$LIPO_LIBCRYPTO $OPENSSLDIR/libcrypto.a"
+  OPENSSLDIR="$BASEPATH/openssl_$SDK_PLATFORM/"
+  PLATFORM_SRC="$LIBSSHDIR/${PLATFORM}_$SDK_VERSION-$ARCH/src"
+  PLATFORM_OUT="$LIBSSHDIR/${PLATFORM}_$SDK_VERSION-$ARCH/install"
+  LIPO_SSH2="$LIPO_SSH2 $PLATFORM_OUT/lib/libssh2.a"
 
-  if [[ -f "$OPENSSLDIR/libssl.a" ]] && [[ -f "$OPENSSLDIR/libcrypto.a" ]]; then
-    echo "libssl.a and libcrypto.a for $ARCH already exist."
+  if [[ -f "$PLATFORM_OUT/lib/libssh2.a" ]]; then
+    echo "libssh2.a for $ARCH already exists."
   else
-    rm -rf "$OPENSSLDIR"
-    cp -R "$LIBSSLSRC"  "$OPENSSLDIR"
-    cd "$OPENSSLDIR"
+    rm -rf "$PLATFORM_SRC"
+    rm -rf "$PLATFORM_OUT"
+    mkdir -p "$PLATFORM_OUT"
+    cp -R "$LIBSSHSRC" "$PLATFORM_SRC"
+    cd "$PLATFORM_SRC"
 
-    LOG="$OPENSSLDIR/build-openssl.log"
+    LOG="$PLATFORM_OUT/build-libssh2.log"
     touch $LOG
 
-    if [[ "$SDK_PLATFORM" == "macosx" ]]; then
-      if [[ "$ARCH" == "x86_64" ]]; then
-        HOST="darwin64-x86_64-cc"
-      elif [[ "$ARCH" == "arm64" ]] && [[ $(version "$XCODE_VERSION") -ge $(version "12.0") ]]; then
-        HOST="darwin64-arm64-cc"
-      else
-        HOST="darwin-$ARCH-cc"
-      fi
+    if [[ "$ARCH" == arm64* ]]; then
+      HOST="aarch64-apple-darwin"
     else
-      HOST="iphoneos-cross"
-      if [[ "${ARCH}" == *64 ]] || [[ "${ARCH}" == arm64* ]]; then
-        CONF="$CONF enable-ec_nistp_64_gcc_128"
-      fi
+      HOST="$ARCH-apple-darwin"
     fi
 
-    export CROSS_TOP="$DEVELOPER/Platforms/$PLATFORM.platform/Developer"
-    export CROSS_SDK="$PLATFORM$SDK_VERSION.sdk"
-    export SDKROOT="$CROSS_TOP/SDKs/$CROSS_SDK"
-    export CC="$CLANG -arch $ARCH"
+    export DEVROOT="$DEVELOPER/Platforms/$PLATFORM.platform/Developer"
+    export SDKROOT="$DEVROOT/SDKs/$PLATFORM$SDK_VERSION.sdk"
+    export CC="$CLANG"
+    export CPP="$CLANG -E"
+    export CFLAGS="-arch $ARCH -pipe -no-cpp-precomp -isysroot $SDKROOT -m$SDK_PLATFORM-version-min=$MIN_VERSION $EMBED_BITCODE"
+    export CPPFLAGS="-arch $ARCH -pipe -no-cpp-precomp -isysroot $SDKROOT -m$SDK_PLATFORM-version-min=$MIN_VERSION"
 
-    CONF="$CONF -m$SDK_PLATFORM-version-min=$MIN_VERSION $EMBED_BITCODE"
-
-    ./Configure $HOST $CONF >> "$LOG" 2>&1
-
-    if [[ "$ARCH" == "x86_64" ]]; then
-      sed -ie "s!^CFLAG=!CFLAG=-isysroot $SDKROOT !" "Makefile"
+    autoreconf -fi
+    if [[ $(./configure --help | grep -c -- --with-openssl) -eq 0 ]]; then
+      CRYPTO_BACKEND_OPTION="--with-crypto=openssl"
+    else
+      CRYPTO_BACKEND_OPTION="--with-openssl"
     fi
 
-    make depend >> "$LOG" 2>&1
-    make -j "$BUILD_THREADS" build_libs >> "$LOG" 2>&1
+    ./configure --host=$HOST --prefix="$PLATFORM_OUT" --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz $CRYPTO_BACKEND_OPTION --with-libssl-prefix="$OPENSSLDIR" --disable-shared --enable-static  >> "$LOG" 2>&1
+
+    make >> "$LOG" 2>&1
+    make -j "$BUILD_THREADS" install >> "$LOG" 2>&1
 
     echo "- $PLATFORM $ARCH done!"
   fi
 done
 
-lipoFatLibrary "$LIPO_LIBSSL" "$BASEPATH/openssl_$SDK_PLATFORM/lib/libssl.a"
-lipoFatLibrary "$LIPO_LIBCRYPTO" "$BASEPATH/openssl_$SDK_PLATFORM/lib/libcrypto.a"
+lipoFatLibrary "$LIPO_SSH2" "$BASEPATH/libssh2_$SDK_PLATFORM/lib/libssh2.a"
 
-importHeaders "$OPENSSLDIR/include/" "$BASEPATH/openssl_$SDK_PLATFORM/include"
+importHeaders "$LIBSSHSRC/include/" "$BASEPATH/libssh2_$SDK_PLATFORM/include"
 
 echo "Building done."

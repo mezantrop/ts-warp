@@ -32,6 +32,7 @@
 ################################################################################
 
 export SCRIPTNAME="iSSH2-head"
+export SCRIPTVERSION="1.0"
 
 #Functions
 
@@ -100,8 +101,8 @@ echo "  watchos:    armv7k | arm64_32"
 echo "  appletvos:  arm64"
 echo
 echo "Examples:"
-echo "  iSSH2-head.sh --platform=macosx --min-version=11 --archs=\"arm64 x86_64\""
-echo "  iSSH2-head.sh --xcodeproj path/to/MyApp.xcodeproj --target MyApp"
+echo "  $SCRIPTNAME.sh --platform=macosx --min-version=11 --archs=\"arm64 x86_64\""
+echo "  $SCRIPTNAME.sh --xcodeproj path/to/MyApp.xcodeproj --target MyApp"
 echo
 
   exit 1
