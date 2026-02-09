@@ -91,4 +91,4 @@ hdiutil convert GUI-Warp-tmp.dmg -format UDZO -o GUI-Warp.dmg
 
 echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
-rm -rf build dist venv tmp GUI-Warp GUI-Warp-tmp.dmg
+rm -rf build dist venv tmp GUI-Warp GUI-Warp-tmp.dmg libcrypto.a libssh2.a libssl.a libssh2.h iSSH2/libssh2_macosx iSSH2_openssl_macosx
