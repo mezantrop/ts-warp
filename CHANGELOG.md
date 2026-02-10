@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2026.02.09    Current**
+* **2026.02.10    Current**
+  * `gui-warp.app`: memory leak fix - some objects were never released due to refresh/timers issues
+  * `gui-warp.app`: `ts-warp.sh act` option to trigger connection statistics dump
   * `gui-warp.app`: `build.sh` clean after build
   * `gui-warp.app`: `iSSH2-head.sh` updated to version `1.0`
   * `gui-warp.app`: `build.sh` enhanced; `iSSH2-head.sh` included
