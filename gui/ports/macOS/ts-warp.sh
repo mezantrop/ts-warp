@@ -4,7 +4,7 @@
 # TS-Warp - rc script (macOS app)
 # ---------------------------------------------------------------------------- #
 
-# Copyright (c) 2021-2024, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2021-2026, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,14 @@ tswarp_actfile="$tswarp_prefix/var/spool/ts-warp/ts-warp.act"
 tswarp_loglevel="2"
 tswarp_logfile_maxsize=3145728
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
+
+# ---------------------------------------------------------------------------- #
+_act() {
+    _status
+    _check_root
+
+    cat "$tswarp_pidfile" | xargs kill -USR2
+}
 
 # ---------------------------------------------------------------------------- #
 _start() {
@@ -178,6 +186,7 @@ _usage() {
 # ---------------------------------------------------------------------------- #
 [ $# -eq 0 ] && _usage
 case "$1" in
+    [aA][cC][tT])                   _act                       ;;
     [sS][tT][aA][rR][tT])           shift; shift; _start $*    ;;
     [sS][tT][aA][tT][uU][sS])       _status 1                  ;;
     [sS][tT][oO][pP])               _stop                      ;;
