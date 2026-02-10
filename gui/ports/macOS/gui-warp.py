@@ -5,7 +5,7 @@
 GUI frontend for TS-Warp - Transparent proxy server and traffic wrapper (macOS app)
 ------------------------------------------------------------------------------------------------------------------------
 
-Copyright (c) 2022-2024 Mikhail Zakharov <zmey20000@yahoo.com>
+Copyright (c) 2022-2026 Mikhail Zakharov <zmey20000@yahoo.com>
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 following conditions are met:
@@ -43,6 +43,7 @@ import webbrowser
 import urllib
 import urllib.request
 
+
 # -------------------------------------------------------------------------------------------------------------------- #
 class App:
     """
@@ -55,12 +56,13 @@ class App:
                  daemon_options="",
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
+                 logfile_maxlines=3000,
                  pidfile='/usr/local/var/run/ts-warp.pid',
                  url_new_vesrsion=''):
 
         self.password = ''
 
-        self.version = 'v1.0.34-mac'
+        self.version = 'v1.0.35-mac'
         self.width = width
         self.height = height
 
@@ -71,6 +73,7 @@ class App:
 
         self.log_size = 0                                               # logfile and pidfile size / timestamps
         self.pid_time = 0                                               # for file-refreshing
+        self.logfile_maxlines = logfile_maxlines                        # Maximum lines in the logfile
 
         # -- GUI ----------------------------------------------------------------------------------------------------- #
         self.root = tk.Tk()
@@ -138,7 +141,8 @@ class App:
 
         log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
-        tab_log.bind("<Visibility>", self.readfile_log(log_txt, logfile, refresh=True))
+        self.log_after_id = None
+        tab_log.bind("<Visibility>", lambda e: self.start_log_refresh(log_txt, logfile))
 
         scroll_log = ttk.Scrollbar(tab_log, orient=tk.VERTICAL)
         scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
@@ -197,7 +201,8 @@ class App:
         btn_act = ttk.Button(tab_act, width=self._btnw, text='▶')
         btn_act.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.pause_act = True
-        btn_act['command'] = lambda: self.pauseact(btn_act, tree_act, actfile)
+        self.act_after_id = None
+        btn_act['command'] = lambda: self.toggle_act_refresh(btn_act, tree_act, actfile)
 
         cols_act = ('Time', 'PID', 'Status', 'Section', 'Client', 'Client bytes', 'Target', 'Target bytes')
         tree_act = ttk.Treeview(tab_act, columns=cols_act, show='headings')
@@ -226,9 +231,9 @@ It is a free and open-source software, but if you want to support it, please do'
         lbl_about = ttk.Label(tab_about, text=about_text)
         lbl_about.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-        img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
+        self.img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
 
-        lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=img_bmcoffee)
+        lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=self.img_bmcoffee)
         lbl_coffe.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         lbl_coffe.bind("<Button-1>", lambda e: webbrowser.open_new(url_supportus))
 
@@ -303,29 +308,30 @@ It is a free and open-source software, but if you want to support it, please do'
     # ---------------------------------------------------------------------------------------------------------------- #
     def read_file_tree(self, t_widget, filename, refresh=False):
         """
-        Read contents of a file into a widget
+        Read contents of a file into a treeview widget.
+        Efficient, cancels old scheduled callbacks.
         """
 
         if not self.pause_act:
-            try:
-                with open(pidfile, 'r', encoding='utf-8') as pf:
-                    subprocess.Popen(['sudo', 'kill', '-USR2', pf.readline()[:-1]])
-            except Exception:
-                pass
+            self.run_script('act')
 
             for item in t_widget.get_children():
                 t_widget.delete(item)
 
-            with open(filename, 'r', encoding='utf-8') as f:
-                f.readline()
-                while True:
-                    l = f.readline()
-                    if l == '\n':
-                        break
-                    t_widget.insert('', tk.END, values=l.split(','))
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    f.readline()
+                    while True:
+                        l = f.readline()
+                        if l == '\n':
+                            break
+                        t_widget.insert('', tk.END, values=l.split(','))
 
-        if refresh:
-            self.root.after(5000, self.read_file_tree, t_widget, filename, refresh)
+            except Exception:
+                pass
+
+        if refresh and not self.pause_act:
+            self.act_after_id = self.root.after(5000, self.read_file_tree, t_widget, filename, True)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def readfile_ini(self, t_widget, filename):
@@ -340,24 +346,50 @@ It is a free and open-source software, but if you want to support it, please do'
             t_widget.see(tk.END)
 
     # ---------------------------------------------------------------------------------------------------------------- #
+    def start_log_refresh(self, t_widget, filename):
+        """
+        Start auto-refresh of log tab, cancelling any previous after callbacks
+        """
+
+        if self.log_after_id is not None:
+            self.root.after_cancel(self.log_after_id)
+            self.log_after_id = None
+
+        self.pause_log = False
+        self.readfile_log(t_widget, filename, refresh=True)
+
+    # ---------------------------------------------------------------------------------------------------------------- #
     def readfile_log(self, t_widget, filename, refresh=False):
         """
-        Read contents of the LOG-file
+        Efficient log updater for Tkinter Text widget.
+        Keeps only self.logfile_maxlines in memory and widget
         """
 
-        t_widget.config(state='normal')
-        sz = os.path.getsize(filename)
-        if sz > self.log_size:
-            with open(filename, 'r', encoding='utf-8') as f:
-                f.seek(self.log_size)
-                self.log_size = sz
-                t_widget.insert(tk.END, ''.join(f.readlines()))
-                t_widget.see(tk.END)
+        try:
+            sz = os.path.getsize(filename)
+        except Exception:
+            sz = 0
 
-        if refresh:
-            t_widget.config(state='disabled')
-            if not self.pause_log:
-                self.root.after(500, self.readfile_log, t_widget, filename, refresh)
+        if sz > getattr(self, 'log_size', 0):
+            with open(filename, 'r', encoding='utf-8') as f:
+                f.seek(getattr(self, 'log_size', 0))
+                new_lines = f.readlines()
+                self.log_size = sz
+
+            if new_lines:
+                t_widget.config(state='normal')
+                current_lines = t_widget.get('1.0', tk.END).splitlines()
+                current_lines.extend([l.rstrip('\n') for l in new_lines])
+                if len(current_lines) > self.logfile_maxlines:
+                    current_lines = current_lines[-self.logfile_maxlines:]
+                t_widget.delete('1.0', tk.END)
+                t_widget.insert('1.0', '\n'.join(current_lines))
+                t_widget.see(tk.END)
+                t_widget.config(state='disabled')
+
+
+        if refresh and not self.pause_log:
+            self.log_after_id = self.root.after(500, self.readfile_log, t_widget, filename, True)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def saveini(self, t_widget, filename):
@@ -393,19 +425,35 @@ It is a free and open-source software, but if you want to support it, please do'
             btn['text'] = '↭'                                           # Enable auto-refresh
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def pauseact(self, btn, tree, filename):
+    def toggle_act_refresh(self, btn, tree, filename):
         """
-        Pause ACT
+        Toggle auto-refresh of ACT tab
         """
 
         if self.pause_act:
             self.pause_act = False
-            btn['text'] = '■'                                           # Pause act auto-refresh
-            self.read_file_tree(tree, filename, refresh=True)
+            btn['text'] = '■'
+            self.start_act_refresh(tree, filename)
         else:
             self.pause_act = True
-            btn['text'] = '▶'                                           # Enable auto-refresh
-            self.read_file_tree(tree, filename, refresh=False)
+            btn['text'] = '▶'
+
+            if self.act_after_id is not None:
+                self.root.after_cancel(self.act_after_id)
+                self.act_after_id = None
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def start_act_refresh(self, tree, filename):
+        """
+        Start auto-refresh of ACT tab, cancelling previous after
+        """
+
+        if self.act_after_id is not None:
+            self.root.after_cancel(self.act_after_id)
+            self.act_after_id = None
+
+        self.read_file_tree(tree, filename, refresh=True)
+
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def status(self, lbl, btn, pidfile):
@@ -538,6 +586,7 @@ if __name__ == "__main__":
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
+    logfile_maxlines = 3000
     pidfile = prefix + 'var/run/ts-warp.pid'
     actfile = prefix + 'var/spool/ts-warp/ts-warp.act'
     daemon_options = ''
@@ -555,6 +604,8 @@ if __name__ == "__main__":
                 inifile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['inifile'])
             if 'fwfile' in gui_ini['GUI-WARP'].keys():
                 fwfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['fwfile'])
+            if 'logfile_maxlines' in gui_ini['GUI-WARP'].keys():
+                logfile_maxlines = gui_ini['GUI-WARP']['logfile_maxlines']
             if 'logfile' in gui_ini['GUI-WARP'].keys():
                 logfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['logfile'])
             if 'pidfile' in gui_ini['GUI-WARP'].keys():
@@ -603,5 +654,5 @@ if __name__ == "__main__":
         open(logfile, 'a', encoding='utf8').close()
 
     app = App(runcmd=runcmd, daemon_options=daemon_options,
-              inifile=inifile, fwfile=fwfile, logfile=logfile, pidfile=pidfile,
-              url_new_vesrsion=url_new_vesrsion)
+              inifile=inifile, fwfile=fwfile, logfile=logfile, logfile_maxlines=logfile_maxlines,
+              pidfile=pidfile, url_new_vesrsion=url_new_vesrsion)
