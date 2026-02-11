@@ -1395,7 +1395,8 @@ void trap_signal(int sig) {
                     if (!seteuid(0) && !freopen(lfile_name, "a", lfile))
                         lfile = stderr;
 
-                    seteuid(pwd->pw_uid);
+                    if (!seteuid(pwd->pw_uid))
+                        lfile = stderr;
                 #else
                     /* On macOS we are always root */
                     if (!freopen(lfile_name, "a", lfile))
