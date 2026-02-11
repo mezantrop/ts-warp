@@ -268,6 +268,9 @@ export TEMPPATH="$TMPDIR$SCRIPTNAME"
 export LIBSSLDIR="$TEMPPATH/openssl-master"
 export LIBSSHDIR="$TEMPPATH/libssh2-master"
 
+export LOGPATH="$BASEPATH/log"
+[ -e $LOGPATH ] || mkdir -p $LOGPATH
+
 #Env
 
 if [[ $SDK_AUTO == true ]]; then

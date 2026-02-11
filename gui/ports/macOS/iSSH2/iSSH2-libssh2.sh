@@ -69,8 +69,8 @@ do
     cp -R "$LIBSSHSRC" "$PLATFORM_SRC"
     cd "$PLATFORM_SRC"
 
-    LOG="$PLATFORM_OUT/build-libssh2.log"
-    touch $LOG
+    LOG="$LOGPATH/$PLATFORM-build-libssh2.log"
+    : > $LOG
 
     if [[ "$ARCH" == arm64* ]]; then
       HOST="aarch64-apple-darwin"

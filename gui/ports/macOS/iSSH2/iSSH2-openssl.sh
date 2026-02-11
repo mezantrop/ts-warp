@@ -83,8 +83,8 @@ do
     cp -R "$LIBSSLSRC"  "$OPENSSLDIR"
     cd "$OPENSSLDIR"
 
-    LOG="$OPENSSLDIR/build-openssl.log"
-    touch $LOG
+    LOG="$LOGPATH/build-openssl.log"
+    : > $LOG
 
     if [[ "$SDK_PLATFORM" == "macosx" ]]; then
       if [[ "$ARCH" == "x86_64" ]]; then

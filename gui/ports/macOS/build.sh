@@ -43,7 +43,10 @@ echo "-- Making binaries -------------------------------------------------------
 		--archs="$issh2_architectures"
 
 	[ ! -f "$l_libssh2" -o ! -f "$h_libssh2" -o ! -f "$l_libssl" -o ! -f "$l_libcrypto" ] && {
-		echo "WARNING: Unable to find static OpenSSL/libssh2 libraries or header files -> Building with NO SSH2 support!"
+		echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		echo "!!! Unable to find static OpenSSL/libssh2 libraries or header files          !!!"
+		echo "!!! Building with NO SSH2 support!                                           !!!"
+		echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		make
 	} || {
 		cp $l_libssh2 $h_libssh2 $l_libssl $l_libcrypto .
@@ -91,4 +94,6 @@ hdiutil convert GUI-Warp-tmp.dmg -format UDZO -o GUI-Warp.dmg
 
 echo "-- Cleanup ------------------------------------------------------------------------------------------------------" &&
 make clean &&
-rm -rf build dist venv tmp GUI-Warp GUI-Warp-tmp.dmg libcrypto.a libssh2.a libssl.a libssh2.h iSSH2/libssh2_macosx iSSH2_openssl_macosx
+rm -rf build dist venv tmp GUI-Warp GUI-Warp-tmp.dmg \
+	libcrypto.a libssh2.a libssl.a libssh2.h \
+	iSSH2/libssh2_macosx iSSH2/openssl_macosx iSSH2/log
