@@ -3,8 +3,8 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
-* Copyright (c) 2021-2024, Mikhail Zakharov <zmey20000@yahoo.com>
-*
+* Copyright (c) 2021-2026, Mikhail Zakharov <zmey20000@yahoo.com>
+*s
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 * following conditions are met:
 *
