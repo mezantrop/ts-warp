@@ -1,6 +1,8 @@
 # CHANGELOG
 
 * **2026.02.11    Current**
+  * `ts-warp.c`: `gcc` `warn_unused_result` fixed for `seteuid(pwd->pw_uid)`
+  * `gui-warp.py`: memory leak fix - some objects were never released due to refresh/timers issues
   * `gui-warp.app`: `build.sh` updated to save `iSSH2` logs on build-fail
   * `gui-warp.app`: memory leak fix - some objects were never released due to refresh/timers issues
   * `gui-warp.app`: `ts-warp.sh act` option to trigger connection statistics dump
