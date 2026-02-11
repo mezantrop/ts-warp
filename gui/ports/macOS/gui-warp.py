@@ -172,8 +172,8 @@ class App:
             'tsw01:' + subprocess.Popen(['./ts-pass', self.tswhash.get().encode()],
                                         stdout=subprocess.PIPE).stdout.read().decode().strip('\n\r'))
 
-        lbl_sch = ttk.Label(frm_tab_ini_top, text='Save INI file:')
-        lbl_sch.grid(column=2, row=1, sticky=tk.E)
+        lbl_save_ini = ttk.Label(frm_tab_ini_top, text='Save INI file:')
+        lbl_save_ini.grid(column=2, row=1, sticky=tk.E)
         btn_save_ini = ttk.Button(frm_tab_ini_top, width=self._btnw, text='▲')
         btn_save_ini.grid(column=3, row=1, sticky=tk.W, padx=self._padx, pady=self._pady)
         btn_save_ini['command'] = lambda: self.saveini(ini_txt, inifile)
@@ -183,7 +183,7 @@ class App:
         tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
 
         def ini_modified(event=None):
-            lbl_sch['foreground'] = 'red' if ini_txt.edit_modified() else 'black'
+            lbl_save_ini['foreground'] = 'red' if ini_txt.edit_modified() else 'black'
         ini_txt.edit_modified(False)
         ini_txt.bind("<<Modified>>", ini_modified)
 
@@ -573,8 +573,6 @@ def dedupch(s, c='/'):
     return c.join([x for x in s.split(c) if x != ''])
 
 # -------------------------------------------------------------------------------------------------------------------- #
-
-
 if __name__ == "__main__":
     url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
     url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/GUI-Warp.dmg'

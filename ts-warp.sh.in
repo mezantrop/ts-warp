@@ -45,6 +45,14 @@ tswarp_logfile_maxsize=3145728
 tswarp_options="-c $tswarp_inifile -l $tswarp_logfile -p $tswarp_pidfile -t $tswarp_actfile -d -v $tswarp_loglevel"
 
 # ---------------------------------------------------------------------------- #
+_act() {
+    _status
+    _check_root
+
+    cat "$tswarp_pidfile" | xargs kill -USR2
+}
+
+# ---------------------------------------------------------------------------- #
 _start() {
     _status
     case $? in
@@ -193,7 +201,7 @@ _check_root() {
 
 # ---------------------------------------------------------------------------- #
 _usage() {
-    printf "Usage:\n\tts-warp.sh start|stop|reload|restart [options]\n"
+    printf "Usage:\n\tts-warp.sh start|stop|reload|restart|act [options]\n"
     printf "\tts-warp.sh status\n"
     exit 1
 }
@@ -202,6 +210,7 @@ _usage() {
 [ $# -eq 0 ] && _usage
 
 case "$1" in
+    [aA][cC][tT])                   _act                ;;
     [sS][tT][aA][rR][tT])           shift; _start $*    ;;
     [sS][tT][aA][tT][uU][sS])       _status 1           ;;
     [sS][tT][oO][pP])               _stop               ;;

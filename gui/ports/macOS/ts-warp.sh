@@ -178,7 +178,7 @@ _check_root() {
 
 # ---------------------------------------------------------------------------- #
 _usage() {
-    printf "Usage:\n\tts-warp.sh start|stop|reload|restart "/Users/USERNAME/ts-warp" [options]\n"
+    printf "Usage:\n\tts-warp.sh start|stop|reload|restart|act "/Users/USERNAME/ts-warp" [options]\n"
     printf "\tts-warp.sh status\n"
     exit 1
 }
