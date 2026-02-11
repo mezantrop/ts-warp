@@ -69,7 +69,7 @@ do
     cp -R "$LIBSSHSRC" "$PLATFORM_SRC"
     cd "$PLATFORM_SRC"
 
-    LOG="$LOGPATH/$PLATFORM-build-libssh2.log"
+    LOG="$LOGPATH/$ARCH-build-libssh2.log"
     : > $LOG
 
     if [[ "$ARCH" == arm64* ]]; then
