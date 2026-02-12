@@ -42,6 +42,7 @@ install: all
 	install -m 755 gui-warp.ini $(PREFIX)/etc/
 	install -d $(PREFIX)/share/ts-warp/
 	install -m 755 bmcoffee.png $(PREFIX)/share/ts-warp/
+	install -m 755 ../CHANGELOG.md $(PREFIX)/share/ts-warp/
 	install -d $(PREFIX)/man/
 	install -d $(PREFIX)/man/man1/
 	install -m 755 ../man/gui-warp.py.1 $(PREFIX)/man/man1
