@@ -229,10 +229,11 @@ class App:
         btn_act.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
         self.pause_act = True
         self.act_after_id = None
-        btn_act['command'] = lambda: self.toggle_act_refresh(btn_act, tree_act, actfile)
+        btn_act['command'] = lambda: self.toggle_act_refresh(btn_act, tree_act)
 
         cols_act = ('Time', 'PID', 'Status', 'Section', 'Client', 'Client bytes', 'Target', 'Target bytes')
         tree_act = ttk.Treeview(tab_act, columns=cols_act, show='headings')
+        self.tree_rows = [tree_act.insert('', 'end', values=('', '', '', '', '', '', '', '')) for _ in range(1000)]
 
         for col in cols_act:
             tree_act.heading(col, text=col)
@@ -350,16 +351,11 @@ It is a free and open-source software, but if you want to support it, please do'
                     break
                 new_rows.append(l.strip().split(','))
 
-            children = t_widget.get_children()
-            for i, row in enumerate(new_rows):
-                if i < len(children):
-                    t_widget.item(children[i], values=row)
+            for i in range(1000):
+                if i < len(new_rows):
+                    t_widget.item(self.tree_rows[i], values=tuple(new_rows[i]))
                 else:
-                    t_widget.insert('', tk.END, values=row)
-
-            if len(children) > len(new_rows):
-                for item in children[len(new_rows):]:
-                    t_widget.delete(item)
+                    t_widget.item(self.tree_rows[i], values=('', '', '', '', '', '', '', ''))
 
         if refresh and not self.pause_act:
             self.act_after_id = self.root.after(5000, self.read_file_tree, t_widget, True)
@@ -526,10 +522,11 @@ It is a free and open-source software, but if you want to support it, please do'
         if os.geteuid() != 0:
             gwp = subprocess.Popen(
                 ['sudo', '-S', '-b', runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
-                stdin=subprocess.PIPE)
+                stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
             gwp.communicate(self.password)
         else:
-            subprocess.Popen([runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()])
+            subprocess.Popen([runcmd, command, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def ask_password(self):
