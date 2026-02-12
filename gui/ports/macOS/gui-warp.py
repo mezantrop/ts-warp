@@ -252,7 +252,7 @@ It is a free and open-source software, but if you want to support it, please do'
 
         release_txt = tk.Text(tab_about, highlightthickness=0, state='disabled')
         release_txt.grid(column=0, row=4, columnspan=2, sticky=tk.NSEW, pady=self._pady)
-        tab_about.bind("<Visibility>", self.readfile_ini(release_txt, 'CHANGELOG.md'))
+        tab_about.bind("<Visibility>", lambda e: self.readfile_ini(release_txt, 'CHANGELOG.md'))
         release_txt.config(state='disabled')
         release_txt.see('1.0')
 
@@ -274,7 +274,8 @@ It is a free and open-source software, but if you want to support it, please do'
 
         lbl_stat = ttk.Label(lfrm_bottom, text='■ running', foreground='green')
         lbl_stat.grid(row=0, column=0, sticky=tk.E)
-        self.status(lbl_stat, btn_run, pidfile)
+        self.status_after_id = None
+        self.start_status_refresh(lbl_stat, btn_run, pidfile)
 
         self.root.mainloop()
 
@@ -306,32 +307,35 @@ It is a free and open-source software, but if you want to support it, please do'
             t_widget['text'] = 'Broken update application URL'
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def read_file_tree(self, t_widget, filename, refresh=False):
+    def read_file_tree(self, t_widget, refresh=False):
         """
         Read contents of a file into a treeview widget.
-        Efficient, cancels old scheduled callbacks.
         """
 
         if not self.pause_act:
             self.run_script('act')
 
-            for item in t_widget.get_children():
-                t_widget.delete(item)
+            new_rows = []
+            self.act_f.readline()           # Header
+            while True:
+                l = self.act_f.readline()
+                if l in ('\n', ''):
+                    break
+                new_rows.append(l.strip().split(','))
 
-            try:
-                with open(filename, 'r', encoding='utf-8') as f:
-                    f.readline()
-                    while True:
-                        l = f.readline()
-                        if l == '\n':
-                            break
-                        t_widget.insert('', tk.END, values=l.split(','))
+            children = t_widget.get_children()
+            for i, row in enumerate(new_rows):
+                if i < len(children):
+                    t_widget.item(children[i], values=row)
+                else:
+                    t_widget.insert('', tk.END, values=row)
 
-            except Exception:
-                pass
+            if len(children) > len(new_rows):
+                for item in children[len(new_rows):]:
+                    t_widget.delete(item)
 
         if refresh and not self.pause_act:
-            self.act_after_id = self.root.after(5000, self.read_file_tree, t_widget, filename, True)
+            self.act_after_id = self.root.after(5000, self.read_file_tree, t_widget, True)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def readfile_ini(self, t_widget, filename):
@@ -425,7 +429,7 @@ It is a free and open-source software, but if you want to support it, please do'
             btn['text'] = '↭'                                           # Enable auto-refresh
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def toggle_act_refresh(self, btn, tree, filename):
+    def toggle_act_refresh(self, btn, tree):
         """
         Toggle auto-refresh of ACT tab
         """
@@ -433,17 +437,20 @@ It is a free and open-source software, but if you want to support it, please do'
         if self.pause_act:
             self.pause_act = False
             btn['text'] = '■'
-            self.start_act_refresh(tree, filename)
+            self.act_f = open(actfile, 'r')
+            self.start_act_refresh(tree)
         else:
             self.pause_act = True
             btn['text'] = '▶'
+            if self.act_f:
+                self.act_f.close()
 
             if self.act_after_id is not None:
                 self.root.after_cancel(self.act_after_id)
                 self.act_after_id = None
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    def start_act_refresh(self, tree, filename):
+    def start_act_refresh(self, tree):
         """
         Start auto-refresh of ACT tab, cancelling previous after
         """
@@ -452,35 +459,44 @@ It is a free and open-source software, but if you want to support it, please do'
             self.root.after_cancel(self.act_after_id)
             self.act_after_id = None
 
-        self.read_file_tree(tree, filename, refresh=True)
+        self.read_file_tree(tree, refresh=True)
 
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def start_status_refresh(self, lbl, btn, pidfile):
+        """
+        Start (or restart) status auto-refresh safely.
+        """
+
+        if self.status_after_id is not None:
+            self.root.after_cancel(self.status_after_id)
+            self.status_after_id = None
+
+        self.status(lbl, btn, pidfile)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def status(self, lbl, btn, pidfile):
         """
-        Statusbar message
+        Internal status updater (called by after)
         """
 
-        pf = None
-
         try:
-            pf = open(pidfile, 'r', encoding='utf8')
+            with open(pidfile, 'r', encoding='utf8') as pf:
+                pt = os.path.getmtime(pidfile)
+
+                if pt > self.pid_time:
+                    self.pid_time = pt
+                    pid_value = pf.readline().strip()
+
+                    lbl['text'] = f'■ Running: {pid_value}'
+                    lbl['foreground'] = 'green'
+                    btn['text'] = '■'
         except Exception:
             lbl['text'] = '■ Stopped'
             lbl['foreground'] = 'red'
             btn['text'] = '▶'
 
-        if pf:
-            pt = os.path.getmtime(pidfile)
-            if pt > self.pid_time:
-                self.pid_time = pt
-
-                lbl['text'] = '■ Running: ' + pf.readline()[:-1]
-                lbl['foreground'] = 'green'
-                btn['text'] = '■'
-            pf.close()
-
-        self.root.after(1000, self.status, lbl, btn, pidfile)
+        # schedule next refresh
+        self.status_after_id = self.root.after(1000, self.status, lbl, btn, pidfile)
 
     # ---------------------------------------------------------------------------------------------------------------- #
     def run_script(self, command):
