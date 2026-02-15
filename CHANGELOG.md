@@ -1,6 +1,6 @@
 # CHANGELOG
 
-* **2026.02.12    Current**
+* **2026.02.15    ts-warp-1.5.9, gui-warp-1.0.28 (gui-warp-v1.0.35-mac), ns-warp-1.0.7**
   * `gui-warp` and `gui-warp.app`: ACT memory optimizations
   * `ts-warp.c`: `gcc` `warn_unused_result` fixed for `seteuid(pwd->pw_uid)`
   * `gui-warp.py`: memory leak fix - some objects were never released due to refresh/timers issues
