@@ -269,6 +269,8 @@ ini_section *read_ini(char *ifile_name) {
                         c_sect->section_balance = SECTION_BALANCE_FAILOVER;
                     else if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_ROUNDROBIN))
                         c_sect->section_balance = SECTION_BALANCE_ROUNDROBIN;
+                    else if (!strcasecmp(entry.val, INI_ENTRY_SECTION_BALANCE_DISABLED))
+                        c_sect->section_balance = SECTION_BALANCE_DISABLED;
                     else {
                         printl(LOG_WARN, "Unknown section balance mode: [%s], setting default: Failover", entry.val);
                         c_sect->section_balance = SECTION_BALANCE_FAILOVER;
@@ -456,12 +458,18 @@ void show_ini(struct ini_section *ini, int loglvl) {
     char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
     const char *ini_targets[5] = {
-        INI_ENTRY_TARGET_NOTSET, INI_ENTRY_TARGET_HOST, INI_ENTRY_TARGET_DOMAIN,
-        INI_ENTRY_TARGET_NETWORK, INI_ENTRY_TARGET_RANGE
+        INI_ENTRY_TARGET_NOTSET,
+        INI_ENTRY_TARGET_HOST,
+        INI_ENTRY_TARGET_DOMAIN,
+        INI_ENTRY_TARGET_NETWORK,
+        INI_ENTRY_TARGET_RANGE
     };
 
     const char *ini_balance[3] = {
-        INI_ENTRY_SECTION_BALANCE_NONE, INI_ENTRY_SECTION_BALANCE_FAILOVER, INI_ENTRY_SECTION_BALANCE_ROUNDROBIN
+        INI_ENTRY_SECTION_BALANCE_NONE,
+        INI_ENTRY_SECTION_BALANCE_FAILOVER,
+        INI_ENTRY_SECTION_BALANCE_ROUNDROBIN,
+        INI_ENTRY_SECTION_BALANCE_DISABLED
     };
 
 
@@ -591,6 +599,12 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
     while (s) {
         if (s->proxy_server.ss_family == AF_UNSPEC) {
             printl(LOG_VERB, "Section: [%s] ignored due to unspecified proxy server", s->section_name);
+            s = s->next;
+            continue;
+        }
+
+        if (s->section_balance == SECTION_BALANCE_DISABLED) {
+            printl(LOG_VERB, "Section: [%s] disabled by section_balance policy", s->section_name);
             s = s->next;
             continue;
         }

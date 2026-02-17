@@ -86,12 +86,14 @@ typedef struct chain_list {                                 /* Chains as they de
 #define SECTION_BALANCE_NONE        0
 #define SECTION_BALANCE_FAILOVER    1                               /* Default */
 #define SECTION_BALANCE_ROUNDROBIN  2
+#define SECTION_BALANCE_DISABLED    3
 
 /* Section balancing modes in the INI-file */
 #define INI_ENTRY_SECTION_BALANCE               "section_balance"   /* Socks section balance policy */
 #define INI_ENTRY_SECTION_BALANCE_NONE          "none"              /* 0 */
 #define INI_ENTRY_SECTION_BALANCE_FAILOVER      "failover"          /* 1 - Default */
 #define INI_ENTRY_SECTION_BALANCE_ROUNDROBIN    "roundrobin"        /* 2 */
+#define INI_ENTRY_SECTION_BALANCE_DISABLED      "disabled"          /* 3 */
 
 #define INI_ENTRY_PROXY_SERVER          "proxy_server"
 #define INI_ENTRY_PROXY_CHAIN           "proxy_chain"
