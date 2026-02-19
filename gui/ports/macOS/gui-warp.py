@@ -62,7 +62,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.35-mac'
+        self.version = 'v1.0.36-mac'
         self.width = width
         self.height = height
 
@@ -617,7 +617,7 @@ if __name__ == "__main__":
             if 'fwfile' in gui_ini['GUI-WARP'].keys():
                 fwfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['fwfile'])
             if 'logfile_maxlines' in gui_ini['GUI-WARP'].keys():
-                logfile_maxlines = gui_ini['GUI-WARP']['logfile_maxlines']
+                logfile_maxlines = int(gui_ini['GUI-WARP']['logfile_maxlines'])
             if 'logfile' in gui_ini['GUI-WARP'].keys():
                 logfile = '/' + dedupch(prefix + gui_ini['GUI-WARP']['logfile'])
             if 'pidfile' in gui_ini['GUI-WARP'].keys():

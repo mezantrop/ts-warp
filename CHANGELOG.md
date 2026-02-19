@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **Current**
+* **2026.02.15    ts-warp-1.5.9, gui-warp-1.0.29 (gui-warp-v1.0.36-mac), ns-warp-1.0.7**
+  * `gui-warp.ini`: `prefix` format error
+  * `gui-warp.py`, `gui-warp.app`: `logfile_maxlines` type conversion error fix;
   * `ts-warp`: Introduced `section_balance = disabled` to exclude sections from target to section matching
 
 * **2026.02.15    ts-warp-1.5.9, gui-warp-1.0.28 (gui-warp-v1.0.35-mac), ns-warp-1.0.7**
