@@ -457,7 +457,7 @@ void show_ini(struct ini_section *ini, int loglvl) {
     struct ini_target *t;
     char ip1[INET_ADDRPORTSTRLEN], ip2[INET_ADDRPORTSTRLEN];
 
-    const char *ini_targets[5] = {
+    const char *ini_targets[] = {
         INI_ENTRY_TARGET_NOTSET,
         INI_ENTRY_TARGET_HOST,
         INI_ENTRY_TARGET_DOMAIN,
@@ -465,7 +465,7 @@ void show_ini(struct ini_section *ini, int loglvl) {
         INI_ENTRY_TARGET_RANGE
     };
 
-    const char *ini_balance[3] = {
+    const char *ini_balance[] = {
         INI_ENTRY_SECTION_BALANCE_NONE,
         INI_ENTRY_SECTION_BALANCE_FAILOVER,
         INI_ENTRY_SECTION_BALANCE_ROUNDROBIN,

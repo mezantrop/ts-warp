@@ -251,11 +251,11 @@ It is a free and open-source software, but if you want to support it, please do'
 
         ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=3, sticky=tk.EW, columnspan=2, pady=self._pady)
 
-        release_txt = tk.Text(tab_about, highlightthickness=0, state='disabled')
+        release_txt = tk.Text(tab_about, highlightthickness=0)
         release_txt.grid(column=0, row=4, columnspan=2, sticky=tk.NSEW, pady=self._pady)
-        tab_about.bind("<Visibility>", lambda e: self.readfile_ini(release_txt, 'CHANGELOG.md'))
-        release_txt.config(state='disabled')
-        release_txt.see('1.0')
+        tab_about.bind("<Visibility>", lambda e: (self.readfile_ini(release_txt, 'CHANGELOG.md'),
+                                                  release_txt.after_idle(lambda: release_txt.yview_moveto(0.0)),
+                                                  release_txt.config(state='disabled')))
 
         scroll_release = ttk.Scrollbar(tab_about, orient=tk.VERTICAL)
         scroll_release.grid(column=2, row=4, sticky=tk.NSEW, pady=self._pady)

@@ -1,9 +1,11 @@
 # CHANGELOG
 
-* **2026.02.19    ts-warp-1.5.9, gui-warp-1.0.29 (gui-warp-v1.0.36-mac), ns-warp-1.0.7**
+* **2026.02.19    ts-warp-1.5.10, gui-warp-1.0.29 (gui-warp-v1.0.36-mac), ns-warp-1.0.7**
+  * `gui-warp.py`, `gui-warp.app`: scroll up the `About`-tab `CHANGELOG` and disable the vidget input
+  * `inifile.c`: Removed strict array boundaries for `ini_targets[]` and `ini_balance[]`
   * `gui-warp.ini`: `prefix` format error
   * `gui-warp.py`, `gui-warp.app`: `logfile_maxlines` type conversion error fix;
-  * `ts-warp`: Introduced `section_balance = disabled` to exclude sections from target to section matching
+  * `inifile.c`, `inifile.h`: Introduced `section_balance = disabled` to exclude sections from target to section matching
 
 * **2026.02.15    ts-warp-1.5.9, gui-warp-1.0.28 (gui-warp-v1.0.35-mac), ns-warp-1.0.7**
   * `gui-warp` and `gui-warp.app`: ACT memory optimizations
