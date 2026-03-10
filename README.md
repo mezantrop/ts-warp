@@ -184,7 +184,7 @@ sudo /usr/local/etc/ts-warp.sh restart -v 4
 
 Use `ts-pass` to encode passwords if requred. See examples in [ts-warp.ini](examples/ts-warp.ini)
 
-### GUI front-end
+### GUI-Warp - TS-Warp GUI front-end
 
 ![gui-warp.py](gui/gui-warp_py.jpg)
 
