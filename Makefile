@@ -1,11 +1,11 @@
 PREFIX?=/usr/local
 WITH_TCP_NODELAY?=1
-WITH_LIBSSH2?=0
-CPATH+=
-LDLIBS+=
-LDFLAGS+=
-USER?=
-CC=cc
+WITH_LIBSSH2?=1
+CPATH+=-I/usr/include -I/usr/local/include
+LDLIBS+=-lssh2
+LDFLAGS+=-L/lib -L/usr/lib -L/usr/lib32 -L/usr/local/lib
+USER?=zmey
+CC=gcc
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=$(WITH_TCP_NODELAY) -DWITH_LIBSSH2=$(WITH_LIBSSH2) $(CPATH)
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
 utility.o xedec.o
@@ -23,7 +23,7 @@ version:
 	sh ./version.sh RELEASE
 
 ts-warp: $(WARP_OBJS)
-	$(CC) $(CFLAGS) $(WARP_OBJS) $(LDFLAGS) $(LDLIBS) -o $@
+	$(CC) $(CFLAGS) $(WARP_OBJS) $(LDFLAGS) -o $@ $(LDLIBS)
 
 ts-warp.sh:
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
@@ -162,7 +162,7 @@ uninstall:
 	rmdir $(PREFIX)/share/ts-warp/
 
 clean:
-	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured
+	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured Makefile.back
 
 base64.o: base64.h
 inifile.o: inifile.h

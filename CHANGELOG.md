@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* **2026.03.17**  Current
+  * `configure`: Added `/opt/local` path to support `Macports` project
+  * `Makefile`: `clean` target updated; corrected linker options order
+
 * **2026.02.19    ts-warp-1.5.10, gui-warp-1.0.29 (gui-warp-v1.0.36-mac), ns-warp-1.0.7**
   * `gui-warp.py`, `gui-warp.app`: scroll up the `About`-tab `CHANGELOG` and disable the vidget input
   * `inifile.c`: Removed strict array boundaries for `ini_targets[]` and `ini_balance[]`

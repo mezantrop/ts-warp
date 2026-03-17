@@ -36,7 +36,7 @@ _DEBUG=N
 
 # ---------------------------------------------------------------------------- #
 CC_CANDIDATES="clang gcc cc"
-PREFIX_CANDIDATES="$PREFIX /usr/local /opt $HOME"
+PREFIX_CANDIDATES="$PREFIX /usr/local /opt /opt/local $HOME"
 
 EHARD;  DECIDE CONFIG_START     "STATE"    .configured
 
