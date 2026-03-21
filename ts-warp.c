@@ -48,17 +48,14 @@
 
 #include <sys/select.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include <sys/types.h>
 #include <pwd.h>
 
 #include <sys/param.h>
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>

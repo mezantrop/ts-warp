@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.03.17**  Current
+* **2026.03.21**  Current
+  * `ts-warp.c`: Clean duplicate `includes`
   * `configure`: Added `/opt/local` path to support `Macports` project
   * `Makefile`: `clean` target updated; corrected linker options order
 
