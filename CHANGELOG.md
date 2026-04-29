@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.03.21**  Current
+* **2026.04.29**  Current
+  * `inifile.c`: `free()` SSH-related entries in `struct ini_section`
   * `ts-warp.c`: Clean duplicate `includes`
   * `configure`: Added `/opt/local` path to support `Macports` project
   * `Makefile`: `clean` target updated; corrected linker options order

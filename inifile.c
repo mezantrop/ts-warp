@@ -555,6 +555,8 @@ struct ini_section *delete_ini(struct ini_section *ini) {
         s = ini->next;
         if (ini->proxy_user && ini->proxy_user[0]) free(ini->proxy_user);
         if (ini->proxy_password && ini->proxy_password[0]) free(ini->proxy_password);
+        if (ini->proxy_key_passphrase && ini->proxy_key_passphrase[0]) free(ini->proxy_key_passphrase);
+        if (ini->proxy_key && ini->proxy_key[0]) free(ini->proxy_key);
         if (ini->nit_domain && ini->nit_domain[0]) free(ini->nit_domain);
 
         /* Delete the section name */
