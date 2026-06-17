@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.04.29**  Current
+* **2026.06.17**  Current
+  * `ns\dns.c`: Fix buffer overflow in `forward_ip()`: [Issue](https://github.com/mezantrop/ts-warp/issues/16)
   * `inifile.c`: `free()` SSH-related entries in `struct ini_section`
   * `ts-warp.c`: Clean duplicate `includes`
   * `configure`: Added `/opt/local` path to support `Macports` project

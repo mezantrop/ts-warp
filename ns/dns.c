@@ -109,13 +109,15 @@ struct sockaddr_storage forward_ip(char *rev_ip) {
 
     if (rev_ip) {
         if ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV4))) {
-            strncpy(buf, rev_ip, suff - rev_ip);
+            strncpy(buf, rev_ip, suff - rev_ip >= sizeof(buf) ? sizeof(buf) - 1 : suff - rev_ip);
+            buf[sizeof(buf) - 1] = '\0';
             if (!inet_pton(AF_INET, buf,  &((struct sockaddr_in *)&sa)->sin_addr)) {
                 printl(LOG_VERB, "Corrupted IPv4 address: [%s]", buf);
             }
         } else {
             if ((suff = strstr(rev_ip, DNS_REV_LOOKUP_SUFFIX_IPV6))) {
-                strncpy(buf, rev_ip, suff - rev_ip);
+                strncpy(buf, rev_ip, suff - rev_ip >= sizeof(buf) ? sizeof(buf) - 1 : suff - rev_ip);
+                buf[sizeof(buf) - 1] = '\0';
                 if (!inet_pton(AF_INET6, buf,  &((struct sockaddr_in6 *)&sa)->sin6_addr))
                     printl(LOG_VERB, "Corrupted IPv6 address: [%s]", buf);
             } else {
