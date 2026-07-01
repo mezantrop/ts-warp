@@ -90,41 +90,49 @@ make_ranges() {
         chk_ip "$s_ip" || return 1
         chk_ip "$e_ip" || return 1
 
-        ip2octets $s_ip s_o1 s_o2 s_o3 s_o4
-        ip2octets $e_ip e_o1 e_o2 e_o3 e_o4
+        rngs=${rngs}$(awk -v start="$s_ip" -v end="$e_ip" '
+                function ip2int(ip, a) {
+                        split(ip,a,".")
+                        return (((a[1]*256+a[2])*256+a[3])*256+a[4])
+                }
 
-        [ $e_o1 -lt $s_o1 -o $e_o2 -lt $s_o2 -o \
-            $e_o3 -lt $s_o3 -o $e_o4 -lt $s_o4 ] &&
-                return 1
+                function int2ip(n) {
+                        return int(n/16777216) "." \
+                        int(n/65536)%256 "." \
+                        int(n/256)%256 "." \
+                        n%256
+                }
 
-        lo=255
-        fin=0
-        for o1 in $(seq $s_o1 $e_o1); do
-            [ $fin -eq 1 ] && break
-            [ $s_o1 -le $o1 ] && te_o2=$lo || te_o2=$e_o2
-            for o2 in $(seq $s_o2 $te_o2); do
-                [ $fin -eq 1 ] && break
-                [ $s_o2 -le $o2 ] && te_o3=$lo || te_o3=$e_o3
-                for o3 in $(seq $s_o3 $te_o3); do
-                    [ $fin -eq 1 ] && break
-                    [ $s_o3 -le $o3 ] &&
-                        te_o4=$lo ||
-                        te_o4=$e_o4
-                    for o4 in $(seq $s_o4 $te_o4); do
-                        [ $fin -eq 1 ] && break
-                        c_ip="$o1.$o2.$o3.$o4"
-                        rngs="$rngs""$c_ip""$nl"
-                        [ "$c_ip" == "$e_ip" ] && {
-                            eval $1='$rngs'
-                            fin=1
-                            break
+                BEGIN {
+                        s = ip2int(start)
+                        e = ip2int(end)
+
+                        while (s <= e) {
+                                # largest aligned block
+                                block = 1
+                                while ((s % (block * 2) == 0) && (block < 2147483648))
+                                block *= 2
+
+                                # do not run past end
+                                while (block > (e - s + 1))
+                                block /= 2
+
+                                # block size -> prefix
+                                prefix = 32
+                                b = block
+                                while (b > 1) {
+                                        prefix--
+                                        b /= 2
+                                }
+
+                                print (int2ip(s) "/" prefix)
+
+                                s += block
                         }
-                    done
-                done
-            done
-        done
+                }')${nl}
     done
 
+    eval $1='$rngs'
     return 0
 }
 
@@ -245,7 +253,7 @@ make_conf_pf() {
 
     cat <<EOF
 table <$TSW_TNAME> { \\
-$(printf "%s" "$rslt" | sed '$! { P; D; }; s|...$| \\\|')
+`printf "%s" "$rslt" | sed '$! { P; D; }; s|...$| \\\|'`
 }
 
 $pf_rules

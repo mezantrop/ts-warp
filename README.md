@@ -40,6 +40,7 @@ proxies based on destination, domain, or rule sets.
   | Windows WSL2 | :white_large_square: | :white_check_mark:   |
 
 - Main features
+
   | Transparent proxy                      | Socks5             | Socks4               | HTTP*              | SSH2                   |
   |----------------------------------------|--------------------|----------------------|--------------------|------------------------|
   | Proxy protocol                         | :white_check_mark: | :white_check_mark:   | :white_check_mark: | :white_check_mark:     |
@@ -95,28 +96,28 @@ git clone https://github.com/mezantrop/ts-warp ts-warp.src && cd ts-warp.src
 # `configure` script understands a number of environmental variables. You can force setting values to:
 # `PREFIX`, `WITH_TCP_NODELAY`, `WITH_LIBSSH2`, `USER`, otherwise they will be auto-detected.
 
+# On the systems with no default `sudo` use `doas`, `su` to get `root` permissions
+
 ./configure && make && sudo make install clean
 
 # Copy and edit configuration files
 sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
 
+# Compile firewall rules based on ts-warp.ini
+/usr/local/bin/ts-warp_autofw.sh > /tmp/ts-warp_autofw.out
+
 # on *BSD and macOS
-sudo cp /usr/local/etc/ts-warp_pf.conf.sample /usr/local/etc/ts-warp_pf.conf
-sudo vi /usr/local/etc/ts-warp_pf.conf
+sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_pf.conf
 
 # on Linux with nftables
-sudo cp /usr/local/etc/ts-warp_nftables.sh.sample /usr/local/etc/ts-warp_nftables.sh
-sudo vi /usr/local/etc/ts-warp_nftables.sh
+sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_nftables.sh
 
 # on Linux with iptables
-sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-sudo vi /usr/local/etc/ts-warp_iptables.sh
+sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_iptables.sh
 
 # on Windows WSL2 (Ubuntu) with iptables; Required packages for CLI: clang/gcc, make. For GUI-Warp: python3-tk
 wsl --set-default-version 2
-
-sudo cp /usr/local/etc/ts-warp_iptables.sh.sample /usr/local/etc/ts-warp_iptables.sh
-sudo vi /usr/local/etc/ts-warp_iptables.sh
+sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_iptables.sh
 ```
 
 ### Usage
