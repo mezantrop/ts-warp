@@ -39,6 +39,13 @@
 # sudo /Applications/gui-warp.app/Contents/Resources/ts-warp.sh start /Users/$USER/ts-warp
 #
 
+# ---------------------------------------------------------------------------- #
+_usage() {
+    printf "Usage:\n\tts-warp.sh start|stop|reload|restart|act "/Users/USERNAME/ts-warp" [options]\n"
+    printf "\tts-warp.sh status\n"
+    exit 1
+}
+
 # -- CONFIGURATION VARIABLES ------------------------------------------------- #
 [ -z "$2" -a "$USER" = "root" ] && _usage       # The USERNAME and prefix...
 tswarp_prefix=${2-"/Users/$USER/ts-warp"}       # ...workaround for gui-warp.app
@@ -174,13 +181,6 @@ _check_root() {
         printf "Fatal: You must be root to proceed\n"
         exit 1
     }
-}
-
-# ---------------------------------------------------------------------------- #
-_usage() {
-    printf "Usage:\n\tts-warp.sh start|stop|reload|restart|act "/Users/USERNAME/ts-warp" [options]\n"
-    printf "\tts-warp.sh status\n"
-    exit 1
 }
 
 # ---------------------------------------------------------------------------- #

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.07.01**  Current
+* **2026.07.16**  Current
+  * `ts-warp.sh`: `[macOS]` `[GUI]` only. Fix `_usage()` for CLI operations in `GUI-Warp` app
   * `ts-warp_autofw.sh`: expands `target_ranges` to CIDR subnets instead of host IP addresses
   * `ns\dns.c`: Fix buffer overflow in `forward_ip()`: [Issue](https://github.com/mezantrop/ts-warp/issues/16)
   * `inifile.c`: `free()` SSH-related entries in `struct ini_section`
