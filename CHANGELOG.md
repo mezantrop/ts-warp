@@ -1,8 +1,9 @@
 # CHANGELOG
 
 * **2026.07.20**  Current
+  * `configure`: Add `/opt/lib` `/opt/local/lib` to `LIB_PATH_CANDIDATES` for `macports` compatibility
   * `configure`, `Makefile`: Prevent running `make all` before `configure`; nail `USER` variable
-  * `ts-warp.sh`: `[macOS]` `[GUI]` only. Fix `_usage()` for CLI operations in `GUI-Warp` app
+  * `ts-warp.sh`: `macOS` `GUI` only. Fix `_usage()` for CLI operations in `GUI-Warp` app
   * `ts-warp_autofw.sh`: expands `target_ranges` to CIDR subnets instead of host IP addresses
   * `ns\dns.c`: Fix buffer overflow in `forward_ip()`: [Issue](https://github.com/mezantrop/ts-warp/issues/16)
   * `inifile.c`: `free()` SSH-related entries in `struct ini_section`
