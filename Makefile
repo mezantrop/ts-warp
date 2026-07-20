@@ -4,8 +4,8 @@ WITH_LIBSSH2?=1
 CPATH+=-I/usr/include -I/usr/local/include
 LDLIBS+=-lssh2
 LDFLAGS+=-L/lib -L/usr/lib -L/usr/lib32 -L/usr/local/lib
-USER?=zmey
-CC=gcc
+USER=cc
+CC=
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=$(WITH_TCP_NODELAY) -DWITH_LIBSSH2=$(WITH_LIBSSH2) $(CPATH)
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
 utility.o xedec.o
@@ -15,20 +15,23 @@ PASS_OBJS = ts-pass.o xedec.o
 .PHONY:	all clean examples-general examples-special install install-configs install-examples release \
 deinstall uninstall version
 
-all: ts-warp examples-special ts-pass
+all: configchk ts-warp examples-special ts-pass
 
 release: version all
 
 version:
 	sh ./version.sh RELEASE
 
-ts-warp: $(WARP_OBJS)
+configchk:
+	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
+
+ts-warp: configchk $(WARP_OBJS)
 	$(CC) $(CFLAGS) $(WARP_OBJS) $(LDFLAGS) -o $@ $(LDLIBS)
 
-ts-warp.sh:
+ts-warp.sh: configchk
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp.sh.in > ts-warp.sh
 
-ts-warp_autofw.sh:
+ts-warp_autofw.sh: configchk
 	sed 's|tswarp_prefix=.*|tswarp_prefix="$(PREFIX)"|' ts-warp_autofw.sh.in > ts-warp_autofw.sh
 
 examples-general:
@@ -48,12 +51,10 @@ examples-special:
 ts-pass: $(PASS_OBJS)
 	$(CC) -o $@ $(PASS_OBJS)
 
-install-examples:
+install-examples: configchk
 # -------------------------------------------------------------------------------------------------------------------- #
 # Examples (special version) are installed by default                                                                  #
 # -------------------------------------------------------------------------------------------------------------------- #
-	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
-
 	install -d $(PREFIX)/etc/
 	install -m 644 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini.sample
 	touch $(PREFIX)/etc/ts-warp.ini
@@ -81,12 +82,10 @@ install-examples:
 			;; \
 	esac
 
-install-configs:
+install-configs: configchk
 # -------------------------------------------------------------------------------------------------------------------- #
 # Danger zone! The targer is not run by default, it overwrites INSTALLED configuration files                           #
 # -------------------------------------------------------------------------------------------------------------------- #
-	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
-
 	install -d $(PREFIX)/etc/
 	install -b -m 640 ./examples/ts-warp.ini $(PREFIX)/etc/ts-warp.ini
 	@case `uname -s` in \
@@ -108,10 +107,8 @@ install-configs:
 			;; \
 	esac
 
-install: ts-warp.sh ts-warp_autofw.sh ts-pass install-examples
-	@[ -f .configured ] || { echo "FATAL: run \"./configure\" and \"make all\" commands first!"; exit 1; }
-
-	chown "`cat .configured`" $(PREFIX)/etc/ts-warp*
+install: configchk all ts-warp.sh ts-warp_autofw.sh install-examples
+	chown $(USER) $(PREFIX)/etc/ts-warp*
 
 	install -d $(PREFIX)/bin/
 	install -m 755 -s ts-warp $(PREFIX)/bin/
@@ -147,6 +144,7 @@ uninstall:
 	rm -f $(PREFIX)/etc/ts-warp_pf_openbsd.conf.sample
 	rm -f $(PREFIX)/etc/ts-warp_pf_freebsd.conf.sample
 	rm -f $(PREFIX)/etc/ts-warp_pf_macos.conf.sample
+	rm -f $(PREFIX)/etc/ts-warp_pf.conf.sample
 	rm -f $(PREFIX)/etc/ts-warp_nftables.sh.sample
 	rm -f $(PREFIX)/etc/ts-warp_iptables.sh.sample
 	rm -f $(PREFIX)/var/log/ts-warp.log
@@ -159,7 +157,7 @@ uninstall:
 	rm -f $(PREFIX)/share/ts-warp/CONTRIBUTORS.md
 	rm -f $(PREFIX)/share/ts-warp/LICENSE
 	rm -f $(PREFIX)/share/ts-warp/README.md
-	rmdir $(PREFIX)/share/ts-warp/
+	@[ -d "$(PREFIX)/share/ts-warp" ] && rmdir -p $(PREFIX)/share/ts-warp/ || exit 0
 
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured Makefile.back
