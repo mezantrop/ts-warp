@@ -1,7 +1,7 @@
 # CHANGELOG
 
 * **2026.07.20**  Current
-  * `configure`: Add `/opt/lib` `/opt/local/lib` to `LIB_PATH_CANDIDATES` for `macports` compatibility
+  * `configure`: Add `/opt/local` and `/usr/local` to `INCLUDE_PATH_CANDIDATES` and `LIB_PATH_CANDIDATES` for `macports`
   * `configure`, `Makefile`: Prevent running `make all` before `configure`; nail `USER` variable
   * `ts-warp.sh`: `macOS` `GUI` only. Fix `_usage()` for CLI operations in `GUI-Warp` app
   * `ts-warp_autofw.sh`: expands `target_ranges` to CIDR subnets instead of host IP addresses
