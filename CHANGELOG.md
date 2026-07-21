@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.07.20**  Current
+* **2026.07.21    ts-warp-1.5.11, gui-warp-1.0.30, (gui-warp-v1.0.36-mac), ns-warp-1.0.8**
+  * `build.sh`: `macOS` `GUI` only. Nail `python` to version `3.11.9` for stable `py2app` support
   * `configure`: Add `/opt/local` and `/usr/local` to `INCLUDE_PATH_CANDIDATES` and `LIB_PATH_CANDIDATES` for `macports`
   * `configure`, `Makefile`: Prevent running `make all` before `configure`; nail `USER` variable
   * `ts-warp.sh`: `macOS` `GUI` only. Fix `_usage()` for CLI operations in `GUI-Warp` app

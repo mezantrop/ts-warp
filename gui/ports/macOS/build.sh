@@ -5,9 +5,12 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 
 # Python3 to build virtual environmen
+# NOTE! py2app compatibility install only official universal-architecture package:
+# https://www.python.org/ftp/python/3.11.9/python-3.11.9-macos11.pkg
 pv='/Library/Frameworks/Python.framework/Versions/Current'
 pv_major=3
 pv_minor=11
+pv_patch=9
 
 # iSSH2-head to build in current versions of OpenSSL/libssh2 libraries statically
 issh2_home='./iSSH2'
@@ -22,11 +25,13 @@ l_libcrypto="$issh2_home/openssl_macosx/lib/libcrypto.a"
 
 which $pv/bin/python3 > /dev/null || { echo "No Python interpreter detected"; exit 1; }
 $pv/bin/python3 -V |
-	awk -v maj=$pv_major -v min=$pv_minor -F '[ .]' '
-								{ print($0, "detected") }
-		$2 != maj || $3 > min	{ exit 1 }
+	awk -v maj=$pv_major -v min=$pv_minor -v pat=$pv_patch -F '[ .]' '
+												{ print($0, "detected") }
+		($2 > maj) ||
+		($2 == maj && $3 > min) ||
+		($2 == maj && $3 == min && $4 > pat)	{ exit 1 }
 	' || {
-		echo "Unsupported Python version. Use Python <= $pv_major.$pv_minor.x"
+		echo "Unsupported Python version. Use Python <= $pv_major.$pv_minor.$pv_patch"
 		exit 1
 	}
 
@@ -40,7 +45,10 @@ echo "-- Making binaries -------------------------------------------------------
 	sh $issh2_home/iSSH2-head.sh \
 		--platform="$issh2_platform_name" \
 		--min-version="$issh2_platform_version" \
-		--archs="$issh2_architectures"
+		--archs="$issh2_architectures" || {
+			echo "iSSH2 fatal error"
+			exit 1
+		}
 
 	[ ! -f "$l_libssh2" -o ! -f "$h_libssh2" -o ! -f "$l_libssl" -o ! -f "$l_libcrypto" ] && {
 		echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -58,9 +66,9 @@ echo "-- Making environment ----------------------------------------------------
 $pv/bin/python3 -m venv venv &&
 cd venv/bin &&
 source activate &&
-$pv/bin/pip3 install --upgrade pip &&
-$pv/bin/pip3 install tk &&
-$pv/bin/pip3 install py2app &&
+pip3 install --upgrade pip &&
+pip3 install tk &&
+pip3 install py2app &&
 
 echo "-- Setting TCL/Tk -----------------------------------------------------------------------------------------------" &&
 cd ../.. &&
@@ -75,7 +83,7 @@ chmod 755 ts-warp.sh &&
 chmod 755 ts-warp_autofw.sh &&
 
 echo "-- Building the app ---------------------------------------------------------------------------------------------" &&
-$pv/bin/python3 setup.py py2app &&
+python3 setup.py py2app &&
 
 # echo "-- Archiving ----------------------------------------------------------------------------------------------------" &&
 # tar cvf - -C dist gui-warp.app | gzip --best > gui-warp.app.tgz &&
