@@ -157,7 +157,7 @@ uninstall:
 	rm -f $(PREFIX)/share/ts-warp/CONTRIBUTORS.md
 	rm -f $(PREFIX)/share/ts-warp/LICENSE
 	rm -f $(PREFIX)/share/ts-warp/README.md
-	@[ -d "$(PREFIX)/share/ts-warp" ] && rmdir -p $(PREFIX)/share/ts-warp/ || exit 0
+	@[ -d "$(PREFIX)/share/ts-warp" ] && rmdir $(PREFIX)/share/ts-warp/ || exit 0
 
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured Makefile.back
