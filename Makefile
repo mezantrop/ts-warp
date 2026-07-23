@@ -1,10 +1,10 @@
 PREFIX?=/usr/local
 WITH_TCP_NODELAY?=1
-WITH_LIBSSH2?=1
-CPATH+=-I/usr/include -I/usr/local/include
-LDLIBS+=-lssh2
-LDFLAGS+=-L/lib -L/usr/lib -L/usr/lib32 -L/usr/local/lib
-USER=cc
+WITH_LIBSSH2?=0
+CPATH+=
+LDLIBS+=
+LDFLAGS+=
+USER=
 CC=
 CFLAGS += -O3 -Wall -DPREFIX='"$(PREFIX)"' -DWITH_TCP_NODELAY=$(WITH_TCP_NODELAY) -DWITH_LIBSSH2=$(WITH_LIBSSH2) $(CPATH)
 WARP_OBJS = base64.o inifile.o logfile.o natlook.o network.o pidfile.o pidlist.o ssh2.o socks.o http.o ts-warp.o \
@@ -157,7 +157,8 @@ uninstall:
 	rm -f $(PREFIX)/share/ts-warp/CONTRIBUTORS.md
 	rm -f $(PREFIX)/share/ts-warp/LICENSE
 	rm -f $(PREFIX)/share/ts-warp/README.md
-	@[ -d "$(PREFIX)/share/ts-warp" ] && rmdir $(PREFIX)/share/ts-warp/ || exit 0
+	rm -f $(PREFIX)/share/ts-warp/bmcoffee.png
+	@[ -d "$(PREFIX)/share/ts-warp" ] && rmdir $(PREFIX)/share/ts-warp || exit 0
 
 clean:
 	rm -rf ts-warp ts-warp.sh ts-warp_autofw.sh ts-pass *.o *.dSYM *.core examples/*.conf examples/*.sh .configured Makefile.back

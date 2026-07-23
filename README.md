@@ -81,10 +81,10 @@ proxies based on destination, domain, or rule sets.
 
 ### Changelog
 
-**Attention! To incorporate HTTP proxy service, `socks_*` variables in `ts-warp.ini` are replaced by `proxy_*` ones.
+**Attention! To incorporate different proxy services, `socks_*` variables in `ts-warp.ini` are replaced by `proxy_*` ones.
 The deprecated variables will be eventually removed in the further releases**
 
-See it [here](CHANGELOG.md)
+See the [Changelog](CHANGELOG.md)
 
 ### Quick Installation
 
@@ -100,24 +100,23 @@ git clone https://github.com/mezantrop/ts-warp ts-warp.src && cd ts-warp.src
 
 ./configure && make && sudo make install clean
 
-# Copy and edit configuration files
-sudo cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && sudo vi /usr/local/etc/ts-warp.ini
+# Copy samples and edit configuration in INI files:
+cp /usr/local/etc/ts-warp.ini.sample /usr/local/etc/ts-warp.ini && vi /usr/local/etc/ts-warp.ini
 
-# Compile firewall rules based on ts-warp.ini
-/usr/local/bin/ts-warp_autofw.sh > /tmp/ts-warp_autofw.out
+# Then compile firewall rules based on ts-warp.ini
 
 # on *BSD and macOS
-sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_pf.conf
+/usr/local/bin/ts-warp_autofw.sh > /usr/local/etc/ts-warp_pf.conf
 
 # on Linux with nftables
-sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_nftables.sh
+/usr/local/bin/ts-warp_autofw.sh > /usr/local/etc/ts-warp_nftables.sh
 
 # on Linux with iptables
-sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_iptables.sh
+/usr/local/bin/ts-warp_autofw.sh > /usr/local/etc/ts-warp_iptables.sh
 
 # on Windows WSL2 (Ubuntu) with iptables; Required packages for CLI: clang/gcc, make. For GUI-Warp: python3-tk
 wsl --set-default-version 2
-sudo mv /tmp/ts-warp_autofw.out /usr/local/etc/ts-warp_iptables.sh
+sudo /usr/local/bin/ts-warp_autofw.sh > /usr/local/etc/ts-warp_iptables.sh
 ```
 
 ### Usage
