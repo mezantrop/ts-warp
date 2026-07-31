@@ -1,6 +1,9 @@
 # CHANGELOG
 
-* **2026.07.23**
+* **2026.07.31**
+  * `CONTRIBUTORS.md`: Thanks Bruce Gui for ideas and prototyping!
+  * `ts-warp_autofw.sh`: Many tweaks: ports, sorting, constraints
+  * `inifile.c`: Add support for destination `ports` syntax
   * `README.md`: updated for the shorter installation procedure
   * `Makefile`: set empty/generic variable values to be detected by `configure`
 

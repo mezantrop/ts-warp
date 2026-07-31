@@ -4,7 +4,7 @@
 # TS-Warp - Firewall configuration builder                                     #
 # ---------------------------------------------------------------------------- #
 
-# Copyright (c) 2024-2026, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2023-2026, Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@ make_networks() {
     nets_raw=$(printf "%s\n" "$cfg" | grep target_network | cut -f 2 -d '=')
     nets=""
     for net in $nets_raw; do
-        netw=$(printf "%s" $net | cut -f 1 -d '/')
+        netw=$(printf "%s" $net | awk -F '[:/]' '{print $1}')
         mask=$(printf "%s" $net | cut -f 2 -d '/')
 
         chk_ip "$netw" || return 1
@@ -84,7 +84,7 @@ make_ranges() {
 
     rngs=""
     for range in $rngs_raw; do
-        s_ip=$(printf "%s" $range | cut -f 1 -d '/')
+        s_ip=$(printf "%s" $range | awk -F '[:/]' '{print $1}')
         e_ip=$(printf "%s" $range | cut -f 2 -d '/')
 
         chk_ip "$s_ip" || return 1
@@ -181,7 +181,7 @@ make_proxy() {
 
     sservers_raw=$(printf "%s\n" "$cfg" |
         grep -E 'socks_server|proxy_server' |
-        tr -d " \t" | awk -F '[=:]' '{print $2}')
+        tr -d " \t" | awk -F '[=:]' '{print $2}' | sort -u)
 
     sservers=""
     for srv in $sservers_raw; do
@@ -226,34 +226,31 @@ make_conf_pf() {
     # Make PF configuration
 
     rslt=""
-    for n in $networks; do
-        _nets="$_nets""$n, "
-    done
-    rslt="$rslt""$_nets"'\'"$nl"
-
-    for r in $ranges; do
-        _rngs="$_rngs""$r, "
-    done
-    rslt="$rslt""$_rngs"'\'"$nl"
-
-    for h in $hosts; do
-        _hsts="$_hsts""$h, "
-    done
-    rslt="$rslt""$_hsts"'\'"$nl"
-
-    for d in $domains; do
-        _doms="$_doms""$d, "
-    done
-    rslt="$rslt""$_doms"'\'"$nl"
-
+    # Proxy servers IP list with negation !
     for s in $sservers; do
         _ssrv="$_ssrv"!"$s, "
     done
-    rslt="$rslt""$_ssrv"'\'"$nl"
+    rslt="$_ssrv"'\'"$nl"
+
+    ips=$(printf "%s" "$networks$ranges$hosts$domains" | sort -u)
+
+    # The rest of IP addresss, comma separated, 4 in a row
+    for i in $ips; do
+        c=$((c + 1))
+        [ $i != "" -a $i != "$nl" ] && {
+            _r="$_r""$i, "
+            [ $((c % 4 )) -eq 0 ] &&
+                _r="$_r"'\'"$nl"
+        }
+    done
+
+    # Combine all the addresses and remove the trailing comma with sed
+    # Yes, I know about modern style but good old `` work while $() do not
+    rslt=`printf "%s" "$rslt""$_r"'\'"$nl" | sed '$! { P; D; }; s|...$| \\\|'`
 
     cat <<EOF
 table <$TSW_TNAME> { \\
-`printf "%s" "$rslt" | sed '$! { P; D; }; s|...$| \\\|'`
+$rslt
 }
 
 $pf_rules
@@ -324,6 +321,13 @@ TSW_PORT=${1-10800}
     printf "Fatal: You must not be root to proceed\n"
     exit 1
 }
+
+case "$TSW_PORT" in
+    ''|*[!0-9]*)
+        printf "Fatal: invalid port number: [%s\n]" "$TSW_PORT"
+        exit 1
+    ;;
+esac
 
 cfg=$(cat $tsw_ini |
     cut -f 1 -d ';' |

@@ -595,6 +595,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
     char host[HOST_NAME_MAX] = {0}, *domain = NULL;
     int domainlen = 0;
 
+    unsigned uport = htons(addr_u.ip_addr.ss_family == AF_INET ? SIN4_PORT(addr_u.ip_addr) : SIN6_PORT(addr_u.ip_addr));
 
     if (addr_u.name[0]) strncpy(host, addr_u.name, sizeof(host));
     s = ini;
@@ -626,29 +627,23 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                 }
             }
 
+            unsigned tip1_port = htons(addr_u.ip_addr.ss_family == AF_INET ? SIN4_PORT(t->ip1) : SIN6_PORT(t->ip1));
+            unsigned tip2_port = htons(addr_u.ip_addr.ss_family == AF_INET ? SIN4_PORT(t->ip2) : SIN6_PORT(t->ip2));
+
             switch(t->target_type) {
                 case INI_TARGET_HOST:
-                    if ((host[0] && t->name && strcasestr(t->name, host) &&
-                        (addr_u.ip_addr.ss_family == AF_INET &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
-                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
-                        (addr_u.ip_addr.ss_family == AF_INET6 &&
-                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
-                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
-
-                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s : %s] in: [%s]",
-                                inet2str(&s->proxy_server, buf1), s->proxy_type, host[0] ? host : "-",
-                                inet2str(&addr_u.ip_addr, buf2), s->section_name);
-                            return s;
+                    if (host[0] && t->name && strcasestr(t->name, host) && uport >= tip1_port && uport <= tip2_port) {
+                        printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s : %s] in: [%s]",
+                            inet2str(&s->proxy_server, buf1), s->proxy_type, host[0] ? host : "-",
+                            inet2str(&addr_u.ip_addr, buf2), s->section_name);
+                        return s;
                     } else
                         if ((addr_u.ip_addr.ss_family == AF_INET &&
                                 S4_ADDR(addr_u.ip_addr) == S4_ADDR(t->ip1) &&
-                                SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
-                                SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
+                                uport >= tip1_port && uport <= tip2_port) ||
                             (addr_u.ip_addr.ss_family == AF_INET6 &&
                                 !memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip1), sizeof(S6_ADDR(addr_u.ip_addr))) &&
-                                SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
-                                SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                                uport >= tip1_port && uport <= tip2_port)) {
 
                                 printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s : %s] in: [%s]",
                                     inet2str(&s->proxy_server, buf1), s->proxy_type, host[0] ? host : "-",
@@ -658,17 +653,10 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                 break;
 
                 case INI_TARGET_DOMAIN:
-                    if ((domainlen && strcasestr(t->name, domain) &&
-                        (addr_u.ip_addr.ss_family == AF_INET &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
-                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2))) ||
-                        (addr_u.ip_addr.ss_family == AF_INET6 &&
-                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
-                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
-
-                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
-                                inet2str(&s->proxy_server, buf1), s->proxy_type, host, t->name, s->section_name);
-                            return s;
+                    if (domainlen && strcasestr(t->name, domain) && uport >= tip1_port && uport <= tip2_port) {
+                        printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve HOST: [%s] in DOMAIN: [%s] in: [%s]",
+                            inet2str(&s->proxy_server, buf1), s->proxy_type, host, t->name, s->section_name);
+                        return s;
                     }
                 break;
 
@@ -676,9 +664,7 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                     if (addr_u.ip_addr.ss_family == AF_INET) {
                         /* IP & MASK_from_ini vs IP_from_ini & MASK_from_ini */
                         if ((S4_ADDR(addr_u.ip_addr) & S4_ADDR(t->ip2)) == (S4_ADDR(t->ip1) & S4_ADDR(t->ip2)) &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
-                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) {
-
+                            uport >= tip1_port && uport <= tip2_port) {
                                 printl(LOG_VERB,
                                     "Found proxy: [%s] type [%c] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
                                     inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
@@ -690,26 +676,27 @@ struct ini_section *ini_look_server(struct ini_section *ini, struct uvaddr addr_
                         int b;
                         for (b = 0; b < 16; ++b)
                             if ((S6_ADDR(addr_u.ip_addr)[b] & S6_ADDR(t->ip2)[b]) != (S6_ADDR(t->ip1)[b] & S6_ADDR(t->ip2)[b]))
-                                break;
+                                goto end_target;
 
-                        printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
-                            inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
-                            inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4), s->section_name);
-                        return s;
+                        if (uport >= tip1_port && uport <= tip2_port) {
+                            printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s] in NETWORK: [%s/%s] in: [%s]",
+                                inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
+                                inet2str(&t->ip1, buf3), inet2str(&t->ip2, buf4), s->section_name);
+                            return s;
+                        }
                     }
+end_target:
                 break;
 
                 case INI_TARGET_RANGE:
                     if ((addr_u.ip_addr.ss_family == AF_INET &&
                             ntohl(S4_ADDR(addr_u.ip_addr)) >= ntohl(S4_ADDR(t->ip1)) &&
                             ntohl(S4_ADDR(addr_u.ip_addr)) <= ntohl(S4_ADDR(t->ip2)) &&
-                            SIN4_PORT(addr_u.ip_addr) >= SIN4_PORT(t->ip1) &&
-                            SIN4_PORT(addr_u.ip_addr) <= SIN4_PORT(t->ip2)) ||
+                            uport >= tip1_port && uport <= tip2_port) ||
                         (addr_u.ip_addr.ss_family == AF_INET6 &&
                             memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip1), sizeof(S6_ADDR(addr_u.ip_addr))) > 0 &&
                             memcmp(S6_ADDR(addr_u.ip_addr), S6_ADDR(t->ip2), sizeof(S6_ADDR(addr_u.ip_addr))) < 0 &&
-                            SIN6_PORT(addr_u.ip_addr) >= SIN6_PORT(t->ip1) &&
-                            SIN6_PORT(addr_u.ip_addr) <= SIN6_PORT(t->ip2))) {
+                            uport >= tip1_port && uport <= tip2_port)) {
 
                             printl(LOG_VERB, "Found proxy: [%s] type [%c] to serve IP: [%s] in RANGE: [%s/%s] in: [%s]",
                                 inet2str(&s->proxy_server, buf1), s->proxy_type, inet2str(&addr_u.ip_addr, buf2),
