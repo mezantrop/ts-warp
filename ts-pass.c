@@ -25,33 +25,52 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-
-/* TODO: Read password from stdin with echo off to hide plaintext password */
-
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
+#include <termios.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <unistd.h>
 
 #include "xedec.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 int main(int argc, char* argv[]) {
+    struct termios ot, nt;
+
     char *xkey = NULL;
     char *pref = XEDEC_TSW01;
     char *result = NULL;
 
-    if (argc != 2) {
-        printf("Usage:\n\tts_pass Password2Encode\n\n");
+    char buf[256];
+    char *p = buf;
+
+
+    if (argc < 2 || argc > 3 || (argc == 3 && argv[1][0] != '-' && argv[1][1] != '-')) {
+        printf("Usage:\n");
+        printf("\tts_pass - -\t\t\tto read from STDIN\n");
+        printf("\tts_pass Password2Encode\t\tto take as CLI argument\n\n");
         exit(1);
     }
 
+    if (argc == 3) {
+        tcgetattr(STDIN_FILENO, &ot);
+        nt = ot;
+        nt.c_lflag &= ~ECHO;
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &nt);
+        if (!fgets(p, sizeof(buf), stdin)) {
+            printf("Error reading password from STDIN\n");
+            exit(1);
+        }
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &ot);
+    } else
+        p = argv[1];
+
     xkey = init_xcrypt(XEDEC_XKEY_LEN);
-    if (!(result = xencrypt(xkey, pref, argv[1]))) {
+    if (!(result = xencrypt(xkey, pref, p))) {
         printf("Error encrypting the password!\n");
         exit(1);
     }

@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2026.07.31**
+* **2026.08.07**
+  * `ts-xedec.c`: Replace `int` with `size_t` for unsigned values
+  * `ts-pass.c`: Option to read password from stdin with echo off
   * `CONTRIBUTORS.md`: Thanks Bruce Gui for ideas and prototyping!
   * `ts-warp_autofw.sh`: Many tweaks: ports, sorting, constraints
   * `inifile.c`: Add support for destination `ports` syntax

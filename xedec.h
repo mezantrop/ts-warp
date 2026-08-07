@@ -32,6 +32,6 @@
 #define URANDOM     "/dev/urandom"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *init_xcrypt(int xkey_len);
+char *init_xcrypt(size_t xkey_len);
 char *xencrypt(char *xkey, char *prefix, char *text);
 char *xdecrypt(char *hex_hash, char *prefix);

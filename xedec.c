@@ -40,7 +40,7 @@
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-char *init_xcrypt(int xkey_len) {
+char *init_xcrypt(size_t xkey_len) {
     char *xkey = NULL;
     char *urnd_name = URANDOM;
     int urnd_fd = 0; int i = 0;

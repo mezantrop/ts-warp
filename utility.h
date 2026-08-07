@@ -34,5 +34,5 @@ extern char *tfile_name;
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 long toint(char *str);
-char *init_xcrypt(int xkey_len);
+char *init_xcrypt(size_t xkey_len);
 void mexit(int status, char *pid_file, char *act_file);
