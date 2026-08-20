@@ -74,7 +74,8 @@ int socks4_client_request(chs cs, uint8_t cmd, struct sockaddr_in *daddr, char *
     printl(LOG_CRIT, "Preparing IPv4 Socks4 request");
 
     /* Fill in the request */
-    strcpy((char*)req.id, PROG_NAME);                       /* Sic! Some username is required by server! */
+    strncpy((char*)req.id, PROG_NAME, sizeof(req.id) - 1);          /* Sic! Some username is required by server! */
+    req.id[sizeof(req.id) - 1] = '\0';
     idlen = strnlen((char *)req.id, STR_SIZE);
 
     req.ver = PROXY_PROTO_SOCKS_V4 - '0';
@@ -532,6 +533,10 @@ uint8_t socks5_server_request(int socket, struct uvaddr *daddr) {
         break;
 
         case SOCKS5_ATYPE_NAME:
+            if (req->dsthost[0] > sizeof(daddr->name) - 1) {
+                printl(LOG_WARN, "Domain name too long");
+                return SOCKS5_ATYPE_NONE;
+            }
             memcpy(&daddr->name, req->dsthost + 1, req->dsthost[0]);
             daddr->ip_addr = str2inet(daddr->name, NULL);
             if (SA_FAMILY(daddr->ip_addr) == AF_INET)

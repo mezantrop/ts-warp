@@ -88,7 +88,7 @@ char *pfile_name = PID_FILE_NAME;
 
 struct passwd *pwd = NULL;
 
-int cn = 1;                                         /* Active clients number */
+static volatile sig_atomic_t cn = 1;                /* Active clients number */
 pid_t pid, mpid;                                    /* Current and main daemon PID */
 struct pid_list *pids = NULL;                       /* List of active clients with PIDs and Sections */
 int Tsock, Ssock, Hsock, isock, csock;              /* Sockets for Transparent/Internal-Socks&HTTP/in/clients */
@@ -635,8 +635,9 @@ All parameters are optional:
         }
 
         if ((cpid = fork()) == -1) {
-            printl(LOG_CRIT, "Failed fork() to serve a client request");
-            mexit(1, pfile_name, tfile_name);
+            printl(LOG_WARN, "Fork failed for client, closing connection");
+            close(csock);
+            continue;
         }
 
         if (cpid > 0) {
@@ -1267,8 +1268,8 @@ All parameters are optional:
                     FD_SET(csock, &rfd);
                     FD_SET(ssock.s, &rfd);
 
-                    tv.tv_sec = 0;
-                    tv.tv_usec = 100000;
+                    tv.tv_sec = 1;
+                    tv.tv_usec = 0;
                     ret = select(ssock.s > csock ? ssock.s + 1: csock + 1, &rfd, 0, 0, &tv);
 
                     if (ret < 0) break;

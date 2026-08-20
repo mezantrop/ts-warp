@@ -1,6 +1,14 @@
 # CHANGELOG
 
-* **2026.08.07**
+* **2026.08.20  Current**
+  * `ts-warp.c`:
+    * Close connection, no exit on failed `fork()` for the new client
+    * Re-decline active connections counter as: `static volatile sig_atomic_t cn`
+    * Increase sesson timeout
+  * `inifile.c`: Limit INI-file string parsing
+  * `socks.c`:
+    * `strcpy()` -> `strncpy()` no harm here, only to make validators happy
+    * Check length of the destination domain name
   * `ts-xedec.c`: Replace `int` with `size_t` for unsigned values
   * `ts-pass.c`: Option to read password from stdin with echo off
   * `CONTRIBUTORS.md`: Thanks Bruce Gui for ideas and prototyping!
