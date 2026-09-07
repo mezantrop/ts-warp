@@ -1,6 +1,8 @@
 # CHANGELOG
 
-* **2026.08.20  Current**
+* **2026.09.07  ts-warp-1.5.12, gui-warp-1.0.31, (gui-warp-v1.0.37-mac), ns-warp-1.0.8**
+  * `socks.c`, `socks.h`: read `CONNECT`reply with length from reply `ATYP`
+    [issue](https://github.com/mezantrop/ts-warp/issues/17) thanks [@simon202011](https://github.com/simon202011)
   * `ts-warp.c`:
     * Close connection, no exit on failed `fork()` for the new client
     * Re-decline active connections counter as: `static volatile sig_atomic_t cn`

@@ -275,6 +275,7 @@ typedef struct {
 #define SOCKS5_REPLY_TTL_EXPIRED    0x06            /* TTL expired */
 #define SOCKS5_REPLY_UNSUPPORTED    0x07            /* Command unsupported / protocol error */
 #define SOCKS5_REPLY_ATYPE_ERROR    0x08            /* Address type is not supported */
+#define SOCKS5_REPLY_MAX            0x08            /* Highest valid reply status (bounds check for socks5_status[]) */
 
 /* -- Function prototypes ------------------------------------------------------------------------------------------- */
 int socks4_client_request(chs cs, uint8_t cmd, struct sockaddr_in *daddr, char *user);

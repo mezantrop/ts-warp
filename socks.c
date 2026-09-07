@@ -278,6 +278,40 @@ int socks5_client_auth(chs cs, char *user, char *password) {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+static int socks5_client_recv_exact(chs cs, void *buf, size_t len) {
+    /* Read exactly len bytes from the Socks5 server (socket or SSH2 channel); Return 0 if OK or -1 on error/EOF */
+
+    size_t got = 0;
+    ssize_t r = 0;
+
+    while (got < len) {
+        switch (cs.t) {
+            case CHS_SOCKET:
+                r = recv(cs.s, (char *)buf + got, len - got, 0);
+            break;
+
+            case CHS_CHANNEL:
+                #if (WITH_LIBSSH2)
+                    while ((r = libssh2_channel_read(cs.c, (char *)buf + got, len - got)) == LIBSSH2_ERROR_EAGAIN) ;
+                #else
+                    r = -1;
+                #endif
+            break;
+
+            default:
+                printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+                return -1;
+            break;
+        }
+
+        if (r <= 0) return -1;
+        got += r;
+    }
+
+    return 0;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 int socks5_client_request(chs cs, uint8_t cmd, struct sockaddr_storage *daddr, char *dname) {
     /* Perform Socks5 request; IPv4/IPv6 addresses: atype 1/4, Domain name: atype 3 */
 
@@ -421,40 +455,59 @@ int socks5_client_request(chs cs, uint8_t cmd, struct sockaddr_storage *daddr, c
 
     printl(LOG_VERB, "Expecting Socks5 server reply");
 
-    /* Receive reply from the server */
+    /* Receive reply from the server: fixed 4-byte header first, then the bound address whose length depends on the
+       ATYPE the SERVER chose (RFC 1928 sec. 6), which is independent of the address type we sent in the request */
     memset(buf, 0, sizeof(buf));
 
-    switch (cs.t) {
-        case CHS_SOCKET:
-            /* 6 + atype_len: 6 is a SOCK5 header length - variable address field */
-            if ((rcount = recv(cs.s, &buf, 6 + atype_len, 0)) == -1) {
-                printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server via socket");
-                return SOCKS5_REPLY_KO;
-            }
+    if (socks5_client_recv_exact(cs, buf, sizeof(s5_reply_short)) == -1) {
+        printl(LOG_CRIT, "Unable to receive a reply header from the Socks5 server");
+        return SOCKS5_REPLY_KO;
+    }
+    rcount = sizeof(s5_reply_short);
+
+    rep = (s5_reply_short *)buf;
+
+    if (rep->ver != PROXY_PROTO_SOCKS_V5 - '0') {                             /* Report Socks5 general failure */
+        printl(LOG_WARN, "Socks5 server speaks unsupported protocol v:[%d]", rep->ver);
+        return SOCKS5_REPLY_KO;
+    }
+
+    switch (rep->atype) {
+        case SOCKS5_ATYPE_IPV4:
+            atype_len = SOCKS5_ATYPE_IPV4_LEN;
         break;
 
-        case CHS_CHANNEL:
-            #if (WITH_LIBSSH2)
-                while ((rcount = libssh2_channel_read(cs.c, (char*)&buf, 6 + atype_len)) == LIBSSH2_ERROR_EAGAIN) ;
-                if (rcount < 0) {
-                    printl(LOG_CRIT, "Unable to receive a reply from the Socks5 server via SSH2 channel");
-                    return SOCKS5_REPLY_KO;
-                }
-            #endif
+        case SOCKS5_ATYPE_IPV6:
+            atype_len = SOCKS5_ATYPE_IPV6_LEN;
+        break;
+
+        case SOCKS5_ATYPE_NAME:
+            if (socks5_client_recv_exact(cs, buf + rcount, 1) == -1) {
+                printl(LOG_CRIT, "Unable to receive a reply name length from the Socks5 server");
+                return SOCKS5_REPLY_KO;
+            }
+            atype_len = (uint8_t)buf[rcount];
+            rcount += 1;
         break;
 
         default:
-            printl(LOG_CRIT, "Error Socket / SSH2 Channel specified");
+            printl(LOG_WARN, "Socks5 server reply has unsupported address type: [%d]", rep->atype);
             return SOCKS5_REPLY_KO;
         break;
     }
 
-    rep = (s5_reply_short *)buf;
-    printl(LOG_VERB, "Socks5 reply: [%d][%d]:[%s], Bytes [%d]", rep->ver,
-        rep->status, socks5_status[rep->status], rcount);
+    /* Bound address + 2-byte port */
+    if (socks5_client_recv_exact(cs, buf + rcount, atype_len + 2) == -1) {
+        printl(LOG_CRIT, "Unable to receive a reply address from the Socks5 server");
+        return SOCKS5_REPLY_KO;
+    }
+    rcount += atype_len + 2;
 
-    if (rep->ver != PROXY_PROTO_SOCKS_V5 - '0') {                             /* Report Socks5 general failure */
-        printl(LOG_WARN, "Socks5 server speaks unsupported protocol v:[%d]", rep->ver);
+    printl(LOG_VERB, "Socks5 reply: [%d][%d]:[%s], Atype [%d], Bytes [%d]", rep->ver,
+        rep->status, socks5_status[rep->status], rep->atype, rcount);
+
+    if (rep->status > SOCKS5_REPLY_MAX) {
+        printl(LOG_WARN, "Socks5 server reply status out of range: [%d]", rep->status);
         return SOCKS5_REPLY_KO;
     }
 
