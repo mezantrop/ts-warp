@@ -1,5 +1,8 @@
 # CHANGELOG
 
+* **2026.09.11  current**
+  `ts-warp_autofw.sh`, `ts-warp_autofw.sh.in`: Fixed extra `,` mark which, could break PF-syntax in `ts_warp_pf.conf`
+
 * **2026.09.07  ts-warp-1.5.12, gui-warp-1.0.31, (gui-warp-v1.0.37-mac), ns-warp-1.0.8**
   * `socks.c`, `socks.h`: read `CONNECT`reply with length from reply `ATYP`
     [issue](https://github.com/mezantrop/ts-warp/issues/17) thanks [@simon202011](https://github.com/simon202011)

@@ -233,20 +233,23 @@ make_conf_pf() {
     rslt="$_ssrv"'\'"$nl"
 
     ips=$(printf "%s" "$networks$ranges$hosts$domains" | sort -u)
+    rslt="$rslt"$(printf "%s" "ips" |
+        awk '
+            BEGIN { n = 1 }
+            $0 != "" { lns[n++] = $0 }
+            END {
+                for (i = 1; i < n; i++) {
+                    printf ("%s", lns[i])
 
-    # The rest of IP addresss, comma separated, 4 in a row
-    for i in $ips; do
-        c=$((c + 1))
-        [ $i != "" -a $i != "$nl" ] && {
-            _r="$_r""$i, "
-            [ $((c % 4 )) -eq 0 ] &&
-                _r="$_r"'\'"$nl"
-        }
-    done
-
-    # Combine all the addresses and remove the trailing comma with sed
-    # Yes, I know about modern style but good old `` work while $() do not
-    rslt=`printf "%s" "$rslt""$_r"'\'"$nl" | sed '$! { P; D; }; s|...$| \\\|'`
+                    if (i < n - 1)
+                        printf(", ")
+                    if (i % 4 == 0)
+                        print "\\"
+                }
+                print "\\"
+            }
+        '
+    )
 
     cat <<EOF
 table <$TSW_TNAME> { \\
