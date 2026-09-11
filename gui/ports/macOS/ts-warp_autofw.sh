@@ -233,7 +233,7 @@ make_conf_pf() {
     rslt="$_ssrv"'\'"$nl"
 
     ips=$(printf "%s" "$networks$ranges$hosts$domains" | sort -u)
-    rslt="$rslt"$(printf "%s" "ips" |
+    rslt="$rslt"$(printf "%s" "$ips" |
         awk '
             BEGIN { n = 1 }
             $0 != "" { lns[n++] = $0 }
