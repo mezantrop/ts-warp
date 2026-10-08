@@ -53,7 +53,7 @@ class App:
     def __init__(self, width=800, height=560,
                  runcmd='/usr/local/etc/ts-warp.sh',
                  inifile='/usr/local/etc/ts-warp.ini',
-                 daemon_options="",
+                 daemon_options='',
                  fwfile='/usr/local/etc/ts-warp_pf.conf',
                  logfile='/usr/local/var/log/ts-warp.log',
                  logfile_maxlines=3000,
@@ -62,7 +62,7 @@ class App:
 
         self.password = ''
 
-        self.version = 'v1.0.38-mac'
+        self.version = 'v1.0.39-mac'
         self.width = width
         self.height = height
 
@@ -104,17 +104,17 @@ class App:
         btn_run['command'] = lambda: self.run_script('stop') if btn_run['text'] == '■' else self.run_script('start')
 
         ttk.Label(lfrm_top, text='Log-level:').grid(column=2, row=0, sticky=tk.W)
-        self.cmb_lvl = ttk.Combobox(lfrm_top, state="readonly", values=[1, 2, 3, 4], width=2)
+        self.cmb_lvl = ttk.Combobox(lfrm_top, state='readonly', values=[1, 2, 3, 4], width=2)
         self.cmb_lvl.current(1)
         self.cmb_lvl.grid(column=3, row=0, sticky=tk.W, padx=self._padx)
-        self.cmb_lvl.bind("<FocusIn>", self.root.focus_set())
+        self.cmb_lvl.bind('<FocusIn>', self.root.focus_set())
 
         ttk.Label(lfrm_top, text='Options:').grid(column=4, row=0, sticky=tk.W)
         lfrm_top.columnconfigure(5, weight=1)
         self.tsw_opts = tk.StringVar(value=daemon_options)
         ttk.Entry(lfrm_top, textvariable=self.tsw_opts).grid(column=5, row=0, padx=3, sticky=tk.EW)
 
-        # -- Display INI/FW/LOG/ACT pane ----------------------------------------------------------------------------- #
+        # -- Display About/INI/FW/LOG/ACT pane ----------------------------------------------------------------------- #
         tab_ctrl = ttk.Notebook(self.root)
         tab_about = ttk.Frame(tab_ctrl)
         tab_ini = ttk.Frame(tab_ctrl)
@@ -142,7 +142,7 @@ class App:
         log_txt = tk.Text(tab_log, highlightthickness=0, state='disabled')
         log_txt.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
         self.log_after_id = None
-        tab_log.bind("<Visibility>", lambda e: self.start_log_refresh(log_txt, logfile))
+        tab_log.bind('<Visibility>', lambda e: self.start_log_refresh(log_txt, logfile))
 
         scroll_log = ttk.Scrollbar(tab_log, orient=tk.VERTICAL)
         scroll_log.grid(column=2, row=1, sticky=tk.NSEW)
@@ -180,12 +180,12 @@ class App:
 
         ini_txt = tk.Text(tab_ini, highlightthickness=0)
         ini_txt.grid(column=0, row=2, columnspan=2, sticky=tk.NSEW)
-        tab_ini.bind("<Visibility>", self.readfile_ini(ini_txt, inifile))
+        tab_ini.bind('<Visibility>', self.readfile_ini(ini_txt, inifile))
 
         def ini_modified(event=None):
             lbl_save_ini['foreground'] = 'red' if ini_txt.edit_modified() else 'black'
         ini_txt.edit_modified(False)
-        ini_txt.bind("<<Modified>>", ini_modified)
+        ini_txt.bind('<<Modified>>', ini_modified)
 
         scroll_ini = ttk.Scrollbar(tab_ini, orient=tk.VERTICAL)
         scroll_ini.grid(column=2, row=2, sticky=tk.NSEW)
@@ -224,19 +224,19 @@ class App:
         tab_about.rowconfigure(5, weight=0)
 
         style_url = ttk.Style()
-        style_url.configure("URL.TLabel", foreground="orange")
+        style_url.configure('URL.TLabel', foreground='orange')
 
         about_text = 'TS-Warp - Transparent proxy server and traffic wrapper\n\
-It is a free and open-source software, but if you want to support it, please do'
+It is a free and open-source software, but if you want to support it, please do:'
 
         lbl_about = ttk.Label(tab_about, text=about_text)
         lbl_about.grid(column=0, row=0, sticky=tk.EW, padx=self._padx, pady=self._pady)
 
-        self.img_bmcoffee = tk.PhotoImage(file="bmcoffee.png")
+        self.img_bmcoffee = tk.PhotoImage(file='bmcoffee.png')
 
         lbl_coffe = ttk.Label(tab_about, text='Buy me a coffee', cursor='hand2', image=self.img_bmcoffee)
         lbl_coffe.grid(column=1, row=0, sticky=tk.W, padx=self._padx, pady=self._pady)
-        lbl_coffe.bind("<Button-1>", lambda e: webbrowser.open_new(url_supportus))
+        lbl_coffe.bind('<Button-1>', lambda e: webbrowser.open_new(url_supportus))
 
         ttk.Separator(tab_about, orient='horizontal').grid(column=0, row=1, sticky=tk.EW, columnspan=2, pady=self._pady)
 
@@ -245,7 +245,7 @@ It is a free and open-source software, but if you want to support it, please do'
 
         lbl_newv = ttk.Label(tab_about, text='Not checked', cursor='hand2', style='URL.TLabel')
         lbl_newv.grid(column=1, row=2, sticky=tk.W, padx=self._padx, pady=self._pady)
-        lbl_newv.bind("<Button-1>", lambda e: webbrowser.open_new(url_repository))
+        lbl_newv.bind('<Button-1>', lambda e: webbrowser.open_new(url_repository))
 
         btn_newv['command'] = lambda: self.check_new_version(url_new_vesrsion, lbl_newv)
 
@@ -253,9 +253,10 @@ It is a free and open-source software, but if you want to support it, please do'
 
         release_txt = tk.Text(tab_about, highlightthickness=0)
         release_txt.grid(column=0, row=4, columnspan=2, sticky=tk.NSEW, pady=self._pady)
-        tab_about.bind("<Visibility>", lambda e: (self.readfile_ini(release_txt, 'CHANGELOG.md'),
-                                                  release_txt.after_idle(lambda: release_txt.yview_moveto(0.0)),
-                                                  release_txt.config(state='disabled')))
+        tab_about.bind('<Visibility>',
+                       lambda e: (self.readfile_ini(release_txt, 'CHANGELOG.md'),
+                                  release_txt.after_idle(lambda: release_txt.yview_moveto(0.0)),
+                                  release_txt.config(state='disabled')))
 
         scroll_release = ttk.Scrollbar(tab_about, orient=tk.VERTICAL)
         scroll_release.grid(column=2, row=4, sticky=tk.NSEW, pady=self._pady)
@@ -266,7 +267,7 @@ It is a free and open-source software, but if you want to support it, please do'
         lbl_contact_txt.grid(column=0, row=5, sticky=tk.SW, padx=self._padx, pady=self._pady)
         lbl_contact_url = ttk.Label(tab_about, text='zmey20000@yahoo.com', style='URL.TLabel')
         lbl_contact_url.grid(column=1, row=5, sticky=tk.SE, padx=self._padx, pady=self._pady)
-        lbl_contact_url.bind("<Button-1>", lambda e: webbrowser.open_new(url_contact))
+        lbl_contact_url.bind('<Button-1>', lambda e: webbrowser.open_new(url_contact))
 
         # -- Status bar ---------------------------------------------------------------------------------------------- #
         lfrm_bottom = tk.LabelFrame(self.root, relief=tk.FLAT, padx=self._padx)
@@ -296,7 +297,8 @@ It is a free and open-source software, but if you want to support it, please do'
             except Exception:
                 t_widget['text'] = 'Failed to get information'
 
-            cver = os.popen('./ts-warp -h').read().splitlines()
+            cverp = subprocess.Popen(['./ts-warp','-h'], stdout=subprocess.PIPE)
+            cver = cverp.stdout.read().decode().splitlines()
             for n, l in enumerate(cver):
                 if l == 'Version:':
                     lverl = cver[n+1].split('-')[2].split('.')
@@ -509,8 +511,7 @@ It is a free and open-source software, but if you want to support it, please do'
             uid = os.getuid()
             os.setuid(0)
             subprocess.Popen([runcmd, command, prefix, '-v', self.cmb_lvl.get(), self.tsw_opts.get()],
-                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                            close_fds=True)
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
             os.setreuid(uid, 0)
 
     # ---------------------------------------------------------------------------------------------------------------- #
@@ -523,7 +524,7 @@ It is a free and open-source software, but if you want to support it, please do'
         pady = 10
 
         self.win_pwd = tk.Toplevel(self.root)
-        self.win_pwd.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))
+        self.win_pwd.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
         self.win_pwd.title('Starting TS-Warp GUI-frontend...')
         self.win_pwd.resizable(width=False, height=False)
 
@@ -540,7 +541,7 @@ It is a free and open-source software, but if you want to support it, please do'
             self.lbl_error = ttk.Label(self.win_pwd, text='FATAL: "Sudo" command is not found')
             self.lbl_error.grid(column=0, row=0, sticky=tk.EW, padx=padx, pady=pady)
 
-            self.btn_ok = ttk.Button(self.win_pwd, text="OK")
+            self.btn_ok = ttk.Button(self.win_pwd, text='OK')
             self.btn_ok['command'] = lambda: sys.exit(1)
             self.btn_ok.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
         else:
@@ -554,7 +555,7 @@ It is a free and open-source software, but if you want to support it, please do'
             self.ent_pwd.grid(column=1, row=0, sticky=tk.EW, padx=padx, pady=pady)
             self.ent_pwd.focus_set()
 
-            self.btn_enter = ttk.Button(self.win_pwd, text="Enter")
+            self.btn_enter = ttk.Button(self.win_pwd, text='Enter')
             self.btn_enter['command'] = lambda: self.get_password()
             self.btn_enter.grid(column=2, row=0, sticky=tk.EW, padx=padx, pady=pady)
 
@@ -587,14 +588,14 @@ def dedupch(s, c='/'):
     return c.join([x for x in s.split(c) if x != ''])
 
 # -------------------------------------------------------------------------------------------------------------------- #
-if __name__ == "__main__":
+if __name__ == '__main__':
     url_new_vesrsion = 'https://raw.githubusercontent.com/mezantrop/ts-warp/master/version.h'
     url_repository = 'https://github.com/mezantrop/ts-warp/releases/latest/download/GUI-Warp.dmg'
     url_supportus = 'https://www.buymeacoffee.com/mezantrop'
     url_contact = 'mailto:zmey20000@yahoo.com'
 
     runcmd = './ts-warp.sh'
-    prefix = '/' + dedupch(os.path.expanduser("~/ts-warp/")) + '/'
+    prefix = '/' + dedupch(os.path.expanduser('~/ts-warp/')) + '/'
     inifile = prefix + 'etc/ts-warp.ini'
     fwfile = prefix + 'etc/ts-warp_pf.conf'
     logfile = prefix + 'var/log/ts-warp.log'
@@ -645,8 +646,6 @@ if __name__ == "__main__":
             open(logfile, 'a').close()
     if not os.path.exists(prefix + 'var/run/'):
         os.makedirs(prefix + 'var/run/')
-        if not os.path.exists(pidfile):
-            open(pidfile, 'a').close()
     if not os.path.exists(prefix + 'var/spool/ts-warp/'):
         os.makedirs(prefix + 'var/spool/ts-warp/')
 

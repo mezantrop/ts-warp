@@ -1,7 +1,12 @@
 # CHANGELOG
 
-* **2026.09.11  current**
-  `ts-warp_autofw.sh`, `ts-warp_autofw.sh.in`: Fixed extra `,` mark which, could break PF-syntax in `ts_warp_pf.conf`
+* **2026.10.08  current**
+  * `gui-warp.py.in`: fixed `daemon_options` variable which could be unset in some cases
+  * `gui-warp.py.in`, `gui-warp.py`:
+    * `os.popen()` replaced by `subprocess.open()` because of deprication
+    * Clear style: replace " (double quotes) with ' (single quotes)
+  * `gui-warp.py`: `Stopped` status instead of "`Running:` with no PID" on the very first run of the `gui-warp.app`
+  * `ts-warp_autofw.sh`, `ts-warp_autofw.sh.in`: Fixed extra `,` mark which, could break PF-syntax in `ts_warp_pf.conf`
 
 * **2026.09.07  ts-warp-1.5.12, gui-warp-1.0.31, (gui-warp-v1.0.37-mac), ns-warp-1.0.8**
   * `socks.c`, `socks.h`: read `CONNECT`reply with length from reply `ATYP`
