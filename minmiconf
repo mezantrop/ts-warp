@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2024, Mikhail Zakharov <zmey20000@yahoo.com>
+# Copyright (c) 2024-2026 Mikhail Zakharov <zmey20000@yahoo.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,18 @@
 # ---------------------------------------------------------------------------- #
 
 # -- Script variables -------------------------------------------------------- #
-version="1.1.1.1"
+version="1.1.1.2"
 _DEBUG="n"
 _INCLUDE_PATH=""                            # Cache detected INCLUDE dirs
 _LIB_PATH=""                                # Cache detected LIB directories
 _TARGET=""                                  # Cache detected TARGET
+
+USR_BIN="/usr/bin/"                         # Hardcode mandatory defaults
+GREP=${USR_BIN}"grep"
+SED=${USR_BIN}"sed"
+MKTEMP=${USR_BIN}"mktemp"
+RM=${USR_BIN}"rm"
+UNAME=${USR_BIN}"uname"
 
 alias ESOFT="_EX=0"                         # return 1 on an error
 alias EHARD="_EX=1"                         # exit 1 on an error
@@ -78,20 +85,6 @@ _DPRINTF() {
 }
 
 # ---------------------------------------------------------------------------- #
-_SELF_CHK() {
-
-    #
-    # Quick mandatory selfcheck
-    #
-
-    EHARD; DECIDE DETECT_COMMAND    "GREP"      'grep'
-    EHARD; DECIDE DETECT_COMMAND    "SED"       'sed'
-    EHARD; DECIDE DETECT_COMMAND    "MKTEMP"    'mktemp'
-    EHARD; DECIDE DETECT_COMMAND    "RM"        'rm'
-    EHARD; DECIDE DETECT_COMMAND    "UNAME"     'uname'
-}
-
-# ---------------------------------------------------------------------------- #
 IF_NDEF_OR_IVAR() {
 
     #
@@ -131,7 +124,7 @@ IN() {
         *)      _icase=""   ;;
     esac
 
-    echo "$1" | grep $(eval echo "$_icase") -q "$2" && return 0 || return 1
+    echo "$1" | "$GREP" $(eval echo "$_icase") -q "$2" && return 0 || return 1
 }
 
 # ---------------------------------------------------------------------------- #
@@ -186,7 +179,7 @@ DETECT_PATH() {
     # Prepare permissions string for iteration: "DRWX" -> "d r w x "
     [ -n "$3" ] &&
         _prms="$(echo "$3" |
-            sed -e 's/\([a-z]\)/\1 /g' \
+            /usr/bin/sed -e 's/\([a-z]\)/\1 /g' \
                 -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')" ||
         _prms="drx"
 
@@ -455,7 +448,7 @@ DETECT_LIBRARY() {
         return 1
     }
 
-    _tmpd=$(mktemp -d ./minmiconf.XXXXXX) || {
+    _tmpd=$("$MKTEMP" -d ./minmiconf.XXXXXX) || {
         _DPRINTF "DETECT_LIBRARY(): Failed creating a temporary directory"
         return 1
     }
@@ -464,7 +457,7 @@ DETECT_LIBRARY() {
     echo "int main() {return 0;}" > $_testc
     $CC $_testc -o $_testc.out -l"$_tlib" $_lpath > /dev/null 2>&1
     _r=$?
-    rm -r $_tmpd
+    "$RM" -r $_tmpd
     [ $_r -eq 0 ] && {
         eval $1='-l$_tlib'
         _DPRINTF "DETECT_LIBRARY(): Library: [$_tlib] found"
@@ -516,9 +509,9 @@ DETECT_TARGET() {
     #
 
     # Very rough approach
-    _machine=$(uname -m)
+    _machine=$("$UNAME" -m)
     _vendor="unknown"
-    _os=$(uname -s)
+    _os=$("$UNAME" -s)
 
     [ "$_machine" = "amd64" ] && _machine="x86_64"
     _triplet="$_machine-$_vendor-$_os"
@@ -625,7 +618,7 @@ CONFIG_START() {
 
     _lock=${2-".configured"}
 
-    [ "$3" = "f" -o  "$3" = "F" ] && rm -r "$_lock"
+    [ "$3" = "f" -o  "$3" = "F" ] && "$RM" -r "$_lock"
     eval $1='$_lock'
 
     [ -f "$_lock" ] && {
@@ -668,7 +661,7 @@ CONFIG_CLEAN() {
 
     _lock=${2-".configured"}
     eval $1='$_lock'
-    rm -r "$_lock" && {
+    "$RM" -r "$_lock" && {
         _DPRINTF "CONFIG_CLEAN(): Lock released!"
         return 0
     }
@@ -706,14 +699,14 @@ WRITE_VARS() {
         _val="$(eval echo '$'{$i})"
 
         # Find if variable is in the file
-        [ "$(grep "$_var_rgx$_var[[:space:]]*[\?\+]*=$_val_rgx" "$_file")" ] && {
+        [ "$("$GREP" "$_var_rgx$_var[[:space:]]*[\?\+]*=$_val_rgx" "$_file")" ] && {
             # Update the variable value...
             _DPRINTF "WRITE_VARS(): Updating [$_var] = [$_val] > [$_file] Backup: [$_back]"
             _YN "$_back" && cp "$_file" "$_file.back"
             IN "$TARGET" "Linux" "Y" || IN "$TARGET" "OpenBSD" "Y" && {
-                sed -i -e 's|\('"$_var_rgx"''"$_var"'[[:space:]]*[\?\+]*=\)'"$_val_rgx"'|\1'"$_val"'|' "$_file"
+                "$SED" -i -e 's|\('"$_var_rgx"''"$_var"'[[:space:]]*[\?\+]*=\)'"$_val_rgx"'|\1'"$_val"'|' "$_file"
             } || {
-                sed -i '' 's|\('"$_var_rgx"''"$_var"'[[:space:]]*[\?\+]*=\)'"$_val_rgx"'|\1'"$_val"'|' "$_file"
+                "$SED" -i '' 's|\('"$_var_rgx"''"$_var"'[[:space:]]*[\?\+]*=\)'"$_val_rgx"'|\1'"$_val"'|' "$_file"
             }
         } || {
             # ... or initiate it with the value
@@ -726,4 +719,3 @@ WRITE_VARS() {
 }
 
 # ---------------------------------------------------------------------------- #
-_SELF_CHK

@@ -1,6 +1,7 @@
 # CHANGELOG
 
-* **2026.10.08  current**
+* **2026.10.09  current**
+  * `minmiconf` updated to `1.1.1.2`
   * `gui-warp.py.in`: fixed `daemon_options` variable which could be unset in some cases
   * `gui-warp.py.in`, `gui-warp.py`:
     * `os.popen()` replaced by `subprocess.open()` because of deprication
